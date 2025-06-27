@@ -3,14 +3,6 @@
 ; マクロの主要な操作用ホットキー
 ; ===================================================================
 
-; --- ShowOverlay関数が見つからない場合の一時的な定義 ---
-if (!IsSet(ShowOverlay)) {
-    ShowOverlay(message, duration := 2000) {
-        ToolTip(message)
-        SetTimer(() => ToolTip(), -duration)
-    }
-}
-
 ; --- F12キー連打防止用グローバル変数 ---
 global g_f12_processing := false
 global g_f12_last_toggle := 0

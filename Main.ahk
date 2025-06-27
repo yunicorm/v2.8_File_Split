@@ -1,161 +1,249 @@
 ; ===================================================================
-; メインホットキー定義
-; マクロの主要な操作用ホットキー
+; Path of Exile マクロ v2.9.1
+; メインエントリーポイント
 ; ===================================================================
 
-; --- F12キー連打防止用グローバル変数 ---
-global g_f12_processing := false
-global g_f12_last_toggle := 0
-global g_f12_cooldown := 1000  ; 1秒のクールダウン
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+#NoTrayIcon
 
-; --- ホットキーコンテキスト設定 ---
-#HotIf WinActive("ahk_group TargetWindows")
+; === ウィンドウグループ定義 ===
+GroupAdd("TargetWindows", "ahk_exe PathOfExileSteam.exe")
+GroupAdd("TargetWindows", "ahk_exe streaming_client.exe")
 
-; ===================================================================
-; F12: マクロのリセット・再始動
-; ===================================================================
-F12:: {
-    global g_f12_processing, g_f12_last_toggle, g_f12_cooldown, g_macro_active
+; === ユーティリティのインクルード（最初に読み込む） ===
+#Include "Utils\Logger.ahk"
+#Include "Utils\ConfigManager.ahk"
+#Include "Utils\ColorDetection.ahk"
+#Include "Utils\Coordinates.ahk"
+#Include "Utils\HotkeyValidator.ahk"
+
+; === UIのインクルード（ユーティリティの後） ===
+#Include "UI\Overlay.ahk"
+#Include "UI\StatusDisplay.ahk"
+#Include "UI\DebugDisplay.ahk"
+
+; === 設定のインクルード ===
+#Include "Config.ahk"
+
+; === コア機能のインクルード ===
+#Include "Core\TimerManager.ahk"
+#Include "Core\WindowManager.ahk"
+
+; === 機能モジュールのインクルード ===
+#Include "Features\ManaMonitor.ahk"
+#Include "Features\TinctureManager.ahk"
+#Include "Features\FlaskManager.ahk"
+#Include "Features\SkillAutomation.ahk"
+#Include "Features\LoadingScreen.ahk"
+#Include "Features\ClientLogMonitor.ahk"
+
+; === マクロコントローラーのインクルード ===
+#Include "Core\MacroController.ahk"
+
+; === ホットキーのインクルード（最後に読み込む） ===
+#Include "Hotkeys\MainHotkeys.ahk"
+#Include "Hotkeys\DebugHotkeys.ahk"
+
+; === グローバル変数の追加初期化 ===
+global g_auto_start_enabled := false
+global g_auto_start_timer := ""
+
+; === メイン処理 ===
+try {
+    ; ロガー初期化
+    InitializeLogger()
+    LogInfo("Main", "=== Path of Exile Macro Starting ===")
     
-    ; 現在時刻を取得
-    currentTime := A_TickCount
+    ; 設定読み込み
+    if (!ConfigManager.Load()) {
+        MsgBox("設定ファイルの読み込みに失敗しました", "エラー", "OK Icon!")
+        ExitApp()
+    }
     
-    ; 処理中またはクールダウン中の場合は無視
-    if (g_f12_processing || (currentTime - g_f12_last_toggle < g_f12_cooldown)) {
-        ShowOverlay("処理中... 少し待ってください", 500)
+    ; 設定を適用
+    ApplyConfigSettings()
+    
+    ; ステータスオーバーレイ作成
+    CreateStatusOverlay()
+    
+    ; ホットキー検証
+    HotkeyValidator.RegisterFromConfig()
+    if (!HotkeyValidator.CheckConflicts()) {
+        LogWarn("Main", "Hotkey conflicts detected")
+    }
+    
+    ; 起動完了
+    ShowOverlay("Path of Exile マクロ v2.9.1 起動完了", 3000)
+    LogInfo("Main", "Initialization completed successfully")
+    
+    ; 自動開始チェック
+    if (ConfigManager.Get("General", "AutoStart", false)) {
+        g_auto_start_enabled := true
+        autoStartDelay := ConfigManager.Get("General", "AutoStartDelay", 2000)
+        LogInfo("Main", Format("Auto-start scheduled in {}ms", autoStartDelay))
+        g_auto_start_timer := SetTimer(TryAutoStart, -autoStartDelay)
+    }
+    
+} catch Error as e {
+    errorMsg := Format("初期化エラー: {}`nFile: {}`nLine: {}", 
+        e.Message, e.File, e.Line)
+    
+    MsgBox(errorMsg, "Path of Exile Macro - エラー", "OK Icon!")
+    
+    ; LogErrorWithStackが使用可能な場合のみ使用
+    if (IsSet(LogErrorWithStack)) {
+        LogErrorWithStack("Main", "Initialization failed", e)
+    }
+    
+    ExitApp()
+}
+
+; === 自動開始処理 ===
+TryAutoStart() {
+    global g_auto_start_enabled, g_macro_active
+    
+    if (!g_auto_start_enabled || g_macro_active) {
         return
     }
     
-    ; 処理開始をマーク
-    g_f12_processing := true
-    g_f12_last_toggle := currentTime
-    
-    ; キーがまだ押されている場合は離されるまで待つ
-    if (GetKeyState("F12", "P")) {
-        KeyWait("F12", "T2")  ; 最大2秒待機
-    }
-    
-    ; マクロのリセット・再始動処理
-    try {
-        ResetMacro()
-    } catch Error as e {
-        ShowOverlay("エラー: " . e.Message, 2000)
-        LogErrorWithStack("MainHotkeys", "Error in F12 handler", e)
-    }
-    
-    ; 処理完了後、少し待ってからフラグをリセット
-    SetTimer(() => ResetF12Flag(), -100)
-}
-
-; --- F12フラグリセット関数 ---
-ResetF12Flag() {
-    global g_f12_processing
-    g_f12_processing := false
-}
-
-; ===================================================================
-; Shift+F12: マクロの完全停止（手動停止）
-; ===================================================================
-+F12:: {
-    global g_macro_active
-    
-    if (g_macro_active) {
-        ShowOverlay("マクロを停止します", 1500)
-        ManualStopMacro()  ; 手動停止関数を呼び出し
-        LogInfo("MainHotkeys", "Shift+F12 pressed - Macro manually stopped")
-    } else {
-        ShowOverlay("マクロを開始します", 1500)
-        ToggleMacro()  ; 停止中の場合は通常の開始
-        LogInfo("MainHotkeys", "Shift+F12 pressed - Macro started")
-    }
-}
-
-; ===================================================================
-; Ctrl+F12: 緊急停止（全機能を即座に停止）
-; ===================================================================
-^F12:: {
-    EmergencyStopMacro()  ; 緊急停止関数を呼び出し
-    LogWarn("MainHotkeys", "Emergency stop activated (Ctrl+F12)")
-}
-
-; ===================================================================
-; Alt+F12: 設定リロード
-; ===================================================================
-!F12:: {
-    ShowOverlay("設定をリロード中...", 1500)
-    
-    if (ReloadConfiguration()) {
-        ShowOverlay("設定のリロードが完了しました", 2000)
-        LogInfo("MainHotkeys", "Configuration reloaded successfully")
-    } else {
-        ShowOverlay("設定のリロードに失敗しました", 2000)
-        LogError("MainHotkeys", "Failed to reload configuration")
-    }
-}
-
-; ===================================================================
-; Pause: マクロの一時停止/再開
-; ===================================================================
-Pause:: {
-    global g_macro_active
-    
-    if (g_macro_active) {
-        ShowOverlay("マクロ一時停止", 1500)
-        ManualStopMacro()  ; 手動停止として処理
-    } else {
-        ShowOverlay("マクロ再開", 1500)
+    ; Path of Exileがアクティブか確認
+    if (WinActive("ahk_group TargetWindows")) {
         ToggleMacro()
-    }
-    
-    LogInfo("MainHotkeys", "Pause key pressed")
-}
-
-; ===================================================================
-; ScrollLock: ステータス表示の切り替え
-; ===================================================================
-ScrollLock:: {
-    global statusGui
-    
-    try {
-        if (statusGui && IsObject(statusGui)) {
-            if (WinExist(statusGui)) {
-                statusGui.Hide()
-                ShowOverlay("ステータス非表示", 1000)
-            } else {
-                ShowStatusWindow()
-                ShowOverlay("ステータス表示", 1000)
-            }
-        }
-    } catch Error as e {
-        ShowOverlay("ステータス表示エラー", 1500)
-        LogError("MainHotkeys", "Status display error: " . e.Message)
+        LogInfo("Main", "Macro auto-started after window became active")
+        g_auto_start_enabled := false
+    } else {
+        ; まだアクティブでない場合は再試行
+        LogInfo("Main", "Auto-start delayed - waiting for active window")
+        SetTimer(TryAutoStart, -1000)
     }
 }
 
-; ===================================================================
-; Ctrl+H: ホットキー一覧表示
-; ===================================================================
-^h:: {
-    ; 更新されたホットキー一覧
-    hotkeyList := [
-        "=== メインホットキー ===",
-        "F12: マクロのリセット・再始動",
-        "Shift+F12: マクロの手動停止/開始",
-        "Ctrl+F12: 緊急停止（自動開始も無効）",
-        "Alt+F12: 設定リロード",
-        "Pause: 一時停止/再開",
-        "ScrollLock: ステータス表示切り替え",
-        "",
-        "=== デバッグホットキー ===",
-        "F11: マナデバッグ表示",
-        "F10: エリア検出方式切り替え",
-        "F9: エリア検出デバッグ",
-        "F8: タイマーデバッグ",
-        "F7: 全体デバッグ情報",
-        "F6: ログビューア"
-    ]
+; === スクリプト終了時の処理 ===
+OnExit(ExitHandler)
+
+ExitHandler(reason, exitCode) {
+    LogInfo("Main", "=== Path of Exile Macro Shutting Down ===")
     
-    ShowMultiLineOverlay(hotkeyList, 5000)
+    ; 全タイマー停止
+    StopAllTimers()
+    
+    ; UI クリーンアップ
+    CleanupUI()
+    
+    ; ログをフラッシュ
+    Sleep(100)
+    
+    return 0
 }
 
-#HotIf  ; コンテキストをリセット
+; === マクロのメイン関数 ===
+
+; マクロのトグル
+ToggleMacro() {
+    global g_macro_active
+    
+    if (g_macro_active) {
+        StopMacro()
+    } else {
+        StartMacro()
+    }
+}
+
+; マクロ開始
+StartMacro() {
+    global g_macro_active, g_macro_start_time
+    
+    if (g_macro_active) {
+        return
+    }
+    
+    ; ウィンドウチェック
+    if (!IsTargetWindowActive()) {
+        ShowOverlay("Path of Exileがアクティブではありません", 2000)
+        return
+    }
+    
+    g_macro_active := true
+    g_macro_start_time := A_TickCount
+    
+    ; 初期アクション実行
+    PerformInitialActions()
+    
+    ; 各システムを開始
+    StartSkillAutomation()
+    StartFlaskAutomation()
+    StartManaMonitoring()
+    
+    ; エリア検出を開始（設定に基づく）
+    if (ConfigManager.Get("ClientLog", "Enabled", true)) {
+        StartClientLogMonitoring()
+    } else if (ConfigManager.Get("LoadingScreen", "Enabled", false)) {
+        StartLoadingScreenDetection()
+    }
+    
+    ; ステータス更新
+    UpdateStatusOverlay()
+    
+    ShowOverlay("マクロ開始", 2000)
+    LogInfo("MacroController", "Macro started")
+}
+
+; マクロ停止
+StopMacro() {
+    global g_macro_active
+    
+    if (!g_macro_active) {
+        return
+    }
+    
+    g_macro_active := false
+    
+    ; 全システムを停止
+    StopAllTimers()
+    
+    ; ステータス更新
+    UpdateStatusOverlay()
+    
+    ShowOverlay("マクロ停止", 2000)
+    LogInfo("MacroController", "Macro stopped")
+}
+
+; マクロリセット
+ResetMacro() {
+    global g_macro_active
+    
+    LogInfo("MainHotkeys", "F12 pressed - Resetting macro")
+    
+    wasActive := g_macro_active
+    
+    ; 一旦停止
+    if (g_macro_active) {
+        StopMacro()
+        Sleep(100)
+    }
+    
+    ; 状態をリセット
+    ResetTinctureState()
+    InitializeManaState()
+    
+    ; 再開
+    StartMacro()
+}
+
+; 手動停止
+ManualStopMacro() {
+    global g_auto_start_enabled
+    g_auto_start_enabled := false
+    StopMacro()
+    LogInfo("MacroController", "Macro manually stopped - auto-start disabled")
+}
+
+; 緊急停止
+EmergencyStopMacro() {
+    global g_auto_start_enabled
+    g_auto_start_enabled := false
+    StopMacro()
+    ShowOverlay("緊急停止 - 自動開始無効", 3000)
+    LogWarn("MacroController", "Emergency stop - auto-start disabled")
+}
