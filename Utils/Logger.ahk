@@ -1,5 +1,6 @@
 ; ===================================================================
-; ログシステム - デバッグとトラブルシューティング用
+; ログシステム（修正版）
+; 効率的なログ記録とメモリ管理
 ; ===================================================================
 
 ; --- ログレベル定義 ---
@@ -7,44 +8,92 @@ global LOG_LEVEL := {
     DEBUG: 0,
     INFO: 1,
     WARN: 2,
-    ERROR: 3
+    ERROR: 3,
+    CRITICAL: 4
 }
 
-; --- 現在のログレベル ---
+; --- グローバル変数 ---
 global g_current_log_level := LOG_LEVEL.INFO
-
-; --- ログファイルパス ---
 global g_log_file := ""
 global g_log_dir := A_ScriptDir . "\logs"
+global g_log_buffer := []
+global g_log_buffer_size := 50  ; バッファサイズ
+global g_log_file_handle := ""
+global g_log_write_count := 0
+global g_log_rotation_in_progress := false
+global g_log_stats := {
+    totalLogs: 0,
+    droppedLogs: 0,
+    rotations: 0,
+    writeErrors: 0
+}
 
-; --- ログ初期化 ---
+; --- ログ初期化（改善版） ---
 InitializeLogger() {
-    global g_log_file, g_log_dir
+    global g_log_file, g_log_dir, g_log_file_handle, g_current_log_level
+    
+    ; ログレベルを設定から取得
+    if (ConfigManager.Get("General", "DebugMode", false)) {
+        g_current_log_level := LOG_LEVEL.DEBUG
+    }
     
     ; ログディレクトリを作成
     if (!DirExist(g_log_dir)) {
-        DirCreate(g_log_dir)
+        try {
+            DirCreate(g_log_dir)
+        } catch Error as e {
+            MsgBox("ログディレクトリの作成に失敗しました: " . e.Message, "エラー", "OK Icon!")
+            return false
+        }
     }
     
     ; ログファイル名を生成
-    g_log_file := g_log_dir . "\macro_" . A_Now . ".log"
+    g_log_file := g_log_dir . "\macro_" . FormatTime(A_Now, "yyyyMMdd_HHmmss") . ".log"
+    
+    ; ログファイルを開く（追記モード、共有読み取り可能）
+    try {
+        g_log_file_handle := FileOpen(g_log_file, "a", "UTF-8-RAW")
+        if (!g_log_file_handle) {
+            throw Error("Failed to open log file")
+        }
+        
+        // バッファリングを有効化
+        g_log_file_handle.Encoding := "UTF-8-RAW"
+        
+    } catch Error as e {
+        ; ファイルハンドルが使えない場合は従来の方式にフォールバック
+        g_log_file_handle := ""
+        OutputDebug("Failed to open log file handle: " . e.Message)
+    }
     
     ; 初期ログエントリ
     WriteLog(LOG_LEVEL.INFO, "Logger", "=== Path of Exile Macro Started ===")
-    WriteLog(LOG_LEVEL.INFO, "Logger", "Version: 2.8.2")
+    WriteLog(LOG_LEVEL.INFO, "Logger", "Version: v2.9.2")
     WriteLog(LOG_LEVEL.INFO, "Logger", "AutoHotkey: " . A_AhkVersion)
+    WriteLog(LOG_LEVEL.INFO, "Logger", "Log Level: " . GetLogLevelName(g_current_log_level))
     
-    ; ログローテーションをチェック
-    CheckLogRotation()
+    ; バッファフラッシュタイマーを開始
+    SetTimer(FlushLogBuffer, 1000)  ; 1秒ごと
+    
+    ; ログローテーションタイマーを開始
+    SetTimer(CheckLogRotation, 60000)  ; 1分ごと
+    
+    ; 古いログのクリーンアップ
+    CleanupOldLogs()
+    
+    return true
 }
 
-; --- ログ書き込み関数 ---
+; --- ログ書き込み関数（改善版） ---
 WriteLog(level, module, message) {
-    global g_log_enabled, g_current_log_level, g_log_file
+    global g_log_enabled, g_current_log_level, g_log_buffer
+    global g_log_stats, g_log_buffer_size
     
     if (!g_log_enabled || level < g_current_log_level) {
         return
     }
+    
+    g_log_stats.totalLogs++
     
     ; タイムスタンプ
     timestamp := FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss")
@@ -53,52 +102,191 @@ WriteLog(level, module, message) {
     levelName := GetLogLevelName(level)
     
     ; ログエントリを作成
-    logEntry := Format("[{}] [{}] [{}] {}`n", 
+    logEntry := Format("[{}] [{}] [{}] {}", 
         timestamp, levelName, module, message)
     
-    ; ファイルに書き込み
-    try {
-        FileAppend(logEntry, g_log_file)
-    } catch Error as e {
-        ; ログ書き込み失敗
-        OutputDebug("Failed to write log: " . e.Message)
+    ; バッファに追加
+    g_log_buffer.Push({
+        entry: logEntry,
+        level: level,
+        timestamp: A_TickCount
+    })
+    
+    ; バッファサイズ制限
+    if (g_log_buffer.Length > g_log_buffer_size) {
+        ; 優先度の低いログを削除
+        RemoveLowPriorityLogs()
     }
     
-    ; デバッグモードならコンソールにも出力
-    if (ConfigManager.Get("General", "DebugMode", false)) {
+    // 重要なログは即座にフラッシュ
+    if (level >= LOG_LEVEL.ERROR) {
+        FlushLogBuffer()
+    }
+    
+    // デバッグモードならコンソールにも出力
+    if (g_current_log_level == LOG_LEVEL.DEBUG) {
         OutputDebug(logEntry)
     }
 }
 
-; --- ログローテーション ---
+; --- 優先度の低いログを削除 ---
+RemoveLowPriorityLogs() {
+    global g_log_buffer, g_log_stats
+    
+    ; DEBUGレベルのログから削除
+    newBuffer := []
+    droppedCount := 0
+    
+    for log in g_log_buffer {
+        if (log.level > LOG_LEVEL.DEBUG || newBuffer.Length < g_log_buffer_size - 10) {
+            newBuffer.Push(log)
+        } else {
+            droppedCount++
+        }
+    }
+    
+    g_log_buffer := newBuffer
+    g_log_stats.droppedLogs += droppedCount
+    
+    if (droppedCount > 0) {
+        OutputDebug(Format("Dropped {} low priority logs", droppedCount))
+    }
+}
+
+; --- ログバッファをフラッシュ ---
+FlushLogBuffer() {
+    global g_log_buffer, g_log_file, g_log_file_handle
+    global g_log_write_count, g_log_stats
+    
+    if (g_log_buffer.Length == 0) {
+        return
+    }
+    
+    try {
+        ; バッファの内容を結合
+        logContent := ""
+        for log in g_log_buffer {
+            logContent .= log.entry . "`n"
+        }
+        
+        ; ファイルに書き込み
+        if (g_log_file_handle) {
+            ; ファイルハンドルを使用
+            g_log_file_handle.Write(logContent)
+            g_log_file_handle.Flush()  ; 強制的にディスクに書き込み
+        } else {
+            ; 従来の方式
+            FileAppend(logContent, g_log_file)
+        }
+        
+        g_log_write_count += g_log_buffer.Length
+        
+        ; バッファをクリア
+        g_log_buffer := []
+        
+    } catch Error as e {
+        g_log_stats.writeErrors++
+        OutputDebug("Failed to write log: " . e.Message)
+        
+        ; エラーが続く場合はファイルハンドルを再オープン
+        if (g_log_stats.writeErrors > 5) {
+            ReopenLogFile()
+        }
+    }
+}
+
+; --- ログファイルを再オープン ---
+ReopenLogFile() {
+    global g_log_file_handle, g_log_file, g_log_stats
+    
+    // 既存のハンドルを閉じる
+    if (g_log_file_handle) {
+        try {
+            g_log_file_handle.Close()
+        } catch {
+            ; エラーは無視
+        }
+    }
+    
+    // 新しいハンドルを開く
+    try {
+        g_log_file_handle := FileOpen(g_log_file, "a", "UTF-8-RAW")
+        g_log_stats.writeErrors := 0
+        OutputDebug("Log file reopened successfully")
+    } catch {
+        g_log_file_handle := ""
+    }
+}
+
+; --- ログローテーション（改善版） ---
 CheckLogRotation() {
-    global g_log_file, g_log_dir
+    global g_log_file, g_log_dir, g_log_write_count
+    global g_log_rotation_in_progress, g_log_stats
+    
+    if (g_log_rotation_in_progress) {
+        return
+    }
     
     try {
         maxSize := ConfigManager.Get("General", "MaxLogSize", 10) * 1024 * 1024  ; MB to bytes
         
+        // ファイルサイズをチェック
+        currentSize := 0
         if (FileExist(g_log_file)) {
             currentSize := FileGetSize(g_log_file)
+        }
+        
+        // 書き込み回数でもチェック（パフォーマンス対策）
+        if (currentSize > maxSize || g_log_write_count > 10000) {
+            g_log_rotation_in_progress := true
             
-            if (currentSize > maxSize) {
-                ; 新しいログファイルを作成
-                oldFile := g_log_file
-                g_log_file := g_log_dir . "\macro_" . A_Now . ".log"
-                
-                WriteLog(LOG_LEVEL.INFO, "Logger", 
-                    Format("Log rotation: {} -> {}", oldFile, g_log_file))
-                
-                ; 古いファイルをアーカイブ
-                archiveName := StrReplace(oldFile, ".log", "_archived.log")
-                try {
-                    FileMove(oldFile, archiveName, 1)
-                } catch {
-                    ; アーカイブ失敗は無視
-                }
+            // バッファをフラッシュ
+            FlushLogBuffer()
+            
+            // ファイルハンドルを閉じる
+            if (g_log_file_handle) {
+                g_log_file_handle.Close()
+                g_log_file_handle := ""
             }
+            
+            // 新しいログファイルを作成
+            oldFile := g_log_file
+            g_log_file := g_log_dir . "\macro_" . FormatTime(A_Now, "yyyyMMdd_HHmmss") . ".log"
+            
+            // ファイルハンドルを開く
+            try {
+                g_log_file_handle := FileOpen(g_log_file, "a", "UTF-8-RAW")
+            } catch {
+                g_log_file_handle := ""
+            }
+            
+            WriteLog(LOG_LEVEL.INFO, "Logger", 
+                Format("Log rotation: {} -> {} (Size: {} KB, Writes: {})", 
+                    oldFile, g_log_file, Round(currentSize / 1024), g_log_write_count))
+            
+            g_log_write_count := 0
+            g_log_stats.rotations++
+            
+            // 古いファイルを圧縮（オプション）
+            if (ConfigManager.Get("General", "CompressOldLogs", false)) {
+                CompressLogFile(oldFile)
+            }
+            
+            g_log_rotation_in_progress := false
         }
     } catch Error as e {
+        g_log_rotation_in_progress := false
         OutputDebug("Log rotation check failed: " . e.Message)
+    }
+}
+
+; --- ログファイルを圧縮 ---
+CompressLogFile(filePath) {
+    try {
+        ; TODO: 圧縮実装（7-zipなどの外部ツールを使用）
+        ; 現在は未実装
+    } catch {
+        ; エラーは無視
     }
 }
 
@@ -109,6 +297,7 @@ GetLogLevelName(level) {
         case 1: return "INFO"
         case 2: return "WARN"
         case 3: return "ERROR"
+        case 4: return "CRITICAL"
         default: return "UNKNOWN"
     }
 }
@@ -130,56 +319,72 @@ LogError(module, message) {
     WriteLog(LOG_LEVEL.ERROR, module, message)
 }
 
-; --- タイマー実行ログ ---
-LogTimerExecution(timerName, duration := "") {
-    msg := Format("Timer '{}' executed", timerName)
-    if (duration != "") {
-        msg .= Format(" ({}ms)", duration)
-    }
-    LogDebug("TimerManager", msg)
+LogCritical(module, message) {
+    WriteLog(LOG_LEVEL.CRITICAL, module, message)
 }
 
-; --- マナ状態変化ログ ---
-LogManaStateChange(oldState, newState, fillRate) {
-    LogInfo("ManaMonitor", 
-        Format("Mana state changed: {} -> {} ({}%)", 
-            oldState ? "Has Mana" : "Depleted",
-            newState ? "Has Mana" : "Depleted",
-            fillRate))
-}
-
-; --- エラーログ with スタックトレース ---
+; --- エラーログ with スタックトレース（改善版） ---
 LogErrorWithStack(module, message, errorObj := "") {
     fullMessage := message
     
     if (errorObj != "") {
-        fullMessage .= Format("`nError: {}`nFile: {}`nLine: {}", 
-            errorObj.Message,
-            errorObj.File,
-            errorObj.Line)
+        fullMessage .= Format("`n  Error: {}", errorObj.Message ?? "Unknown")
+        fullMessage .= Format("`n  File: {}", errorObj.File ?? "Unknown")
+        fullMessage .= Format("`n  Line: {}", errorObj.Line ?? "Unknown")
         
         if (errorObj.HasProp("Stack")) {
-            fullMessage .= "`nStack: " . errorObj.Stack
+            fullMessage .= "`n  Stack: " . errorObj.Stack
+        }
+        
+        // 追加情報
+        if (errorObj.HasProp("Extra")) {
+            fullMessage .= "`n  Extra: " . errorObj.Extra
         }
     }
     
     LogError(module, fullMessage)
 }
 
-; --- パフォーマンスログ ---
+; --- パフォーマンスログ（改善版） ---
 global g_performance_timers := Map()
 
 StartPerfTimer(name) {
     global g_performance_timers
-    g_performance_timers[name] := A_TickCount
+    g_performance_timers[name] := {
+        start: A_TickCount,
+        checkpoints: []
+    }
+}
+
+AddPerfCheckpoint(name, checkpoint) {
+    global g_performance_timers
+    
+    if (g_performance_timers.Has(name)) {
+        g_performance_timers[name].checkpoints.Push({
+            name: checkpoint,
+            time: A_TickCount - g_performance_timers[name].start
+        })
+    }
 }
 
 EndPerfTimer(name, module := "Performance") {
     global g_performance_timers
     
     if (g_performance_timers.Has(name)) {
-        duration := A_TickCount - g_performance_timers[name]
-        LogDebug(module, Format("'{}' took {}ms", name, duration))
+        timer := g_performance_timers[name]
+        duration := A_TickCount - timer.start
+        
+        // 詳細なログ
+        if (timer.checkpoints.Length > 0) {
+            checkpointInfo := ""
+            for cp in timer.checkpoints {
+                checkpointInfo .= Format(" [{}:{}ms]", cp.name, cp.time)
+            }
+            LogDebug(module, Format("'{}' took {}ms -{}", name, duration, checkpointInfo))
+        } else {
+            LogDebug(module, Format("'{}' took {}ms", name, duration))
+        }
+        
         g_performance_timers.Delete(name)
         return duration
     }
@@ -187,44 +392,119 @@ EndPerfTimer(name, module := "Performance") {
     return 0
 }
 
-; --- ログビューア ---
+; --- ログビューア（改善版） ---
 ShowLogViewer() {
     global g_log_file
     
+    // バッファをフラッシュ
+    FlushLogBuffer()
+    
     if (FileExist(g_log_file)) {
         try {
-            Run("notepad.exe " . g_log_file)
+            ; デフォルトのテキストエディタで開く
+            Run(g_log_file)
         } catch Error as e {
-            MsgBox("ログファイルを開けませんでした: " . e.Message, "エラー", "OK Icon!")
+            ; Notepadで開く
+            try {
+                Run("notepad.exe `"" . g_log_file . "`"")
+            } catch {
+                MsgBox("ログファイルを開けませんでした: " . e.Message, "エラー", "OK Icon!")
+            }
         }
     } else {
         MsgBox("ログファイルが見つかりません", "情報", "OK Icon!")
     }
 }
 
-; --- 古いログファイルのクリーンアップ ---
-CleanupOldLogs(daysToKeep := 7) {
+; --- 古いログファイルのクリーンアップ（改善版） ---
+CleanupOldLogs(daysToKeep := "") {
     global g_log_dir
+    
+    if (daysToKeep == "") {
+        daysToKeep := ConfigManager.Get("General", "LogRetentionDays", 7)
+    }
     
     cutoffTime := A_Now
     cutoffTime := DateAdd(cutoffTime, -daysToKeep, "Days")
+    
+    deletedCount := 0
+    totalSize := 0
     
     try {
         Loop Files, g_log_dir . "\macro_*.log" {
             fileTime := FileGetTime(A_LoopFilePath, "C")
             if (fileTime < cutoffTime) {
                 try {
+                    totalSize += FileGetSize(A_LoopFilePath)
                     FileDelete(A_LoopFilePath)
-                    LogInfo("Logger", "Deleted old log: " . A_LoopFileName)
+                    deletedCount++
                 } catch {
                     ; 削除失敗は無視
                 }
             }
+        }
+        
+        if (deletedCount > 0) {
+            LogInfo("Logger", Format("Deleted {} old log files ({} KB)", 
+                deletedCount, Round(totalSize / 1024)))
         }
     } catch Error as e {
         LogError("Logger", "Cleanup failed: " . e.Message)
     }
 }
 
-; --- 定期的なログローテーションチェック ---
-SetTimer(CheckLogRotation, 3600000)  ; 1時間ごとにチェック
+; --- ログ統計の取得 ---
+GetLoggerStats() {
+    global g_log_stats, g_log_buffer, g_log_write_count
+    global g_log_file
+    
+    fileSize := 0
+    if (FileExist(g_log_file)) {
+        fileSize := FileGetSize(g_log_file)
+    }
+    
+    return {
+        totalLogs: g_log_stats.totalLogs,
+        droppedLogs: g_log_stats.droppedLogs,
+        dropRate: g_log_stats.totalLogs > 0 ? 
+            Round(g_log_stats.droppedLogs / g_log_stats.totalLogs * 100, 2) : 0,
+        rotations: g_log_stats.rotations,
+        writeErrors: g_log_stats.writeErrors,
+        bufferSize: g_log_buffer.Length,
+        writeCount: g_log_write_count,
+        fileSize: Round(fileSize / 1024, 2)  ; KB
+    }
+}
+
+; --- ログレベルの動的変更 ---
+SetLogLevel(level) {
+    global g_current_log_level
+    
+    if (level >= LOG_LEVEL.DEBUG && level <= LOG_LEVEL.CRITICAL) {
+        g_current_log_level := level
+        LogInfo("Logger", "Log level changed to: " . GetLogLevelName(level))
+        return true
+    }
+    
+    return false
+}
+
+; --- 終了時のクリーンアップ ---
+OnExit(LoggerCleanup)
+
+LoggerCleanup(reason, exitCode) {
+    ; バッファをフラッシュ
+    FlushLogBuffer()
+    
+    ; ファイルハンドルを閉じる
+    global g_log_file_handle
+    if (g_log_file_handle) {
+        try {
+            g_log_file_handle.Close()
+        } catch {
+            ; エラーは無視
+        }
+    }
+    
+    return 0
+}
