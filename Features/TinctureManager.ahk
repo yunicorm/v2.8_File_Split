@@ -48,6 +48,7 @@ CheckTinctureCooldown() {
 ; --- Tincture使用試行 ---
 AttemptTinctureUse() {
     global g_tincture_active, g_tincture_retry_count, g_macro_active, g_tincture_retry_max
+    global KEY_TINCTURE  ; グローバル変数を明示的に宣言
     
     ; マクロが非アクティブなら何もしない
     if (!g_macro_active) {
@@ -117,7 +118,7 @@ HandleTinctureSuccess() {
     g_tincture_retry_count := 0
     StopManagedTimer("TinctureCooldown")
     
-    // マナフラスコループのタイミングをリセット
+    ; マナフラスコループのタイミングをリセット
     ResetFlaskTiming()
     
     ShowOverlay("Tincture使用成功！", 2000)
@@ -135,7 +136,7 @@ HandleTinctureOnManaDepletion() {
     g_tincture_cooldown_end := A_TickCount + TIMING_MANA_DEPLETED_CD
     g_tincture_retry_count := 0
     
-    // クールダウンチェック開始
+    ; クールダウンチェック開始
     StartTinctureCooldownCheck()
     
     LogInfo("TinctureManager", Format("Tincture deactivated due to mana depletion. CD: {}ms", 

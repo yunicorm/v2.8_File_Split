@@ -53,4 +53,4 @@ global TIMING_MANA_DEPLETED_CD := 5410
 
 ; --- デバッグ設定 ---
 global g_debug_mode := false
-global g_log_enabled := fals
+global g_log_enabled := false  ; 修正: falsからfalseに

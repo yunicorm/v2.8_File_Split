@@ -61,3 +61,20 @@ StopMacro() {
     UpdateStatusOverlay()
     ShowOverlay("Macro Stopped", 1500)
 }
+
+; --- 初期アクション実行 ---
+PerformInitialActions() {
+    global KEY_TINCTURE, KEY_MANA_FLASK, g_tincture_active
+    
+    ; 初回Tincture使用
+    Send(KEY_TINCTURE)
+    g_tincture_active := true
+    
+    ; 少し待機
+    Sleep(100)
+    
+    ; 初回マナフラスコ使用
+    Send(KEY_MANA_FLASK)
+    
+    LogInfo("MacroController", "Initial actions performed")
+}

@@ -27,7 +27,7 @@ UseManaFlask() {
         return
     }
     
-    // フラスコ使用前に再度フラグチェック
+    ; フラスコ使用前に再度フラグチェック
     if (!g_flask_timer_active) {
         StopManagedTimer("ManaFlask")
         return
@@ -37,7 +37,7 @@ UseManaFlask() {
     Send(g_mana_flask_key)
     flaskDuration := EndPerfTimer("FlaskUse", "FlaskManager")
     
-    // 次のフラスコ使用をスケジュール
+    ; 次のフラスコ使用をスケジュール
     nextDelay := Random(TIMING_FLASK.min, TIMING_FLASK.max)
     StartManagedTimer("ManaFlask", UseManaFlask, nextDelay)
     
@@ -48,16 +48,16 @@ UseManaFlask() {
 ResetFlaskTiming() {
     global g_flask_timer_active, g_mana_flask_key
     
-    // 一旦停止
+    ; 一旦停止
     StopManagedTimer("ManaFlask")
     g_flask_timer_active := false
     
     Sleep(100)
     
-    // 即座に使用
+    ; 即座に使用
     Send(g_mana_flask_key)
     
-    // 新しいタイミングで再開
+    ; 新しいタイミングで再開
     g_flask_timer_active := true
     StartManagedTimer("ManaFlask", UseManaFlask, Random(TIMING_FLASK.min, TIMING_FLASK.max))
     

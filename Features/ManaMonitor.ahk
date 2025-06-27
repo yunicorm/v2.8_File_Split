@@ -2,6 +2,43 @@
 ; マナ監視システム
 ; ===================================================================
 
+; --- マナ円形検出（完全枯渇検出式） ---
+CheckManaRadial() {
+    global g_mana_center_x, g_mana_center_y, g_mana_radius, g_mana_fill_rate
+    
+    ; 検出設定
+    blueThreshold := 40
+    checkRatios := [0.85, 0.90, 0.95]  ; マナオーブ下部の3つの高さ
+    totalBlueFound := 0
+    
+    ; 各高さで青色を検出
+    for ratio in checkRatios {
+        bottomY := g_mana_center_y + (g_mana_radius * ratio)
+        
+        ; 各高さで5ポイントをチェック
+        Loop 5 {
+            xOffset := (A_Index - 3) * g_mana_radius * 0.2
+            checkX := g_mana_center_x + xOffset
+            checkY := bottomY
+            
+            try {
+                color := PixelGetColor(checkX, checkY, "RGB")
+                if (IsBlueColor(color, blueThreshold, 20)) {
+                    totalBlueFound++
+                }
+            } catch {
+                ; エラーは無視
+            }
+        }
+    }
+    
+    ; 充填率を更新（0または100で簡略化）
+    g_mana_fill_rate := totalBlueFound > 0 ? 100 : 0
+    
+    ; 完全枯渇は全ポイント（15箇所）で青が検出されない場合
+    return totalBlueFound > 0
+}
+
 ; --- マナ状態の初期化 ---
 InitializeManaState() {
     global g_last_mana_state, g_mana_depleted

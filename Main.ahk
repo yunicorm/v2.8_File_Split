@@ -4,6 +4,7 @@ Persistent()
 
 ; === インクルード順序が重要 ===
 #Include "Config.ahk"
+#Include "Utils\Logger.ahk"  ; 追加: Logger.ahkのインクルード
 #Include "Utils\ColorDetection.ahk"
 #Include "Utils\Coordinates.ahk"
 #Include "Core\WindowManager.ahk"
@@ -33,6 +34,9 @@ InitializeMacro() {
     ; ウィンドウグループの設定
     GroupAdd("TargetWindows", "ahk_exe streaming_client.exe")
     GroupAdd("TargetWindows", "ahk_exe PathOfExileSteam.exe")
+    
+    ; ログ初期化
+    InitializeLogger()
     
     ; UI初期化
     CreateStatusOverlay()
