@@ -1,142 +1,161 @@
-#Requires AutoHotkey v2.0
-#SingleInstance Force
-Persistent()
+; ===================================================================
+; メインホットキー定義
+; マクロの主要な操作用ホットキー
+; ===================================================================
 
-; === インクルード順序が重要 ===
-; ユーティリティを最初に読み込み
-#Include "Utils\ConfigManager.ahk"
-#Include "Utils\HotkeyValidator.ahk"
-#Include "Utils\Logger.ahk"
-#Include "Utils\ColorDetection.ahk"
-#Include "Utils\Coordinates.ahk"
+; --- F12キー連打防止用グローバル変数 ---
+global g_f12_processing := false
+global g_f12_last_toggle := 0
+global g_f12_cooldown := 1000  ; 1秒のクールダウン
 
-; 設定を読み込み
-#Include "Config.ahk"
+; --- ホットキーコンテキスト設定 ---
+#HotIf WinActive("ahk_group TargetWindows")
 
-; コアシステム
-#Include "Core\WindowManager.ahk"
-#Include "Core\TimerManager.ahk"
-
-; UI
-#Include "UI\Overlay.ahk"
-#Include "UI\StatusDisplay.ahk"
-#Include "UI\DebugDisplay.ahk"
-
-; 機能
-#Include "Features\ManaMonitor.ahk"
-#Include "Features\TinctureManager.ahk"
-#Include "Features\FlaskManager.ahk"
-#Include "Features\SkillAutomation.ahk"
-#Include "Features\LoadingScreen.ahk"
-#Include "Features\ClientLogMonitor.ahk"
-
-; マクロコントローラー
-#Include "Core\MacroController.ahk"
-
-; ホットキー
-#Include "Hotkeys\MainHotkeys.ahk"
-#Include "Hotkeys\DebugHotkeys.ahk"
-
-; === 初期化 ===
-InitializeMacro()
-
-; === メイン初期化関数 ===
-InitializeMacro() {
-    ; 設定ファイルを読み込み
-    if (!ConfigManager.Load()) {
-        MsgBox("設定ファイルの読み込みに失敗しました。", "エラー", "OK Icon!")
-        ExitApp()
+; ===================================================================
+; F12: マクロのリセット・再始動
+; ===================================================================
+F12:: {
+    global g_f12_processing, g_f12_last_toggle, g_f12_cooldown, g_macro_active
+    
+    ; 現在時刻を取得
+    currentTime := A_TickCount
+    
+    ; 処理中またはクールダウン中の場合は無視
+    if (g_f12_processing || (currentTime - g_f12_last_toggle < g_f12_cooldown)) {
+        ShowOverlay("処理中... 少し待ってください", 500)
+        return
     }
     
-    ; ログシステム初期化
-    InitializeLogger()
-    LogInfo("Main", "=== Path of Exile Macro Starting ===")
+    ; 処理開始をマーク
+    g_f12_processing := true
+    g_f12_last_toggle := currentTime
     
-    ; 座標モードの設定
-    CoordMode("Mouse", "Screen")
-    CoordMode("ToolTip", "Screen")
-    CoordMode("Pixel", "Screen")
-    
-    ; ウィンドウグループの設定
-    GroupAdd("TargetWindows", "ahk_exe streaming_client.exe")
-    GroupAdd("TargetWindows", "ahk_exe PathOfExileSteam.exe")
-    
-    ; ホットキーの検証
-    HotkeyValidator.RegisterFromConfig()
-    if (!HotkeyValidator.CheckConflicts()) {
-        LogWarn("Main", "Hotkey conflicts detected")
+    ; キーがまだ押されている場合は離されるまで待つ
+    if (GetKeyState("F12", "P")) {
+        KeyWait("F12", "T2")  ; 最大2秒待機
     }
     
-    ; グローバル変数を設定から初期化
-    LoadConfigToGlobals()
+    ; マクロのリセット・再始動処理
+    try {
+        ResetMacro()
+    } catch Error as e {
+        ShowOverlay("エラー: " . e.Message, 2000)
+        LogErrorWithStack("MainHotkeys", "Error in F12 handler", e)
+    }
     
-    ; UI初期化
-    CreateStatusOverlay()
+    ; 処理完了後、少し待ってからフラグをリセット
+    SetTimer(() => ResetF12Flag(), -100)
+}
+
+; --- F12フラグリセット関数 ---
+ResetF12Flag() {
+    global g_f12_processing
+    g_f12_processing := false
+}
+
+; ===================================================================
+; Shift+F12: マクロの完全停止（手動停止）
+; ===================================================================
++F12:: {
+    global g_macro_active
     
-    ; 古いログファイルをクリーンアップ
-    CleanupOldLogs(ConfigManager.Get("General", "LogRetentionDays", 7))
-    
-    ; 終了時のクリーンアップ
-    OnExit(ExitFunc)
-    
-    LogInfo("Main", "Initialization completed successfully")
-    
-    ; === 自動開始機能 ===
-    if (ConfigManager.Get("General", "AutoStart", false)) {
-        autoStartDelay := ConfigManager.Get("General", "AutoStartDelay", 2000)
-        
-        ShowOverlay(Format("マクロを{}秒後に自動開始します...", autoStartDelay/1000), autoStartDelay)
-        LogInfo("Main", Format("Auto-start scheduled in {}ms", autoStartDelay))
-        
-        ; 指定時間後に自動開始（ウィンドウがアクティブな場合のみ）
-        SetTimer(() => AutoStartMacro(), -autoStartDelay)
+    if (g_macro_active) {
+        ShowOverlay("マクロを停止します", 1500)
+        ManualStopMacro()  ; 手動停止関数を呼び出し
+        LogInfo("MainHotkeys", "Shift+F12 pressed - Macro manually stopped")
     } else {
-        ShowOverlay("F12キーでマクロを開始してください", 3000)
+        ShowOverlay("マクロを開始します", 1500)
+        ToggleMacro()  ; 停止中の場合は通常の開始
+        LogInfo("MainHotkeys", "Shift+F12 pressed - Macro started")
     }
 }
 
-; === 自動開始関数 ===
-AutoStartMacro() {
-    global g_macro_active
+; ===================================================================
+; Ctrl+F12: 緊急停止（全機能を即座に停止）
+; ===================================================================
+^F12:: {
+    EmergencyStopMacro()  ; 緊急停止関数を呼び出し
+    LogWarn("MainHotkeys", "Emergency stop activated (Ctrl+F12)")
+}
+
+; ===================================================================
+; Alt+F12: 設定リロード
+; ===================================================================
+!F12:: {
+    ShowOverlay("設定をリロード中...", 1500)
     
-    ; Path of Exileウィンドウがアクティブか確認
-    if (IsTargetWindowActive()) {
-        if (!g_macro_active) {
-            ShowOverlay("マクロを自動開始します", 2000)
-            ToggleMacro()
-            LogInfo("Main", "Macro auto-started successfully")
-        }
+    if (ReloadConfiguration()) {
+        ShowOverlay("設定のリロードが完了しました", 2000)
+        LogInfo("MainHotkeys", "Configuration reloaded successfully")
     } else {
-        ; ウィンドウがアクティブでない場合は待機
-        ShowOverlay("Path of Exileをアクティブにしてください", 3000)
-        LogInfo("Main", "Auto-start delayed - waiting for active window")
-        
-        ; 再試行タイマーを設定
-        SetTimer(() => WaitForWindowAndStart(), 1000)
+        ShowOverlay("設定のリロードに失敗しました", 2000)
+        LogError("MainHotkeys", "Failed to reload configuration")
     }
 }
 
-; === ウィンドウ待機と開始 ===
-WaitForWindowAndStart() {
+; ===================================================================
+; Pause: マクロの一時停止/再開
+; ===================================================================
+Pause:: {
     global g_macro_active
     
-    if (IsTargetWindowActive() && !g_macro_active) {
-        SetTimer(() => WaitForWindowAndStart(), 0)  ; タイマー停止
-        ShowOverlay("マクロを自動開始します", 2000)
+    if (g_macro_active) {
+        ShowOverlay("マクロ一時停止", 1500)
+        ManualStopMacro()  ; 手動停止として処理
+    } else {
+        ShowOverlay("マクロ再開", 1500)
         ToggleMacro()
-        LogInfo("Main", "Macro auto-started after window became active")
+    }
+    
+    LogInfo("MainHotkeys", "Pause key pressed")
+}
+
+; ===================================================================
+; ScrollLock: ステータス表示の切り替え
+; ===================================================================
+ScrollLock:: {
+    global statusGui
+    
+    try {
+        if (statusGui && IsObject(statusGui)) {
+            if (WinExist(statusGui)) {
+                statusGui.Hide()
+                ShowOverlay("ステータス非表示", 1000)
+            } else {
+                ShowStatusWindow()
+                ShowOverlay("ステータス表示", 1000)
+            }
+        }
+    } catch Error as e {
+        ShowOverlay("ステータス表示エラー", 1500)
+        LogError("MainHotkeys", "Status display error: " . e.Message)
     }
 }
 
-; === 設定からグローバル変数を読み込み ---
-LoadConfigToGlobals() {
-    ; Config.ahkの関数を呼び出し
-    ApplyConfigSettings()
+; ===================================================================
+; Ctrl+H: ホットキー一覧表示
+; ===================================================================
+^h:: {
+    ; 更新されたホットキー一覧
+    hotkeyList := [
+        "=== メインホットキー ===",
+        "F12: マクロのリセット・再始動",
+        "Shift+F12: マクロの手動停止/開始",
+        "Ctrl+F12: 緊急停止（自動開始も無効）",
+        "Alt+F12: 設定リロード",
+        "Pause: 一時停止/再開",
+        "ScrollLock: ステータス表示切り替え",
+        "",
+        "=== デバッグホットキー ===",
+        "F11: マナデバッグ表示",
+        "F10: エリア検出方式切り替え",
+        "F9: エリア検出デバッグ",
+        "F8: タイマーデバッグ",
+        "F7: 全体デバッグ情報",
+        "F6: ログビューア"
+    ]
+    
+    ShowMultiLineOverlay(hotkeyList, 5000)
 }
 
-; === 終了処理 ===
-ExitFunc(*) {
-    LogInfo("Main", "=== Path of Exile Macro Shutting Down ===")
-    StopAllTimers()
-    CleanupUI()
-}
+#HotIf  ; コンテキストをリセット

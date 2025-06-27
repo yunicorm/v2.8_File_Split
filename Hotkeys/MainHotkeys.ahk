@@ -3,6 +3,14 @@
 ; マクロの主要な操作用ホットキー
 ; ===================================================================
 
+; --- ShowOverlay関数が見つからない場合の一時的な定義 ---
+if (!IsSet(ShowOverlay)) {
+    ShowOverlay(message, duration := 2000) {
+        ToolTip(message)
+        SetTimer(() => ToolTip(), -duration)
+    }
+}
+
 ; --- F12キー連打防止用グローバル変数 ---
 global g_f12_processing := false
 global g_f12_last_toggle := 0
@@ -37,24 +45,7 @@ F12:: {
     
     ; マクロのリセット・再始動処理
     try {
-        if (g_macro_active) {
-            ; マクロが動作中の場合：リセット
-            ShowOverlay("マクロをリセットしています...", 1500)
-            LogInfo("MainHotkeys", "F12 pressed - Resetting macro")
-            
-            ; 一旦停止
-            ToggleMacro()
-            Sleep(500)
-            
-            ; 再開始
-            ToggleMacro()
-            ShowOverlay("マクロがリセットされました", 2000)
-        } else {
-            ; マクロが停止中の場合：開始
-            ShowOverlay("マクロを開始します", 1500)
-            ToggleMacro()
-            LogInfo("MainHotkeys", "F12 pressed - Starting macro")
-        }
+        ResetMacro()
     } catch Error as e {
         ShowOverlay("エラー: " . e.Message, 2000)
         LogErrorWithStack("MainHotkeys", "Error in F12 handler", e)
@@ -71,18 +62,18 @@ ResetF12Flag() {
 }
 
 ; ===================================================================
-; Shift+F12: マクロの完全停止（トグル）
+; Shift+F12: マクロの完全停止（手動停止）
 ; ===================================================================
 +F12:: {
     global g_macro_active
     
     if (g_macro_active) {
         ShowOverlay("マクロを停止します", 1500)
-        ToggleMacro()
-        LogInfo("MainHotkeys", "Shift+F12 pressed - Macro stopped")
+        ManualStopMacro()  ; 手動停止関数を呼び出し
+        LogInfo("MainHotkeys", "Shift+F12 pressed - Macro manually stopped")
     } else {
         ShowOverlay("マクロを開始します", 1500)
-        ToggleMacro()
+        ToggleMacro()  ; 停止中の場合は通常の開始
         LogInfo("MainHotkeys", "Shift+F12 pressed - Macro started")
     }
 }
@@ -91,18 +82,7 @@ ResetF12Flag() {
 ; Ctrl+F12: 緊急停止（全機能を即座に停止）
 ; ===================================================================
 ^F12:: {
-    ShowOverlay("緊急停止！", 3000)
-    
-    ; 全てのタイマーを停止
-    StopAllTimers()
-    
-    ; マクロ状態をリセット
-    global g_macro_active
-    g_macro_active := false
-    
-    ; UIを更新
-    UpdateStatusOverlay()
-    
+    EmergencyStopMacro()  ; 緊急停止関数を呼び出し
     LogWarn("MainHotkeys", "Emergency stop activated (Ctrl+F12)")
 }
 
@@ -129,7 +109,7 @@ Pause:: {
     
     if (g_macro_active) {
         ShowOverlay("マクロ一時停止", 1500)
-        ToggleMacro()
+        ManualStopMacro()  ; 手動停止として処理
     } else {
         ShowOverlay("マクロ再開", 1500)
         ToggleMacro()
@@ -168,8 +148,8 @@ ScrollLock:: {
     hotkeyList := [
         "=== メインホットキー ===",
         "F12: マクロのリセット・再始動",
-        "Shift+F12: マクロの開始/停止",
-        "Ctrl+F12: 緊急停止",
+        "Shift+F12: マクロの手動停止/開始",
+        "Ctrl+F12: 緊急停止（自動開始も無効）",
         "Alt+F12: 設定リロード",
         "Pause: 一時停止/再開",
         "ScrollLock: ステータス表示切り替え",
