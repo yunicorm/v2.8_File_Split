@@ -25,3 +25,62 @@
 [2025-06-27 22:57:14] [INFO] [ClientLogMonitor] Macro paused due to area change
 [2025-06-27 22:57:15] [INFO] [ClientLogMonitor] User input detected after area change: Mouse: LButton
 [2025-06-27 22:57:16] [INFO] [ClientLogMonitor] Non-combat area detected: Sunspire Hideout
+[2025-06-27 23:15:13] [INFO] [MainHotkeys] F12 pressed - Resetting macro
+[2025-06-27 23:15:13] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 23:15:13] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 23:15:13] [INFO] [TinctureManager] Initial Tincture use
+[2025-06-27 23:15:13] [INFO] [MacroController] Initial actions performed
+[2025-06-27 23:15:13] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 23:15:13] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 23:15:13] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 23:15:13] [INFO] [MacroController] Macro started
+[2025-06-27 23:15:20] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 23:15:22] [INFO] [ClientLogMonitor] Area change detected: The Foothills at 2025/06/27 23:15:21
+[2025-06-27 23:15:22] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 23:15:22] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 23:15:22] [INFO] [MacroController] Macro stopped
+[2025-06-27 23:15:22] [INFO] [ClientLogMonitor] Macro paused due to area change
+[2025-06-27 23:15:22] [INFO] [ManaMonitor] Mana recovery detected (7%)
+[2025-06-27 23:15:23] [INFO] [ClientLogMonitor] User input detected after area change: Mouse: LButton
+[2025-06-27 23:15:24] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 23:15:24] [INFO] [TinctureManager] Initial Tincture use
+[2025-06-27 23:15:24] [INFO] [MacroController] Initial actions performed
+[2025-06-27 23:15:24] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 23:15:24] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 23:15:24] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 23:15:24] [INFO] [MacroController] Macro started
+[2025-06-27 23:15:24] [INFO] [ClientLogMonitor] Macro restarted after area change
+[2025-06-27 23:18:13] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 23:18:15] [INFO] [ClientLogMonitor] Area change detected: Sunspire Hideout at 2025/06/27 23:18:15
+[2025-06-27 23:18:15] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 23:18:15] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 23:18:15] [INFO] [MacroController] Macro stopped
+[2025-06-27 23:18:15] [INFO] [ClientLogMonitor] Macro paused due to area change
+[2025-06-27 23:18:16] [INFO] [ClientLogMonitor] User input detected after area change: Mouse: LButton
+[2025-06-27 23:18:16] [INFO] [ClientLogMonitor] Non-combat area detected: Sunspire Hideout
+[2025-06-27 23:19:05] [INFO] [MainHotkeys] F12 pressed - Resetting macro
+[2025-06-27 23:19:05] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 23:19:05] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 23:19:05] [INFO] [TinctureManager] Initial Tincture use
+[2025-06-27 23:19:05] [INFO] [MacroController] Initial actions performed
+[2025-06-27 23:19:05] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 23:19:05] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 23:19:05] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 23:19:05] [INFO] [MacroController] Macro started
+[2025-06-27 23:19:40] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 23:19:41] [INFO] [ManaMonitor] Mana recovery detected (27%)
+[2025-06-27 23:19:45] [INFO] [TinctureManager] Tincture use attempt 1/5
+[2025-06-27 23:19:46] [INFO] [TinctureManager] Tincture use attempt 2/5
+[2025-06-27 23:19:46] [INFO] [TinctureManager] Tincture use attempt 3/5
+[2025-06-27 23:19:47] [INFO] [TinctureManager] Tincture use attempt 4/5
+[2025-06-27 23:19:47] [INFO] [TinctureManager] Tincture use attempt 5/5
+[2025-06-27 23:19:48] [WARN] [TinctureManager] Max retry attempts reached
+[2025-06-27 23:19:49] [INFO] [TinctureManager] Tincture use attempt 1/5
+[2025-06-27 23:19:52] [INFO] [TinctureManager] Tincture use attempt 2/5
+[2025-06-27 23:19:55] [INFO] [TinctureManager] Tincture use attempt 3/5
+[2025-06-27 23:19:57] [INFO] [TinctureManager] Tincture use attempt 4/5
+[2025-06-27 23:19:59] [INFO] [TinctureManager] Tincture use attempt 5/5
+[2025-06-27 23:20:02] [INFO] [Main] === Path of Exile Macro Shutting Down ===
+[2025-06-27 23:20:02] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 23:20:02] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 23:20:02] [INFO] [StatusDisplay] UI cleanup completed
