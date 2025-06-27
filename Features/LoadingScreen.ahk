@@ -1,5 +1,5 @@
 ﻿; ===================================================================
-; ロード画面検出システム
+; ロード画面検出システム（エラーハンドリング強化版）
 ; エリア遷移時のマクロ自動制御とユーザー入力待機
 ; ===================================================================
 
@@ -8,7 +8,8 @@ StartLoadingScreenDetection() {
     global g_loading_check_enabled
     
     if (g_loading_check_enabled) {
-        StartManagedTimer("LoadingScreen", CheckLoadingScreenGGG, 250)
+        interval := ConfigManager.Get("LoadingScreen", "CheckInterval", 250)
+        StartManagedTimer("LoadingScreen", CheckLoadingScreenGGG, interval)
         LogInfo("LoadingScreen", "Loading screen detection started")
     }
 }
@@ -17,61 +18,69 @@ StartLoadingScreenDetection() {
 CheckLoadingScreenGGG() {
     global g_loading_screen_active, g_macro_active, g_was_macro_active_before_loading, g_waiting_for_user_input
     
-    ; Path of Exileのロード画面の特徴：
-    ; 1. 画面下部の歯車（GGGロゴ）エリア
-    ; 2. エリア名表示部分
-    ; 3. 中央のイラスト部分は暗めの色調
-    
-    ; 歯車エリアの座標（画面下部中央）
-    gearAreaY := 1440 - 200  ; 画面下部から200px上
-    gearAreaX := 3440 / 2    ; 画面中央
-    
-    ; 複数のポイントをチェック
-    checkPoints := [
-        {x: gearAreaX - 100, y: gearAreaY, name: "Left Gear"},
-        {x: gearAreaX, y: gearAreaY, name: "Center"},
-        {x: gearAreaX + 100, y: gearAreaY, name: "Right Gear"},
-        {x: gearAreaX, y: gearAreaY - 50, name: "Area Name"},
-        {x: gearAreaX, y: gearAreaY + 50, name: "Below Gear"}
-    ]
-    
-    ; 金色/茶色系の色をカウント（GGGロゴの典型的な色）
-    goldBrownCount := 0
-    darkCount := 0
-    
-    for point in checkPoints {
-        try {
-            color := PixelGetColor(point.x, point.y, "RGB")
-            r := (color >> 16) & 0xFF
-            g := (color >> 8) & 0xFF
-            b := color & 0xFF
-            
-            ; 金色/茶色系の判定（R > G > B で、Rが高め）
-            if (r > 100 && r > g && g > b && (r - b) > 50) {
-                goldBrownCount++
+    try {
+        ; Path of Exileのロード画面の特徴：
+        ; 1. 画面下部の歯車（GGGロゴ）エリア
+        ; 2. エリア名表示部分
+        ; 3. 中央のイラスト部分は暗めの色調
+        
+        ; 歯車エリアの座標（画面下部中央）
+        screenHeight := ConfigManager.Get("Resolution", "ScreenHeight", 1440)
+        screenWidth := ConfigManager.Get("Resolution", "ScreenWidth", 3440)
+        gearAreaOffset := ConfigManager.Get("LoadingScreen", "GearAreaOffset", 200)
+        
+        gearAreaY := screenHeight - gearAreaOffset
+        gearAreaX := screenWidth / 2
+        
+        ; 複数のポイントをチェック
+        checkPoints := [
+            {x: gearAreaX - 100, y: gearAreaY, name: "Left Gear"},
+            {x: gearAreaX, y: gearAreaY, name: "Center"},
+            {x: gearAreaX + 100, y: gearAreaY, name: "Right Gear"},
+            {x: gearAreaX, y: gearAreaY - 50, name: "Area Name"},
+            {x: gearAreaX, y: gearAreaY + 50, name: "Below Gear"}
+        ]
+        
+        ; 金色/茶色系の色をカウント（GGGロゴの典型的な色）
+        goldBrownCount := 0
+        darkCount := 0
+        darkThreshold := ConfigManager.Get("LoadingScreen", "DarkThreshold", 50)
+        
+        for point in checkPoints {
+            try {
+                color := SafePixelGetColor(point.x, point.y)
+                
+                ; 金色/茶色系の判定
+                if (IsGoldBrownColor(color)) {
+                    goldBrownCount++
+                }
+                
+                ; 暗い色の判定
+                if (IsDarkColor(color, darkThreshold)) {
+                    darkCount++
+                }
+            } catch Error as e {
+                LogDebug("LoadingScreen", Format("Failed to check point {}: {}", 
+                    point.name, e.Message))
+                darkCount++  ; エラー時は暗いとみなす
             }
-            
-            ; 暗い色の判定
-            brightness := GetColorBrightness(color)
-            if (brightness < 50) {
-                darkCount++
-            }
-        } catch {
-            darkCount++
         }
-    }
-    
-    ; UI要素が非表示かチェック（従来の方法も併用）
-    uiHidden := !CheckUIElementsVisible()
-    
-    ; ロード画面の判定
-    isLoading := (goldBrownCount >= 2 || (darkCount >= 4 && uiHidden))
-    
-    ; 状態変化の処理
-    if (isLoading && !g_loading_screen_active) {
-        HandleLoadingScreenEnter()
-    } else if (!isLoading && g_loading_screen_active) {
-        HandleLoadingScreenExit()
+        
+        ; UI要素が非表示かチェック（従来の方法も併用）
+        uiHidden := !CheckUIElementsVisible()
+        
+        ; ロード画面の判定
+        isLoading := (goldBrownCount >= 2 || (darkCount >= 4 && uiHidden))
+        
+        ; 状態変化の処理
+        if (isLoading && !g_loading_screen_active) {
+            HandleLoadingScreenEnter()
+        } else if (!isLoading && g_loading_screen_active) {
+            HandleLoadingScreenExit()
+        }
+        
+    } catch Error as e {
+        LogError("LoadingScreen", "Detection cycle failed: " . e.Message)
     }
 }
 
@@ -85,8 +94,12 @@ HandleLoadingScreenEnter() {
     
     if (g_macro_active) {
         ShowOverlay("ロード画面検出 - マクロ一時停止", 2000)
-        ToggleMacro()  ; マクロをオフにする
-        LogInfo("LoadingScreen", "Loading screen detected - macro paused")
+        try {
+            ToggleMacro()  ; マクロをオフにする
+            LogInfo("LoadingScreen", "Loading screen detected - macro paused")
+        } catch Error as e {
+            LogError("LoadingScreen", "Failed to pause macro: " . e.Message)
+        }
     }
 }
 
@@ -111,15 +124,28 @@ HandleLoadingScreenExit() {
 CheckUIElementsVisible() {
     global g_mana_center_x, g_mana_center_y
     
-    ; マナオーブとヘルスオーブの位置で明度をチェック
-    manaColor := PixelGetColor(g_mana_center_x, g_mana_center_y, "RGB")
-    healthColor := PixelGetColor(286 + 139, 1161 + 139, "RGB")
-    
-    manaB := GetColorBrightness(manaColor)
-    healthB := GetColorBrightness(healthColor)
-    
-    ; どちらかのオーブが見える明度なら、UIは表示されている
-    return (manaB > 30 || healthB > 30)
+    try {
+        ; マナオーブとヘルスオーブの位置で明度をチェック
+        manaColor := SafePixelGetColor(g_mana_center_x, g_mana_center_y)
+        
+        ; ヘルスオーブの座標（設定から計算）
+        screenWidth := ConfigManager.Get("Resolution", "ScreenWidth", 3440)
+        screenHeight := ConfigManager.Get("Resolution", "ScreenHeight", 1440)
+        healthX := ConfigManager.ScaleCoordinate(286 + 139, true)
+        healthY := ConfigManager.ScaleCoordinate(1161 + 139, false)
+        
+        healthColor := SafePixelGetColor(healthX, healthY)
+        
+        manaB := GetColorBrightness(manaColor)
+        healthB := GetColorBrightness(healthColor)
+        
+        ; どちらかのオーブが見える明度なら、UIは表示されている
+        return (manaB > 30 || healthB > 30)
+        
+    } catch Error as e {
+        LogError("LoadingScreen", "UI visibility check failed: " . e.Message)
+        return false  ; エラー時はUIが見えないとみなす
+    }
 }
 
 ; --- ユーザー入力待機 ---
@@ -136,23 +162,27 @@ WaitForUserInput() {
         return
     }
     
-    ; 移動キー（WASD、矢印キー）やマウスクリックをチェック
-    movementKeys := ["W", "A", "S", "D", "Up", "Down", "Left", "Right", 
-                     "LButton", "RButton", "MButton", "Q", "E", "R", "T"]
-    
-    for key in movementKeys {
-        if (GetKeyState(key, "P")) {
-            HandleUserInput("Key: " . key)
-            return
+    try {
+        ; 移動キー（WASD、矢印キー）やマウスクリックをチェック
+        movementKeys := ["W", "A", "S", "D", "Up", "Down", "Left", "Right", 
+                         "LButton", "RButton", "MButton", "Q", "E", "R", "T"]
+        
+        for key in movementKeys {
+            if (GetKeyState(key, "P")) {
+                HandleUserInput("Key: " . key)
+                return
+            }
         }
-    }
-    
-    ; スキル使用（1-5キー）もチェック
-    Loop 5 {
-        if (GetKeyState(A_Index, "P")) {
-            HandleUserInput("Flask: " . A_Index)
-            return
+        
+        ; スキル使用（1-5キー）もチェック
+        Loop 5 {
+            if (GetKeyState(A_Index, "P")) {
+                HandleUserInput("Flask: " . A_Index)
+                return
+            }
         }
+    } catch Error as e {
+        LogError("LoadingScreen", "Input detection failed: " . e.Message)
     }
 }
 
@@ -174,10 +204,15 @@ StartMacroAfterInput() {
     global g_macro_active, g_was_macro_active_before_loading
     
     if (!g_macro_active && g_was_macro_active_before_loading && IsTargetWindowActive()) {
-        ShowOverlay("ユーザー入力検出 - マクロ開始", 2000)
-        ToggleMacro()
-        g_was_macro_active_before_loading := false
-        LogInfo("LoadingScreen", "Macro restarted after user input")
+        try {
+            ShowOverlay("ユーザー入力検出 - マクロ開始", 2000)
+            ToggleMacro()
+            g_was_macro_active_before_loading := false
+            LogInfo("LoadingScreen", "Macro restarted after user input")
+        } catch Error as e {
+            LogError("LoadingScreen", "Failed to restart macro: " . e.Message)
+            ShowOverlay("マクロ開始エラー", 2000)
+        }
     }
 }
 

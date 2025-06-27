@@ -40,9 +40,9 @@ F12:: {
     try {
         ToggleMacro()
         LogInfo("MainHotkeys", "F12 pressed - Macro toggled")
-    } catch as e {
+    } catch Error as e {
         ShowOverlay("エラー: " . e.Message, 2000)
-        LogError("MainHotkeys", "Error in F12 handler: " . e.Message)
+        LogErrorWithStack("MainHotkeys", "Error in F12 handler", e)
     }
     
     ; 処理完了後、少し待ってからフラグをリセット
@@ -93,11 +93,18 @@ ResetF12Flag() {
 }
 
 ; ===================================================================
-; Alt+F12: 設定リロード（将来の拡張用）
+; Alt+F12: 設定リロード
 ; ===================================================================
 !F12:: {
-    ShowOverlay("設定リロード機能は未実装です", 2000)
-    ; TODO: Config.ahkの再読み込み機能を実装
+    ShowOverlay("設定をリロード中...", 1500)
+    
+    if (ReloadConfiguration()) {
+        ShowOverlay("設定のリロードが完了しました", 2000)
+        LogInfo("MainHotkeys", "Configuration reloaded successfully")
+    } else {
+        ShowOverlay("設定のリロードに失敗しました", 2000)
+        LogError("MainHotkeys", "Failed to reload configuration")
+    }
 }
 
 ; ===================================================================
@@ -133,9 +140,17 @@ ScrollLock:: {
                 ShowOverlay("ステータス表示", 1000)
             }
         }
-    } catch {
+    } catch Error as e {
         ShowOverlay("ステータス表示エラー", 1500)
+        LogError("MainHotkeys", "Status display error: " . e.Message)
     }
+}
+
+; ===================================================================
+; Ctrl+H: ホットキー一覧表示
+; ===================================================================
+^h:: {
+    HotkeyValidator.ShowRegistered()
 }
 
 #HotIf  ; コンテキストをリセット

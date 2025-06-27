@@ -1,18 +1,18 @@
 ﻿; ===================================================================
-; スキル自動化システム
+; スキル自動化システム（設定対応版）
 ; E, R, T, 4キーの自動実行管理
 ; ===================================================================
 
 ; --- スキル自動化の開始 ---
 StartSkillAutomation() {
-    ; E, R キー (1秒間隔)
+    ; E, R キー
     StartManagedTimer("SkillE", PressEKey, Random(TIMING_SKILL_ER.min, TIMING_SKILL_ER.max))
     StartManagedTimer("SkillR", PressRKey, Random(TIMING_SKILL_ER.min, TIMING_SKILL_ER.max))
     
-    ; T キー (4秒間隔)
+    ; T キー
     StartManagedTimer("SkillT", PressTKey, Random(TIMING_SKILL_T.min, TIMING_SKILL_T.max))
     
-    ; 4 キー (Wine of the Prophet - 動的間隔)
+    ; 4 キー (Wine of the Prophet)
     StartManagedTimer("WineOfProphet", Loop4Key, 100)
     
     LogInfo("SkillAutomation", "Skill automation started")
@@ -27,10 +27,14 @@ PressEKey() {
         return
     }
     
-    Send(KEY_SKILL_E)
-    StartManagedTimer("SkillE", PressEKey, Random(TIMING_SKILL_ER.min, TIMING_SKILL_ER.max))
-    
-    LogDebug("SkillAutomation", "E key pressed")
+    try {
+        Send(KEY_SKILL_E)
+        StartManagedTimer("SkillE", PressEKey, Random(TIMING_SKILL_ER.min, TIMING_SKILL_ER.max))
+        UpdateSkillStats("E")
+        LogDebug("SkillAutomation", "E key pressed")
+    } catch Error as e {
+        LogError("SkillAutomation", "Failed to press E key: " . e.Message)
+    }
 }
 
 ; --- R キー押下 ---
@@ -42,10 +46,14 @@ PressRKey() {
         return
     }
     
-    Send(KEY_SKILL_R)
-    StartManagedTimer("SkillR", PressRKey, Random(TIMING_SKILL_ER.min, TIMING_SKILL_ER.max))
-    
-    LogDebug("SkillAutomation", "R key pressed")
+    try {
+        Send(KEY_SKILL_R)
+        StartManagedTimer("SkillR", PressRKey, Random(TIMING_SKILL_ER.min, TIMING_SKILL_ER.max))
+        UpdateSkillStats("R")
+        LogDebug("SkillAutomation", "R key pressed")
+    } catch Error as e {
+        LogError("SkillAutomation", "Failed to press R key: " . e.Message)
+    }
 }
 
 ; --- T キー押下 ---
@@ -57,10 +65,14 @@ PressTKey() {
         return
     }
     
-    Send(KEY_SKILL_T)
-    StartManagedTimer("SkillT", PressTKey, Random(TIMING_SKILL_T.min, TIMING_SKILL_T.max))
-    
-    LogDebug("SkillAutomation", "T key pressed")
+    try {
+        Send(KEY_SKILL_T)
+        StartManagedTimer("SkillT", PressTKey, Random(TIMING_SKILL_T.min, TIMING_SKILL_T.max))
+        UpdateSkillStats("T")
+        LogDebug("SkillAutomation", "T key pressed")
+    } catch Error as e {
+        LogError("SkillAutomation", "Failed to press T key: " . e.Message)
+    }
 }
 
 ; --- 4キーループ（Wine of the Prophet） ---
@@ -72,31 +84,56 @@ Loop4Key() {
         return
     }
     
-    Send(KEY_WINE_PROPHET)
-    
-    ; 使用間隔の動的調整
-    elapsedTime := A_TickCount - g_macro_start_time
-    delay := CalculateWineDelay(elapsedTime)
-    
-    StartManagedTimer("WineOfProphet", Loop4Key, delay)
-    
-    LogDebug("SkillAutomation", Format("Wine of Prophet used. Next in {}ms (elapsed: {}s)", 
-        delay, Round(elapsedTime/1000)))
+    try {
+        Send(KEY_WINE_PROPHET)
+        UpdateSkillStats("4")
+        
+        ; 使用間隔の動的調整
+        elapsedTime := A_TickCount - g_macro_start_time
+        delay := CalculateWineDelayFromConfig(elapsedTime)
+        
+        StartManagedTimer("WineOfProphet", Loop4Key, delay)
+        
+        LogDebug("SkillAutomation", Format("Wine of Prophet used. Next in {}ms (elapsed: {}s)", 
+            delay, Round(elapsedTime/1000)))
+    } catch Error as e {
+        LogError("SkillAutomation", "Failed to use Wine of Prophet: " . e.Message)
+    }
 }
 
-; --- Wine of the Prophet遅延計算 ---
-CalculateWineDelay(elapsedTime) {
-    ; 時間経過に応じた段階的な調整
-    if (elapsedTime < 60000) {          ; 60秒未満
-        return Random(22000, 22500)
-    } else if (elapsedTime < 90000) {   ; 90秒未満
-        return Random(19500, 20000)
-    } else if (elapsedTime < 120000) {  ; 120秒未満
-        return Random(17500, 18000)
-    } else if (elapsedTime < 170000) {  ; 170秒未満
-        return Random(16000, 16500)
-    } else {                             ; 170秒以上
-        return Random(14500, 15000)
+; --- Wine of the Prophet遅延計算（設定ベース） ---
+CalculateWineDelayFromConfig(elapsedTime) {
+    ; 設定から段階を読み込み
+    stage1Time := ConfigManager.Get("Wine", "Stage1_Time", 60000)
+    stage2Time := ConfigManager.Get("Wine", "Stage2_Time", 90000)
+    stage3Time := ConfigManager.Get("Wine", "Stage3_Time", 120000)
+    stage4Time := ConfigManager.Get("Wine", "Stage4_Time", 170000)
+    
+    if (elapsedTime < stage1Time) {
+        return Random(
+            ConfigManager.Get("Wine", "Stage1_Min", 22000),
+            ConfigManager.Get("Wine", "Stage1_Max", 22500)
+        )
+    } else if (elapsedTime < stage2Time) {
+        return Random(
+            ConfigManager.Get("Wine", "Stage2_Min", 19500),
+            ConfigManager.Get("Wine", "Stage2_Max", 20000)
+        )
+    } else if (elapsedTime < stage3Time) {
+        return Random(
+            ConfigManager.Get("Wine", "Stage3_Min", 17500),
+            ConfigManager.Get("Wine", "Stage3_Max", 18000)
+        )
+    } else if (elapsedTime < stage4Time) {
+        return Random(
+            ConfigManager.Get("Wine", "Stage4_Min", 16000),
+            ConfigManager.Get("Wine", "Stage4_Max", 16500)
+        )
+    } else {
+        return Random(
+            ConfigManager.Get("Wine", "Stage5_Min", 14500),
+            ConfigManager.Get("Wine", "Stage5_Max", 15000)
+        )
     }
 }
 
@@ -133,14 +170,6 @@ GetSkillStats() {
 
 ; --- カスタムスキル設定（将来の拡張用） ---
 ConfigureSkills(skillConfig) {
-    ; 例：
-    ; skillConfig := {
-    ;     E: {enabled: true, interval: 1000, key: "E"},
-    ;     R: {enabled: true, interval: 1000, key: "R"},
-    ;     T: {enabled: true, interval: 4000, key: "T"},
-    ;     Custom1: {enabled: false, interval: 2000, key: "Q"}
-    ; }
-    
     ; TODO: 実装予定
     LogInfo("SkillAutomation", "Custom skill configuration not yet implemented")
 }

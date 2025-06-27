@@ -14,20 +14,28 @@ global LOG_LEVEL := {
 global g_current_log_level := LOG_LEVEL.INFO
 
 ; --- ログファイルパス ---
-global g_log_file := A_ScriptDir . "\logs\macro_" . A_Now . ".log"
+global g_log_file := ""
+global g_log_dir := A_ScriptDir . "\logs"
 
 ; --- ログ初期化 ---
 InitializeLogger() {
+    global g_log_file, g_log_dir
+    
     ; ログディレクトリを作成
-    logDir := A_ScriptDir . "\logs"
-    if (!DirExist(logDir)) {
-        DirCreate(logDir)
+    if (!DirExist(g_log_dir)) {
+        DirCreate(g_log_dir)
     }
     
+    ; ログファイル名を生成
+    g_log_file := g_log_dir . "\macro_" . A_Now . ".log"
+    
     ; 初期ログエントリ
-    LogInfo("=== Path of Exile Macro Started ===")
-    LogInfo("Version: 2.8.1")
-    LogInfo("AutoHotkey: " . A_AhkVersion)
+    WriteLog(LOG_LEVEL.INFO, "Logger", "=== Path of Exile Macro Started ===")
+    WriteLog(LOG_LEVEL.INFO, "Logger", "Version: 2.8.2")
+    WriteLog(LOG_LEVEL.INFO, "Logger", "AutoHotkey: " . A_AhkVersion)
+    
+    ; ログローテーションをチェック
+    CheckLogRotation()
 }
 
 ; --- ログ書き込み関数 ---
@@ -51,13 +59,46 @@ WriteLog(level, module, message) {
     ; ファイルに書き込み
     try {
         FileAppend(logEntry, g_log_file)
-    } catch {
-        ; ログ書き込み失敗は無視
+    } catch Error as e {
+        ; ログ書き込み失敗
+        OutputDebug("Failed to write log: " . e.Message)
     }
     
     ; デバッグモードならコンソールにも出力
-    if (g_debug_mode) {
+    if (ConfigManager.Get("General", "DebugMode", false)) {
         OutputDebug(logEntry)
+    }
+}
+
+; --- ログローテーション ---
+CheckLogRotation() {
+    global g_log_file, g_log_dir
+    
+    try {
+        maxSize := ConfigManager.Get("General", "MaxLogSize", 10) * 1024 * 1024  ; MB to bytes
+        
+        if (FileExist(g_log_file)) {
+            currentSize := FileGetSize(g_log_file)
+            
+            if (currentSize > maxSize) {
+                ; 新しいログファイルを作成
+                oldFile := g_log_file
+                g_log_file := g_log_dir . "\macro_" . A_Now . ".log"
+                
+                WriteLog(LOG_LEVEL.INFO, "Logger", 
+                    Format("Log rotation: {} -> {}", oldFile, g_log_file))
+                
+                ; 古いファイルをアーカイブ
+                archiveName := StrReplace(oldFile, ".log", "_archived.log")
+                try {
+                    FileMove(oldFile, archiveName, 1)
+                } catch {
+                    ; アーカイブ失敗は無視
+                }
+            }
+        }
+    } catch Error as e {
+        OutputDebug("Log rotation check failed: " . e.Message)
     }
 }
 
@@ -151,27 +192,39 @@ ShowLogViewer() {
     global g_log_file
     
     if (FileExist(g_log_file)) {
-        Run("notepad.exe " . g_log_file)
+        try {
+            Run("notepad.exe " . g_log_file)
+        } catch Error as e {
+            MsgBox("ログファイルを開けませんでした: " . e.Message, "エラー", "OK Icon!")
+        }
     } else {
-        MsgBox("No log file found")
+        MsgBox("ログファイルが見つかりません", "情報", "OK Icon!")
     }
 }
 
 ; --- 古いログファイルのクリーンアップ ---
 CleanupOldLogs(daysToKeep := 7) {
-    logDir := A_ScriptDir . "\logs"
+    global g_log_dir
+    
     cutoffTime := A_Now
     cutoffTime := DateAdd(cutoffTime, -daysToKeep, "Days")
     
-    Loop Files, logDir . "\macro_*.log" {
-        fileTime := FileGetTime(A_LoopFilePath, "C")
-        if (fileTime < cutoffTime) {
-            try {
-                FileDelete(A_LoopFilePath)
-                LogInfo("Logger", "Deleted old log: " . A_LoopFileName)
-            } catch {
-                ; 削除失敗は無視
+    try {
+        Loop Files, g_log_dir . "\macro_*.log" {
+            fileTime := FileGetTime(A_LoopFilePath, "C")
+            if (fileTime < cutoffTime) {
+                try {
+                    FileDelete(A_LoopFilePath)
+                    LogInfo("Logger", "Deleted old log: " . A_LoopFileName)
+                } catch {
+                    ; 削除失敗は無視
+                }
             }
         }
+    } catch Error as e {
+        LogError("Logger", "Cleanup failed: " . e.Message)
     }
 }
+
+; --- 定期的なログローテーションチェック ---
+SetTimer(CheckLogRotation, 3600000)  ; 1時間ごとにチェック

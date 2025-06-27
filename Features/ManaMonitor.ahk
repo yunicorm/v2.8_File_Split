@@ -1,14 +1,42 @@
 ; ===================================================================
-; マナ監視システム
+; マナ監視システム（最適化版）
 ; ===================================================================
 
-; --- マナ円形検出（完全枯渇検出式） ---
-CheckManaRadial() {
+; --- マナ円形検出（最適化版） ---
+CheckManaRadialOptimized() {
+    global g_mana_center_x, g_mana_center_y, g_mana_radius, g_mana_fill_rate
+    
+    try {
+        ; まず中央付近の1点を高速チェック
+        quickCheckY := g_mana_center_y + (g_mana_radius * 0.9)
+        quickColor := PixelGetColor(g_mana_center_x, quickCheckY, "RGB")
+        
+        blueThreshold := ConfigManager.Get("Mana", "BlueThreshold", 40)
+        blueDominance := ConfigManager.Get("Mana", "BlueDominance", 20)
+        
+        ; 青色が検出されたら詳細チェックをスキップ
+        if (IsBlueColor(quickColor, blueThreshold, blueDominance)) {
+            g_mana_fill_rate := 100
+            return true
+        }
+        
+        ; 詳細チェックが必要な場合のみ実行
+        return CheckManaRadialDetailed()
+        
+    } catch Error as e {
+        LogError("ManaMonitor", "Optimized mana check failed: " . e.Message)
+        return g_last_mana_state  ; エラー時は前回の状態を返す
+    }
+}
+
+; --- マナ円形検出（詳細版） ---
+CheckManaRadialDetailed() {
     global g_mana_center_x, g_mana_center_y, g_mana_radius, g_mana_fill_rate
     
     ; 検出設定
-    blueThreshold := 40
-    checkRatios := [0.85, 0.90, 0.95]  ; マナオーブ下部の3つの高さ
+    blueThreshold := ConfigManager.Get("Mana", "BlueThreshold", 40)
+    blueDominance := ConfigManager.Get("Mana", "BlueDominance", 20)
+    checkRatios := [0.85, 0.90, 0.95]
     totalBlueFound := 0
     
     ; 各高さで青色を検出
@@ -23,20 +51,32 @@ CheckManaRadial() {
             
             try {
                 color := PixelGetColor(checkX, checkY, "RGB")
-                if (IsBlueColor(color, blueThreshold, 20)) {
+                if (IsBlueColor(color, blueThreshold, blueDominance)) {
                     totalBlueFound++
                 }
-            } catch {
-                ; エラーは無視
+            } catch Error as e {
+                LogDebug("ManaMonitor", Format("Pixel check failed at {},{}: {}", 
+                    checkX, checkY, e.Message))
             }
         }
     }
     
-    ; 充填率を更新（0または100で簡略化）
-    g_mana_fill_rate := totalBlueFound > 0 ? 100 : 0
+    ; 充填率を更新
+    g_mana_fill_rate := Round((totalBlueFound / 15) * 100)
     
     ; 完全枯渇は全ポイント（15箇所）で青が検出されない場合
     return totalBlueFound > 0
+}
+
+; --- マナ円形検出（メイン関数） ---
+CheckManaRadial() {
+    global g_mana_optimized
+    
+    if (g_mana_optimized) {
+        return CheckManaRadialOptimized()
+    } else {
+        return CheckManaRadialDetailed()
+    }
 }
 
 ; --- マナ状態の初期化 ---
@@ -50,7 +90,8 @@ InitializeManaState() {
 
 ; --- マナ監視開始 ---
 StartManaMonitoring() {
-    SetTimer(MonitorMana, 100)
+    interval := ConfigManager.Get("Mana", "MonitorInterval", 100)
+    SetTimer(MonitorMana, interval)
 }
 
 ; --- マナ監視メイン関数 ---
@@ -70,16 +111,21 @@ MonitorMana() {
         return
     }
     
-    currentMana := CheckManaRadial()
-    
-    ; マナ状態の変化を検出
-    if (!currentMana && g_last_mana_state && g_tincture_active) {
-        HandleManaDepletion()
-    } else if (currentMana && !g_last_mana_state) {
-        HandleManaRecovery()
+    try {
+        currentMana := CheckManaRadial()
+        
+        ; マナ状態の変化を検出
+        if (!currentMana && g_last_mana_state && g_tincture_active) {
+            HandleManaDepletion()
+        } else if (currentMana && !g_last_mana_state) {
+            HandleManaRecovery()
+        }
+        
+        g_last_mana_state := currentMana
+        
+    } catch Error as e {
+        LogError("ManaMonitor", "Monitor cycle failed: " . e.Message)
     }
-    
-    g_last_mana_state := currentMana
 }
 
 ; --- マナ枯渇処理 ---
@@ -95,6 +141,8 @@ HandleManaDepletion() {
     StartTinctureCooldownCheck()
     ShowOverlay("マナ完全枯渇 (0%) - Tincture CD開始", 2000)
     UpdateStatusOverlay()
+    
+    LogInfo("ManaMonitor", "Mana depletion detected")
 }
 
 ; --- マナ回復処理 ---
@@ -110,4 +158,6 @@ HandleManaRecovery() {
         ShowOverlay("Tincture状態異常 - 再確認中...", 1500)
         SetTimer(() => AttemptTinctureUse(), -1000)
     }
+    
+    LogInfo("ManaMonitor", Format("Mana recovery detected ({}%)", g_mana_fill_rate))
 }
