@@ -48,7 +48,10 @@ StartMacro() {
     StartFlaskAutomation()
     StartManaMonitoring()
     
-    if (g_loading_check_enabled) {
+    ; エリア検出方式を選択
+    if (ConfigManager.Get("ClientLog", "Enabled", true)) {
+        StartClientLogMonitoring()
+    } else if (g_loading_check_enabled) {
         StartLoadingScreenDetection()
     }
     

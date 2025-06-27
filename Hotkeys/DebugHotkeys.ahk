@@ -14,40 +14,66 @@ F11:: {
 }
 
 ; ===================================================================
-; F10: ロード画面検出のオン/オフ
+; F10: エリア検出方式の切り替え
 ; ===================================================================
 F10:: {
     global g_loading_check_enabled, g_macro_active
-    g_loading_check_enabled := !g_loading_check_enabled
     
-    if (g_loading_check_enabled) {
-        ShowOverlay("ロード画面検出: ON（入力待機モード）", 1500)
+    ; 現在の設定を取得
+    clientLogEnabled := ConfigManager.Get("ClientLog", "Enabled", true)
+    
+    if (clientLogEnabled) {
+        ; Client.txt監視を無効化して、旧方式に切り替え
+        ConfigManager.Set("ClientLog", "Enabled", false)
+        ConfigManager.Set("LoadingScreen", "Enabled", true)
+        g_loading_check_enabled := true
+        
         if (g_macro_active) {
+            StopClientLogMonitoring()
             StartLoadingScreenDetection()
         }
+        
+        ShowOverlay("エリア検出: ピクセル検出方式", 2000)
+        LogInfo("DebugHotkeys", "Switched to pixel-based loading detection")
     } else {
-        ShowOverlay("ロード画面検出: OFF", 1500)
-        StopLoadingScreenDetection()
+        ; 旧方式を無効化して、Client.txt監視に切り替え
+        ConfigManager.Set("ClientLog", "Enabled", true)
+        ConfigManager.Set("LoadingScreen", "Enabled", false)
+        g_loading_check_enabled := false
+        
+        if (g_macro_active) {
+            StopLoadingScreenDetection()
+            StartClientLogMonitoring()
+        }
+        
+        ShowOverlay("エリア検出: Client.txtログ監視", 2000)
+        LogInfo("DebugHotkeys", "Switched to log-based area detection")
     }
-    
-    LogInfo("DebugHotkeys", Format("F10 pressed - Loading detection: {}", 
-        g_loading_check_enabled ? "ON" : "OFF"))
 }
 
 ; ===================================================================
-; F9: 待機モードの詳細切り替え
+; F9: エリア検出デバッグ
 ; ===================================================================
 F9:: {
-    static mode := 1
-    mode := (mode == 1) ? 2 : 1
+    global g_client_log_path, g_last_area_name
     
-    if (mode == 1) {
-        ShowOverlay("簡易入力待機モード", 1500)
+    ; Client.txt監視が有効な場合
+    if (ConfigManager.Get("ClientLog", "Enabled", true)) {
+        ; 最後のエリアエントリーを表示
+        ShowLastAreaEntry()
+        
+        debugInfo := []
+        debugInfo.Push("=== エリア検出デバッグ ===")
+        debugInfo.Push("ログパス: " . g_client_log_path)
+        debugInfo.Push("最後のエリア: " . g_last_area_name)
+        debugInfo.Push("ファイルサイズ: " . g_last_file_size)
+        
+        ShowMultiLineOverlay(debugInfo, 5000)
     } else {
-        ShowOverlay("詳細アクション待機モード", 1500)
+        ShowOverlay("Client.txt監視が無効です", 2000)
     }
     
-    LogInfo("DebugHotkeys", Format("F9 pressed - Wait mode: {}", mode))
+    LogInfo("DebugHotkeys", "F9 pressed - Area detection debug")
 }
 
 ; ===================================================================

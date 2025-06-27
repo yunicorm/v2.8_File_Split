@@ -28,6 +28,7 @@ Persistent()
 #Include "Features\FlaskManager.ahk"
 #Include "Features\SkillAutomation.ahk"
 #Include "Features\LoadingScreen.ahk"
+#Include "Features\ClientLogMonitor.ahk"
 
 ; マクロコントローラー
 #Include "Core\MacroController.ahk"

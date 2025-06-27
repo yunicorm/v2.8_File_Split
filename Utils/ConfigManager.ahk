@@ -19,7 +19,7 @@ class ConfigManager {
         try {
             ; 各セクションを読み込み
             sections := ["General", "Resolution", "Mana", "Tincture", "Keys", 
-                        "Timing", "Wine", "LoadingScreen", "UI", "Performance"]
+                        "Timing", "Wine", "LoadingScreen", "ClientLog", "UI", "Performance"]
             
             for section in sections {
                 this.config[section] := Map()

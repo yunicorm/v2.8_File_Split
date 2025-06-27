@@ -51,6 +51,19 @@ StopAllTimers() {
     global g_flask_timer_active, g_tincture_retry_count
     g_flask_timer_active := false
     g_tincture_retry_count := 0
+    
+    ; エリア検出も停止
+    try {
+        StopClientLogMonitoring()
+    } catch {
+        ; エラーは無視
+    }
+    
+    try {
+        StopLoadingScreenDetection()
+    } catch {
+        ; エラーは無視
+    }
 }
 
 ; --- タイマーの状態を取得 ---

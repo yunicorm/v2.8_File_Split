@@ -203,3 +203,4 @@ TemporaryHideStatus(duration := 2000) {
     } catch Error as e {
         LogError("StatusDisplay", "Failed to temporarily hide status: " . e.Message)
     }
+}

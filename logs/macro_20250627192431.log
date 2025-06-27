@@ -1,0 +1,375 @@
+[2025-06-27 19:24:31] [INFO] [Logger] === Path of Exile Macro Started ===
+[2025-06-27 19:24:31] [INFO] [Logger] Version: 2.8.2
+[2025-06-27 19:24:31] [INFO] [Logger] AutoHotkey: 2.0.19
+[2025-06-27 19:24:31] [INFO] [Main] === Path of Exile Macro Starting ===
+[2025-06-27 19:24:31] [INFO] [Config] Configuration applied from INI file
+[2025-06-27 19:24:31] [INFO] [StatusDisplay] Status overlay created successfully
+[2025-06-27 19:24:31] [INFO] [Main] Initialization completed successfully
+[2025-06-27 19:24:35] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:24:35] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:24:35] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:24:35] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:24:35] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:24:35] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:24:43] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:24:43] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 234ms
+[2025-06-27 19:24:50] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 250ms
+[2025-06-27 19:24:56] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:24:56] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 19:25:55] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:25:55] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:25:55] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:25:55] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:25:55] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:25:55] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:25:56] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:26:03] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:26:07] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:26:08] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:28:30] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 19:28:30] [INFO] [DebugHotkeys] F10 pressed - Loading detection: OFF
+[2025-06-27 19:28:31] [INFO] [DebugHotkeys] F10 pressed - Loading detection: ON
+[2025-06-27 19:29:09] [INFO] [DebugHotkeys] F8 pressed - Timer debug displayed
+[2025-06-27 19:29:12] [INFO] [DebugHotkeys] F8 pressed - Timer debug displayed
+[2025-06-27 19:29:16] [INFO] [DebugHotkeys] F8 pressed - Timer debug displayed
+[2025-06-27 19:29:16] [INFO] [DebugHotkeys] F8 pressed - Timer debug displayed
+[2025-06-27 19:29:50] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 19:29:50] [INFO] [DebugHotkeys] F10 pressed - Loading detection: OFF
+[2025-06-27 19:29:52] [INFO] [DebugHotkeys] F10 pressed - Loading detection: ON
+[2025-06-27 19:30:03] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 19:30:03] [INFO] [DebugHotkeys] F10 pressed - Loading detection: OFF
+[2025-06-27 19:30:04] [INFO] [DebugHotkeys] F10 pressed - Loading detection: ON
+[2025-06-27 19:33:51] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:33:51] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:33:51] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:33:51] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:33:51] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:33:51] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:33:52] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:33:55] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:33:55] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:33:55] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:33:59] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 250ms
+[2025-06-27 19:33:59] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:34:00] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 235ms
+[2025-06-27 19:34:01] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 234ms
+[2025-06-27 19:34:04] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:34:04] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:34:11] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:34:11] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:34:15] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:34:22] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:34:22] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:34:22] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:34:22] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:34:22] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:34:22] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:34:23] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:34:27] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:34:38] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:34:39] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 360ms
+[2025-06-27 19:34:52] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1240: 250ms
+[2025-06-27 19:34:52] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:34:52] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:35:07] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:35:11] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:35:11] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:35:11] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:35:11] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:35:11] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:35:11] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:35:11] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:35:12] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:35:14] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:35:14] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:35:19] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 360ms
+[2025-06-27 19:35:20] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 250ms
+[2025-06-27 19:35:26] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:36:34] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:36:34] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:36:34] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:36:34] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:36:34] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:36:34] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:36:35] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 250ms
+[2025-06-27 19:36:35] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:36:35] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:36:36] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 375ms
+[2025-06-27 19:36:38] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 250ms
+[2025-06-27 19:36:38] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:36:39] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 688ms
+[2025-06-27 19:36:40] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 234ms
+[2025-06-27 19:36:40] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:36:40] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:36:46] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 234ms
+[2025-06-27 19:36:56] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:36:56] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:36:56] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:37:02] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:37:38] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:37:39] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:37:39] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:37:39] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:37:39] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:37:39] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:37:39] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:37:39] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:37:41] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 234ms
+[2025-06-27 19:37:41] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:37:43] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 250ms
+[2025-06-27 19:37:43] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:37:47] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:37:47] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:37:54] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 453ms
+[2025-06-27 19:37:54] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:38:01] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 140ms
+[2025-06-27 19:38:13] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:38:13] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:38:13] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:38:13] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:38:13] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:38:30] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 141ms
+[2025-06-27 19:38:30] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:38:37] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:38:37] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:38:43] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 250ms
+[2025-06-27 19:38:43] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:38:45] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 140ms
+[2025-06-27 19:38:45] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:39:07] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:39:10] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:39:10] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:39:10] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:39:10] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:39:10] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:39:10] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:39:10] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:39:10] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:39:22] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:39:22] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:39:22] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:39:24] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:39:24] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 250ms
+[2025-06-27 19:39:24] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:39:28] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:39:28] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:39:29] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 250ms
+[2025-06-27 19:39:29] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:39:29] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:39:30] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:39:32] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:39:32] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:39:32] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:39:32] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:39:32] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:39:32] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:39:48] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:39:49] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 19:40:51] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:40:51] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:40:51] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:40:51] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:40:51] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:40:51] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:40:52] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:40:52] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:40:58] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:41:08] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:41:08] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:41:11] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:41:11] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 250ms
+[2025-06-27 19:41:15] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:41:15] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:41:19] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:41:19] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:41:32] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:41:32] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:41:38] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 234ms
+[2025-06-27 19:41:54] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 140ms
+[2025-06-27 19:42:00] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 344ms
+[2025-06-27 19:42:00] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:42:00] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:42:03] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:42:16] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:42:16] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 140ms
+[2025-06-27 19:42:34] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 469ms
+[2025-06-27 19:42:34] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 141ms
+[2025-06-27 19:42:42] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:42:46] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:42:48] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:42:48] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:42:48] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:42:48] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:42:48] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:42:49] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:42:50] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:42:56] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:42:56] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:42:56] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:42:56] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:42:56] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:42:56] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:42:56] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:42:56] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:43:00] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:43:00] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:43:10] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:43:10] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:43:23] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 141ms
+[2025-06-27 19:43:25] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 235ms
+[2025-06-27 19:43:25] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:43:34] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:43:34] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:43:43] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:43:43] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:43:44] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:43:44] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 453ms
+[2025-06-27 19:43:52] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:43:52] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 250ms
+[2025-06-27 19:43:52] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 141ms
+[2025-06-27 19:44:02] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:44:04] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:44:04] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:44:04] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:44:04] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:44:04] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:44:04] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:44:05] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:44:05] [INFO] [LoadingScreen] User input detected: Key: RButton
+[2025-06-27 19:44:11] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:44:11] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:44:18] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:44:18] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:44:18] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:44:39] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 360ms
+[2025-06-27 19:44:39] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:44:39] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 250ms
+[2025-06-27 19:44:49] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:44:49] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:45:00] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 141ms
+[2025-06-27 19:45:01] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 141ms
+[2025-06-27 19:45:01] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:45:17] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:45:27] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 250ms
+[2025-06-27 19:45:27] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 140ms
+[2025-06-27 19:45:36] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:45:37] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:45:37] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 140ms
+[2025-06-27 19:45:45] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 234ms
+[2025-06-27 19:45:45] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 140ms
+[2025-06-27 19:45:58] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 141ms
+[2025-06-27 19:45:58] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:45:59] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:45:59] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:45:59] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:46:00] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 609ms
+[2025-06-27 19:46:00] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 141ms
+[2025-06-27 19:46:12] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:46:12] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 235ms
+[2025-06-27 19:46:12] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:46:14] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:46:15] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 578ms
+[2025-06-27 19:46:15] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:46:15] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 234ms
+[2025-06-27 19:46:19] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 234ms
+[2025-06-27 19:46:19] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 141ms
+[2025-06-27 19:46:19] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:46:22] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 141ms
+[2025-06-27 19:46:22] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 141ms
+[2025-06-27 19:46:33] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:46:34] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 19:46:37] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:46:38] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:46:38] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:46:38] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:46:38] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:46:38] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:46:38] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:46:38] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:46:41] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:46:43] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:46:43] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:46:43] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:46:43] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:46:43] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:46:43] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:46:48] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:46:48] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 344ms
+[2025-06-27 19:46:48] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:46:49] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 235ms
+[2025-06-27 19:46:49] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:46:50] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 234ms
+[2025-06-27 19:46:50] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:47:02] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:47:02] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:47:04] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 140ms
+[2025-06-27 19:47:10] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:47:10] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 19:47:12] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 19:47:12] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 19:47:16] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 19:47:17] [INFO] [MacroController] Initial actions performed
+[2025-06-27 19:47:17] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 19:47:17] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 19:47:17] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 19:47:17] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 19:47:18] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 19:47:20] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 110ms
+[2025-06-27 19:47:21] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 19:47:21] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 110ms
+[2025-06-27 19:47:21] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 110ms
+[2025-06-27 19:47:21] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 110ms
+[2025-06-27 19:47:21] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 110ms
+[2025-06-27 19:47:21] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 109ms
+[2025-06-27 19:47:22] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 19:47:27] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 19:47:28] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 19:47:28] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 19:47:33] [INFO] [LoadingScreen] Loading screen detected - macro paused
+[2025-06-27 20:09:05] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 20:09:05] [INFO] [MacroController] Initial actions performed
+[2025-06-27 20:09:05] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 20:09:05] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 20:09:05] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 20:09:05] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 20:09:06] [INFO] [LoadingScreen] Game screen restored - waiting for user input
+[2025-06-27 20:09:07] [INFO] [LoadingScreen] User input detected: Key: LButton
+[2025-06-27 20:09:08] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 20:09:08] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 20:09:27] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 20:09:27] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 20:09:36] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 20:09:36] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 20:09:40] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 20:09:40] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 20:09:46] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 20:09:50] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 453ms
+[2025-06-27 20:09:50] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 125ms
+[2025-06-27 20:09:54] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 20:10:05] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 20:10:05] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 250ms
+[2025-06-27 20:10:14] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 20:10:14] [WARN] [ColorDetection] Slow pixel detection at 3294,1300: 562ms
+[2025-06-27 20:10:14] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 250ms
+[2025-06-27 20:10:15] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 20:10:15] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 20:10:16] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 20:10:16] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 172ms
+[2025-06-27 20:10:17] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 20:10:18] [INFO] [MacroController] Initial actions performed
+[2025-06-27 20:10:18] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 20:10:18] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 20:10:18] [INFO] [LoadingScreen] Loading screen detection started
+[2025-06-27 20:10:18] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 20:10:18] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 1750ms
+[2025-06-27 20:10:23] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 250ms
+[2025-06-27 20:10:25] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 125ms
+[2025-06-27 20:10:25] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 20:10:26] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 109ms
+[2025-06-27 20:10:27] [WARN] [ColorDetection] Slow pixel detection at 425,1300: 125ms
+[2025-06-27 20:10:45] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1190: 125ms
+[2025-06-27 20:10:46] [WARN] [ColorDetection] Slow pixel detection at 1820.0,1240: 125ms
+[2025-06-27 20:10:46] [WARN] [ColorDetection] Slow pixel detection at 1720.0,1290: 235ms
+[2025-06-27 20:10:58] [INFO] [MainHotkeys] F12 pressed - Macro toggled
+[2025-06-27 20:32:05] [INFO] [Main] === Path of Exile Macro Shutting Down ===
+[2025-06-27 20:32:05] [INFO] [StatusDisplay] UI cleanup completed
