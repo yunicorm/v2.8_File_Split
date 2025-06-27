@@ -166,10 +166,16 @@ Stage5_Min=14500
 Stage5_Max=15000
 
 [LoadingScreen]
-Enabled=true
+Enabled=false
 CheckInterval=250
 GearAreaOffset=200
 DarkThreshold=50
+
+[ClientLog]
+Enabled=true
+Path=C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+CheckInterval=250
+RestartInTown=false
 
 [UI]
 StatusWidth=220

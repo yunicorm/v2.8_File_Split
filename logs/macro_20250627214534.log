@@ -5,3 +5,7 @@
 [2025-06-27 21:45:34] [INFO] [Config] Configuration applied from INI file
 [2025-06-27 21:45:34] [INFO] [StatusDisplay] Status overlay created successfully
 [2025-06-27 21:45:34] [INFO] [Main] Initialization completed successfully
+[2025-06-27 21:56:58] [INFO] [Main] === Path of Exile Macro Shutting Down ===
+[2025-06-27 21:56:58] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 21:56:58] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 21:56:58] [INFO] [StatusDisplay] UI cleanup completed
