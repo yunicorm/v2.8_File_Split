@@ -80,6 +80,52 @@ InitializeMacro() {
     OnExit(ExitFunc)
     
     LogInfo("Main", "Initialization completed successfully")
+    
+    ; === 自動開始機能 ===
+    if (ConfigManager.Get("General", "AutoStart", false)) {
+        autoStartDelay := ConfigManager.Get("General", "AutoStartDelay", 2000)
+        
+        ShowOverlay(Format("マクロを{}秒後に自動開始します...", autoStartDelay/1000), autoStartDelay)
+        LogInfo("Main", Format("Auto-start scheduled in {}ms", autoStartDelay))
+        
+        ; 指定時間後に自動開始（ウィンドウがアクティブな場合のみ）
+        SetTimer(() => AutoStartMacro(), -autoStartDelay)
+    } else {
+        ShowOverlay("F12キーでマクロを開始してください", 3000)
+    }
+}
+
+; === 自動開始関数 ===
+AutoStartMacro() {
+    global g_macro_active
+    
+    ; Path of Exileウィンドウがアクティブか確認
+    if (IsTargetWindowActive()) {
+        if (!g_macro_active) {
+            ShowOverlay("マクロを自動開始します", 2000)
+            ToggleMacro()
+            LogInfo("Main", "Macro auto-started successfully")
+        }
+    } else {
+        ; ウィンドウがアクティブでない場合は待機
+        ShowOverlay("Path of Exileをアクティブにしてください", 3000)
+        LogInfo("Main", "Auto-start delayed - waiting for active window")
+        
+        ; 再試行タイマーを設定
+        SetTimer(() => WaitForWindowAndStart(), 1000)
+    }
+}
+
+; === ウィンドウ待機と開始 ===
+WaitForWindowAndStart() {
+    global g_macro_active
+    
+    if (IsTargetWindowActive() && !g_macro_active) {
+        SetTimer(() => WaitForWindowAndStart(), 0)  ; タイマー停止
+        ShowOverlay("マクロを自動開始します", 2000)
+        ToggleMacro()
+        LogInfo("Main", "Macro auto-started after window became active")
+    }
 }
 
 ; === 設定からグローバル変数を読み込み ---

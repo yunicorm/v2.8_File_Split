@@ -1,0 +1,138 @@
+[2025-06-27 22:09:25] [INFO] [Logger] === Path of Exile Macro Started ===
+[2025-06-27 22:09:25] [INFO] [Logger] Version: 2.8.2
+[2025-06-27 22:09:25] [INFO] [Logger] AutoHotkey: 2.0.19
+[2025-06-27 22:09:25] [INFO] [Main] === Path of Exile Macro Starting ===
+[2025-06-27 22:09:25] [INFO] [Config] Configuration applied from INI file
+[2025-06-27 22:09:25] [INFO] [StatusDisplay] Status overlay created successfully
+[2025-06-27 22:09:25] [INFO] [Main] Initialization completed successfully
+[2025-06-27 22:09:25] [INFO] [Main] Auto-start scheduled in 2000ms
+[2025-06-27 22:09:27] [INFO] [Main] Auto-start delayed - waiting for active window
+[2025-06-27 22:09:30] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:09:30] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:09:31] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:09:31] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:09:31] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:09:31] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:09:31] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:09:31] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:09:40] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 22:09:42] [INFO] [ClientLogMonitor] Area change detected: The Lunaris Concourse at 2025/06/27 22:09:42
+[2025-06-27 22:09:42] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:09:42] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:09:42] [INFO] [ClientLogMonitor] Macro paused due to area change
+[2025-06-27 22:09:42] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:09:42] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:09:43] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:09:43] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:09:43] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:09:43] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:09:43] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:09:43] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:09:56] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 22:09:57] [INFO] [ClientLogMonitor] Area change detected: Sunspire Hideout at 2025/06/27 22:09:57
+[2025-06-27 22:09:57] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:09:57] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:09:57] [INFO] [ClientLogMonitor] Macro paused due to area change
+[2025-06-27 22:09:58] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:09:58] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:09:58] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:09:58] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:09:58] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:09:58] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:09:58] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:09:58] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:10:20] [INFO] [MainHotkeys] F12 pressed - Resetting macro
+[2025-06-27 22:10:20] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:20] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:20] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:20] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:20] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:10:21] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:10:21] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:10:21] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:10:21] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:10:29] [INFO] [MainHotkeys] F12 pressed - Resetting macro
+[2025-06-27 22:10:29] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:29] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:30] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:10:30] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:30] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:30] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:10:30] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:10:30] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:10:30] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:10:30] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:10:38] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:38] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:38] [INFO] [MainHotkeys] Shift+F12 pressed - Macro stopped
+[2025-06-27 22:10:38] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:10:39] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:39] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:39] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:10:39] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:10:39] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:10:39] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:10:39] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:10:39] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:10:46] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:46] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:46] [WARN] [MainHotkeys] Emergency stop activated (Ctrl+F12)
+[2025-06-27 22:10:46] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:46] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:46] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:10:46] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:10:46] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:10:46] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:10:46] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:10:46] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:10:48] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:48] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:48] [WARN] [MainHotkeys] Emergency stop activated (Ctrl+F12)
+[2025-06-27 22:10:48] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:48] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:48] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:10:48] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:10:48] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:10:48] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:10:48] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:10:48] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:10:48] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:48] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:48] [WARN] [MainHotkeys] Emergency stop activated (Ctrl+F12)
+[2025-06-27 22:10:49] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:49] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:49] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:10:49] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:10:49] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:10:49] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:10:49] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:10:49] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:10:50] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:50] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:50] [WARN] [MainHotkeys] Emergency stop activated (Ctrl+F12)
+[2025-06-27 22:10:51] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:51] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:51] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:10:51] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:10:51] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:10:51] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:10:51] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:10:51] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:10:54] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:54] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:54] [INFO] [MainHotkeys] Shift+F12 pressed - Macro stopped
+[2025-06-27 22:10:55] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:10:55] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:10:55] [INFO] [TinctureManager] Tincture state reset
+[2025-06-27 22:10:55] [INFO] [MacroController] Initial actions performed
+[2025-06-27 22:10:55] [INFO] [SkillAutomation] Skill automation started
+[2025-06-27 22:10:55] [INFO] [FlaskManager] Flask automation started
+[2025-06-27 22:10:55] [INFO] [ClientLogMonitor] Client log monitoring started at: C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt
+[2025-06-27 22:10:55] [INFO] [Main] Macro auto-started after window became active
+[2025-06-27 22:11:02] [INFO] [ManaMonitor] Mana depletion detected
+[2025-06-27 22:11:03] [INFO] [ManaMonitor] Mana recovery detected (27%)
+[2025-06-27 22:11:06] [INFO] [ManaMonitor] Mana recovery detected (27%)
+[2025-06-27 22:11:08] [INFO] [Main] === Path of Exile Macro Shutting Down ===
+[2025-06-27 22:11:08] [INFO] [ClientLogMonitor] Client log monitoring stopped
+[2025-06-27 22:11:08] [INFO] [LoadingScreen] Loading screen detection stopped
+[2025-06-27 22:11:08] [INFO] [StatusDisplay] UI cleanup completed
