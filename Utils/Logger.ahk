@@ -331,8 +331,14 @@ CheckLogRotation() {
             currentSize := FileGetSize(g_log_file)
         }
         
+        ; デバッグ出力でサイズを確認
+        if (currentSize > 0) {
+            OutputDebug(Format("Log size check: {} bytes (limit: {} bytes)", currentSize, maxSize))
+        }
+        
         ; 書き込み回数でもチェック（パフォーマンス対策）
         if (currentSize > maxSize || g_log_write_count > 5000) {
+            OutputDebug("Log rotation triggered - performing rotation")
             PerformLogRotation()
         }
     } catch as e {
@@ -348,6 +354,16 @@ CompressLogFile(filePath) {
     } catch {
         ; エラーは無視
     }
+}
+
+; --- 手動ログローテーション ---
+ForceLogRotation() {
+    global g_log_file
+    if (FileExist(g_log_file)) {
+        PerformLogRotation()
+        return true
+    }
+    return false
 }
 
 ; --- ログレベル名を取得 ---
