@@ -218,7 +218,8 @@ GetFlaskUsageHistory(limit := 20) {
     history := []
     startIndex := Max(1, g_flask_usage_history.Length - limit + 1)
     
-    for i in Range(startIndex, g_flask_usage_history.Length) {
+    Loop (g_flask_usage_history.Length - startIndex + 1) {
+        i := startIndex + A_Index - 1
         if (i <= g_flask_usage_history.Length) {
             history.Push(g_flask_usage_history[i])
         }

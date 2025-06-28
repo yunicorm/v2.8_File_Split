@@ -19,7 +19,9 @@
       "Bash(rm:*)",
       "Bash(python3:*)",
       "Bash(cp:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(AutoHotkey:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
