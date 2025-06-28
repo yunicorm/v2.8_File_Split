@@ -139,7 +139,7 @@ RecreateStatusGui() {
         
         ; 表示位置を設定（アクティブウィンドウとマクロ状態をチェック）
         if (WinActive("ahk_group TargetWindows") && g_macro_active) {
-            ShowStatusWindow()
+            ShowStatusWindowSafe()
         }
         
     } catch Error as e {
@@ -287,7 +287,7 @@ CheckWindowStatus() {
         if (isActive && g_macro_active) {
             ; アクティブかつマクロONの場合は表示
             if (!WinExist(statusGui)) {
-                ShowStatusWindow()
+                ShowStatusWindowSafe()
             }
         } else {
             ; それ以外の場合は非表示
@@ -302,8 +302,8 @@ CheckWindowStatus() {
     }
 }
 
-; --- ステータスウィンドウを表示 ---
-ShowStatusWindow() {
+; --- ステータスウィンドウを表示（StatusDisplay版） ---
+ShowStatusWindowSafe() {
     global statusGui
     
     try {
@@ -417,6 +417,6 @@ ShowStatusIfActive() {
     global g_macro_active
     
     if (g_macro_active && WinActive("ahk_group TargetWindows")) {
-        ShowStatusWindow()
+        ShowStatusWindowSafe()
     }
 }

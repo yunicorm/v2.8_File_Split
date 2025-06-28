@@ -480,56 +480,54 @@ GetFlaskStats() {
 ConfigureFlasks(flaskConfig) {
     global g_flask_configs, g_flask_charge_tracker
     
-    /*
-    使用例：
-    flaskConfig := Map(
-        "1", {
-            key: "1", 
-            type: "life", 
-            minInterval: 5000, 
-            maxInterval: 5500, 
-            enabled: true,
-            priority: 1,
-            maxCharges: 60,
-            chargePerUse: 20,
-            chargeGainRate: 6,
-            useCondition: () => GetHealthPercentage() < 70
-        },
-        "2", {
-            key: "2", 
-            type: "mana", 
-            minInterval: 4500, 
-            maxInterval: 4800, 
-            enabled: true,
-            priority: 2
-        },
-        "3", {
-            key: "3", 
-            type: "utility", 
-            minInterval: 5000, 
-            maxInterval: 5000, 
-            enabled: true,
-            priority: 3
-        },
-        "4", {
-            key: "4", 
-            type: "utility", 
-            minInterval: 8000, 
-            maxInterval: 8000, 
-            enabled: true,
-            priority: 4
-        },
-        "5", {
-            key: "5", 
-            type: "quicksilver", 
-            minInterval: 6000, 
-            maxInterval: 6500, 
-            enabled: true,
-            priority: 5,
-            useCondition: () => IsMoving()
-        }
-    )
-    */
+    ; 使用例：
+    ; flaskConfig := Map(
+    ;     "1", {
+    ;         key: "1", 
+    ;         type: "life", 
+    ;         minInterval: 5000, 
+    ;         maxInterval: 5500, 
+    ;         enabled: true,
+    ;         priority: 1,
+    ;         maxCharges: 60,
+    ;         chargePerUse: 20,
+    ;         chargeGainRate: 6,
+    ;         useCondition: () => GetHealthPercentage() < 70
+    ;     },
+    ;     "2", {
+    ;         key: "2", 
+    ;         type: "mana", 
+    ;         minInterval: 4500, 
+    ;         maxInterval: 4800, 
+    ;         enabled: true,
+    ;         priority: 2
+    ;     },
+    ;     "3", {
+    ;         key: "3", 
+    ;         type: "utility", 
+    ;         minInterval: 5000, 
+    ;         maxInterval: 5000, 
+    ;         enabled: true,
+    ;         priority: 3
+    ;     },
+    ;     "4", {
+    ;         key: "4", 
+    ;         type: "utility", 
+    ;         minInterval: 8000, 
+    ;         maxInterval: 8000, 
+    ;         enabled: true,
+    ;         priority: 4
+    ;     },
+    ;     "5", {
+    ;         key: "5", 
+    ;         type: "quicksilver", 
+    ;         minInterval: 6000, 
+    ;         maxInterval: 6500, 
+    ;         enabled: true,
+    ;         priority: 5,
+    ;         useCondition: () => IsMoving()
+    ;     }
+    ; )
     
     try {
         ; 既存の自動化を停止

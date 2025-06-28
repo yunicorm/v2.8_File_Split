@@ -96,7 +96,7 @@ F12:: {
 ; Ctrl+F12: 緊急停止（改善版）
 ; ===================================================================
 ^F12:: {
-    if (!CheckHotkeyCooldown("CtrlF12", false)) {  // 緊急停止は警告なし
+    if (!CheckHotkeyCooldown("CtrlF12", false)) {  ; 緊急停止は警告なし
         return
     }
     
@@ -134,14 +134,14 @@ F12:: {
     try {
         ShowOverlay("設定をリロード中...", 1500)
         
-        // 現在の設定をバックアップ
+        ; 現在の設定をバックアップ
         ConfigManager.CreateBackup()
         
         if (ReloadConfiguration()) {
             ShowOverlay("設定のリロードが完了しました", 2000)
             LogInfo("MainHotkeys", "Configuration reloaded successfully")
             
-            // 変更された設定を適用
+            ; 変更された設定を適用
             ApplyConfigChanges()
         } else {
             ShowOverlay("設定のリロードに失敗しました", 2000)
@@ -174,7 +174,7 @@ Pause:: {
         if (g_macro_active) {
             ShowOverlay("マクロ一時停止", 1500)
             
-            // フラスコのみ一時停止するオプション
+            ; フラスコのみ一時停止するオプション
             if (GetKeyState("Shift", "P")) {
                 PauseFlaskAutomation()
                 LogInfo("MainHotkeys", "Flask automation paused")
@@ -274,10 +274,10 @@ F1:: {
     result := MsgBox("スクリプトを再起動しますか？`n未保存の設定は失われます。", "確認", "YesNo Icon?")
     if (result == "Yes") {
         try {
-            // ログをフラッシュ
+            ; ログをフラッシュ
             FlushLogBuffer()
             
-            // 設定を保存
+            ; 設定を保存
             if (ConfigManager.isDirty) {
                 ConfigManager.Save()
             }
@@ -296,7 +296,7 @@ F1:: {
     result := MsgBox("スクリプトを終了しますか？", "確認", "YesNo Icon?")
     if (result == "Yes") {
         try {
-            // クリーンアップ
+            ; クリーンアップ
             LogInfo("MainHotkeys", "Script exit requested by user")
             FlushLogBuffer()
             
@@ -306,7 +306,7 @@ F1:: {
             
             ExitApp()
         } catch {
-            ExitApp()  // エラーでも終了
+            ExitApp()  ; エラーでも終了
         }
     }
 }
@@ -347,7 +347,7 @@ CheckHotkeyCooldown(hotkeyName, showWarning := true) {
         timeSinceLastPress := currentTime - g_hotkey_last_press[hotkeyName]
         
         if (timeSinceLastPress < cooldown) {
-            // 連打カウント
+            ; 連打カウント
             if (!g_hotkey_press_count.Has(hotkeyName)) {
                 g_hotkey_press_count[hotkeyName] := 0
             }

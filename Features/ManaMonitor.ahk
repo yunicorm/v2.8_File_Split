@@ -167,7 +167,7 @@ InitializeManaState() {
     g_mana_state_stable_count := 0
     
     ; 初期状態を取得
-    currentManaState := CheckManaRadialDetailed()  // 初回は詳細チェック
+    currentManaState := CheckManaRadialDetailed()  ; 初回は詳細チェック
     g_last_mana_state := currentManaState
     g_mana_depleted := !currentManaState
     
@@ -182,9 +182,9 @@ StartManaMonitoring() {
     g_mana_monitoring_enabled := true
     interval := ConfigManager.Get("Mana", "MonitorInterval", 100)
     
-    // 動的インターバル調整
+    ; 動的インターバル調整
     if (g_performance_mode) {
-        interval := Max(interval, 150)  // パフォーマンスモードでは最小150ms
+        interval := Max(interval, 150)  ; パフォーマンスモードでは最小150ms
     }
     
     StartManagedTimer("ManaMonitor", MonitorMana, interval)
@@ -286,7 +286,7 @@ HandleManaRecovery() {
     global g_tincture_cooldown_end, g_mana_state_stable_count
     
     g_mana_depleted := false
-    g_mana_state_stable_count := 0  // 状態変化でリセット
+    g_mana_state_stable_count := 0  ; 状態変化でリセット
     
     ShowOverlay(Format("マナ回復 ({}%)", g_mana_fill_rate), 1000)
     

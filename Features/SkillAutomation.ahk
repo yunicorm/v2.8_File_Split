@@ -423,13 +423,11 @@ ResetSkillTimings() {
 ConfigureSkills(skillConfig) {
     global g_skill_configs, g_skill_enabled
     
-    /*
-    使用例：
-    skillConfig := Map(
-        "Q", {key: "Q", minInterval: 2000, maxInterval: 2500, enabled: true},
-        "W", {key: "W", minInterval: 5000, maxInterval: 5500, enabled: false}
-    )
-    */
+    ; 使用例：
+    ; skillConfig := Map(
+    ;     "Q", {key: "Q", minInterval: 2000, maxInterval: 2500, enabled: true},
+    ;     "W", {key: "W", minInterval: 5000, maxInterval: 5500, enabled: false}
+    ; )
     
     try {
         wasActive := g_macro_active

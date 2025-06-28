@@ -36,7 +36,7 @@ StartManagedTimer(timerName, callback, period, priority := TimerPriority.NORMAL)
         StopManagedTimer(timerName)
         
         ; 少し待機（既存タイマーの完全停止を確保）
-        Sleep(10)
+        Sleep(50)
     }
     
     try {
@@ -113,16 +113,16 @@ ExecuteTimerCallback(timerName, callback) {
         ; 実行時間を記録
         executionTime := A_TickCount - startTime
         
-        // パフォーマンス統計を更新
+        ; パフォーマンス統計を更新
         UpdateTimerPerformance(timerName, executionTime)
         
-        // 実行情報を更新
+        ; 実行情報を更新
         if (g_active_timers.Has(timerName)) {
             g_active_timers[timerName].lastExecutionTime := A_TickCount
         }
         
-        // 遅い実行を警告
-        if (executionTime > 100) {  // 100ms以上
+        ; 遅い実行を警告
+        if (executionTime > 200) {  ; 200ms以上
             LogWarn("TimerManager", Format("Timer '{}' took {}ms to execute", timerName, executionTime))
         }
         
@@ -131,7 +131,7 @@ ExecuteTimerCallback(timerName, callback) {
         LogError("TimerManager", Format("Error in timer '{}' (errors: {}): {}", 
             timerName, g_timer_errors[timerName], e.Message))
         
-        // エラーが多い場合はタイマーを停止
+        ; エラーが多い場合はタイマーを停止
         if (g_timer_errors[timerName] > 10) {
             LogError("TimerManager", Format("Timer '{}' has too many errors, stopping", timerName))
             StopManagedTimer(timerName)
@@ -175,14 +175,14 @@ StopManagedTimer(timerName) {
     try {
         timerInfo := g_active_timers[timerName]
         
-        // タイマーを停止
+        ; タイマーを停止
         SetTimer(timerInfo.wrappedCallback, 0)
         
-        // 実行中の場合は完了を待つ
+        ; 実行中の場合は完了を待つ
         if (g_timer_executing.Has(timerName) && g_timer_executing[timerName]) {
             LogDebug("TimerManager", Format("Waiting for timer '{}' to complete", timerName))
             
-            // 最大1秒待機
+            ; 最大1秒待機
             waitStart := A_TickCount
             while (g_timer_executing[timerName] && A_TickCount - waitStart < 1000) {
                 Sleep(10)
@@ -193,10 +193,14 @@ StopManagedTimer(timerName) {
             }
         }
         
-        // 管理情報を削除
+        ; 管理情報を削除
         g_active_timers.Delete(timerName)
-        g_timer_executing.Delete(timerName)
-        g_timer_priorities.Delete(timerName)
+        if (g_timer_executing.Has(timerName)) {
+            g_timer_executing.Delete(timerName)
+        }
+        if (g_timer_priorities.Has(timerName)) {
+            g_timer_priorities.Delete(timerName)
+        }
         
         LogDebug("TimerManager", Format("Timer '{}' stopped", timerName))
         return true
@@ -213,7 +217,7 @@ StopAllTimers() {
     
     LogInfo("TimerManager", "Stopping all timers")
     
-    // 優先度順にソート（低優先度から停止）
+    ; 優先度順にソート（低優先度から停止）
     sortedTimers := []
     for timerName, _ in g_active_timers {
         sortedTimers.Push({
@@ -222,7 +226,7 @@ StopAllTimers() {
         })
     }
     
-    // 優先度でソート（降順）
+    ; 優先度でソート（降順）
     Loop sortedTimers.Length - 1 {
         i := A_Index
         Loop sortedTimers.Length - i {
@@ -235,38 +239,41 @@ StopAllTimers() {
         }
     }
     
-    // 順番に停止
+    ; 順番に停止
     for timer in sortedTimers {
         StopManagedTimer(timer.name)
     }
     
-    // グローバルフラグもリセット
+    ; グローバルフラグもリセット
     global g_flask_timer_active, g_tincture_retry_count
     g_flask_timer_active := false
     g_tincture_retry_count := 0
     
-    // エリア検出も停止
+    ; エリア検出も停止
+    ; 依存モジュールの停止関数を呼び出し（存在する場合のみ）
     try {
-        if (IsSet(StopClientLogMonitoring)) {
-            StopClientLogMonitoring()
-        }
+        StopClientLogMonitoring()
     } catch {
-        ; エラーは無視
+        ; 関数が定義されていない場合は無視
     }
     
     try {
-        if (IsSet(StopLoadingScreenDetection)) {
-            StopLoadingScreenDetection()
-        }
+        StopLoadingScreenDetection()
     } catch {
-        ; エラーは無視
+        ; 関数が定義されていない場合は無視
     }
     
-    // 統計をクリア
+    ; 統計をクリア
     global g_timer_execution_count, g_timer_errors, g_timer_performance
-    g_timer_execution_count.Clear()
-    g_timer_errors.Clear()
-    g_timer_performance.Clear()
+    if (IsObject(g_timer_execution_count)) {
+        g_timer_execution_count.Clear()
+    }
+    if (IsObject(g_timer_errors)) {
+        g_timer_errors.Clear()
+    }
+    if (IsObject(g_timer_performance)) {
+        g_timer_performance.Clear()
+    }
     
     LogInfo("TimerManager", "All timers stopped")
 }
@@ -310,16 +317,16 @@ GetTimerPerformanceStats() {
 }
 
 ; --- デバッグ用：全タイマーの状態を表示（拡張版） ---
-ShowTimerDebugInfo() {
+ShowTimerDebugInfoDetailed() {
     global g_active_timers, g_timer_execution_count, g_timer_errors, g_timer_performance
     
     debugText := "=== Active Timers ===`n"
     debugText .= Format("Total: {} timers`n`n", g_active_timers.Count)
     
-    // 優先度順にソート
+    ; 優先度順にソート
     activeTimers := GetActiveTimers()
     
-    // 優先度でソート
+    ; 優先度でソート
     Loop activeTimers.Length - 1 {
         i := A_Index
         Loop activeTimers.Length - i {
@@ -345,7 +352,7 @@ ShowTimerDebugInfo() {
             timer.errorCount,
             errorRate)
         
-        // パフォーマンス情報
+        ; パフォーマンス情報
         if (g_timer_performance.Has(timer.name)) {
             perf := g_timer_performance[timer.name]
             debugText .= Format("  Perf: Avg {}ms, Max {}ms, Min {}ms`n", 
@@ -395,7 +402,7 @@ PauseTimer(timerName) {
 ResumeTimer(timerName) {
     global g_active_timers
     
-    if (g_active_timers.Has(timerName) && g_active_timers[timerName].HasOwnProp("paused")) {
+    if (g_active_timers.Has(timerName) && g_active_timers[timerName].HasOwnProp("paused") && g_active_timers[timerName].paused) {
         timerInfo := g_active_timers[timerName]
         SetTimer(timerInfo.wrappedCallback, timerInfo.period)
         timerInfo.paused := false

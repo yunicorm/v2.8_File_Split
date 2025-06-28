@@ -3,8 +3,8 @@
 ; Path of ExileとSteamリモートプレイのウィンドウ検出と管理
 ; ===================================================================
 
-; --- ウィンドウ状態チェック ---
-CheckWindowStatus() {
+; --- ウィンドウ状態チェック（WindowManager版） ---
+CheckWindowStatusLegacy() {
     global statusGui, g_macro_active, g_status_update_needed
     
     ; GUIが存在しない場合は何もしない

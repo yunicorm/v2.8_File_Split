@@ -250,17 +250,11 @@ RunPerformanceTest() {
 ; グローバルホットキー（ウィンドウに関係なく動作）
 ; ===================================================================
 
-; Ctrl+Alt+F12: スクリプト再起動
-^!F12:: {
+; Ctrl+Shift+F12: 緊急スクリプト再起動（確認なし）
+^+F12:: {
     ShowOverlay("スクリプト再起動中...", 1000)
     Sleep(1000)
     Reload()
 }
 
-; Ctrl+Alt+Shift+F12: スクリプト終了
-^!+F12:: {
-    result := MsgBox("スクリプトを終了しますか？", "確認", "YesNo")
-    if (result == "Yes") {
-        ExitApp()
-    }
-}
+; 注意: Ctrl+Alt+Shift+F12 はMainHotkeys.ahkで定義されています

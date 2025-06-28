@@ -159,7 +159,7 @@ CheckClientLog() {
         
         ; エラーが続く場合はファイルハンドルを再オープン
         if (g_monitor_errors > 5) {
-            ReopenLogFile()
+            ReopenClientLogFile()
         }
     }
 }
@@ -436,11 +436,11 @@ HandleLogRotation() {
     g_last_read_position := 0
     
     ; ファイルハンドルを再オープン
-    ReopenLogFile()
+    ReopenClientLogFile()
 }
 
-; --- ログファイルの再オープン ---
-ReopenLogFile() {
+; --- クライアントログファイルの再オープン ---
+ReopenClientLogFile() {
     global g_log_file_handle, g_client_log_path, g_monitor_errors
     
     CloseLogFile()

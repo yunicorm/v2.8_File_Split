@@ -199,7 +199,7 @@ class ConfigManager {
         
         sectionRules := this.validationRules[section]
         if (!sectionRules.Has(key)) {
-            return true  // ルールがない場合は許可
+            return true  ; ルールがない場合は許可
         }
         
         rule := sectionRules[key]
@@ -265,7 +265,7 @@ class ConfigManager {
             this.config[section][key] := value
             this.isDirty := true
             
-            // 自動保存（オプション）
+            ; 自動保存（オプション）
             if (this.Get("General", "AutoSaveConfig", false)) {
                 this.Save()
             }
@@ -328,7 +328,7 @@ class ConfigManager {
             ; ファイルをコピー
             FileCopy(configPath, backupFile, 0)
             
-            // 古いバックアップを削除
+            ; 古いバックアップを削除
             this.CleanupOldBackups()
             
             LogInfo("ConfigManager", "Backup created: " . backupFile)
@@ -398,12 +398,12 @@ class ConfigManager {
             }
         }
         
-        // Wine設定の段階的チェック
+        ; Wine設定の段階的チェック
         wineStages := ["Stage1", "Stage2", "Stage3", "Stage4", "Stage5"]
         prevTime := 0
         
         for i, stage in wineStages {
-            if (i < 5) {  // Stage5にはTimeがない
+            if (i < 5) {  ; Stage5にはTimeがない
                 stageTime := this.Get("Wine", stage . "_Time", 60000 * i)
                 if (stageTime <= prevTime) {
                     this.Set("Wine", stage . "_Time", prevTime + 30000)
@@ -607,7 +607,7 @@ MonitoringEnabled=false
             this.Save()
         }
         
-        // 新しいプロファイルを読み込み
+        ; 新しいプロファイルを読み込み
         if (this.Load(profileName)) {
             this.currentProfile := profileName
             LogInfo("ConfigManager", Format("Switched to profile: {}", profileName))
@@ -646,7 +646,7 @@ MonitoringEnabled=false
             configPath := this.GetProfilePath(this.currentProfile)
             FileCopy(importPath, configPath, 1)
             
-            // 設定をリロード
+            ; 設定をリロード
             if (this.Reload()) {
                 LogInfo("ConfigManager", Format("Configuration imported from: {}", importPath))
                 return true

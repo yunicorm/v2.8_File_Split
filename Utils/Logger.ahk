@@ -57,7 +57,7 @@ InitializeLogger() {
             throw Error("Failed to open log file")
         }
         
-        // バッファリングを有効化
+        ; バッファリングを有効化
         g_log_file_handle.Encoding := "UTF-8-RAW"
         
     } catch Error as e {
@@ -118,12 +118,12 @@ WriteLog(level, module, message) {
         RemoveLowPriorityLogs()
     }
     
-    // 重要なログは即座にフラッシュ
+    ; 重要なログは即座にフラッシュ
     if (level >= LOG_LEVEL.ERROR) {
         FlushLogBuffer()
     }
     
-    // デバッグモードならコンソールにも出力
+    ; デバッグモードならコンソールにも出力
     if (g_current_log_level == LOG_LEVEL.DEBUG) {
         OutputDebug(logEntry)
     }
@@ -199,7 +199,7 @@ FlushLogBuffer() {
 ReopenLogFile() {
     global g_log_file_handle, g_log_file, g_log_stats
     
-    // 既存のハンドルを閉じる
+    ; 既存のハンドルを閉じる
     if (g_log_file_handle) {
         try {
             g_log_file_handle.Close()
@@ -208,7 +208,7 @@ ReopenLogFile() {
         }
     }
     
-    // 新しいハンドルを開く
+    ; 新しいハンドルを開く
     try {
         g_log_file_handle := FileOpen(g_log_file, "a", "UTF-8-RAW")
         g_log_stats.writeErrors := 0
@@ -230,30 +230,30 @@ CheckLogRotation() {
     try {
         maxSize := ConfigManager.Get("General", "MaxLogSize", 10) * 1024 * 1024  ; MB to bytes
         
-        // ファイルサイズをチェック
+        ; ファイルサイズをチェック
         currentSize := 0
         if (FileExist(g_log_file)) {
             currentSize := FileGetSize(g_log_file)
         }
         
-        // 書き込み回数でもチェック（パフォーマンス対策）
+        ; 書き込み回数でもチェック（パフォーマンス対策）
         if (currentSize > maxSize || g_log_write_count > 10000) {
             g_log_rotation_in_progress := true
             
-            // バッファをフラッシュ
+            ; バッファをフラッシュ
             FlushLogBuffer()
             
-            // ファイルハンドルを閉じる
+            ; ファイルハンドルを閉じる
             if (g_log_file_handle) {
                 g_log_file_handle.Close()
                 g_log_file_handle := ""
             }
             
-            // 新しいログファイルを作成
+            ; 新しいログファイルを作成
             oldFile := g_log_file
             g_log_file := g_log_dir . "\macro_" . FormatTime(A_Now, "yyyyMMdd_HHmmss") . ".log"
             
-            // ファイルハンドルを開く
+            ; ファイルハンドルを開く
             try {
                 g_log_file_handle := FileOpen(g_log_file, "a", "UTF-8-RAW")
             } catch {
@@ -267,7 +267,7 @@ CheckLogRotation() {
             g_log_write_count := 0
             g_log_stats.rotations++
             
-            // 古いファイルを圧縮（オプション）
+            ; 古いファイルを圧縮（オプション）
             if (ConfigManager.Get("General", "CompressOldLogs", false)) {
                 CompressLogFile(oldFile)
             }
@@ -336,7 +336,7 @@ LogErrorWithStack(module, message, errorObj := "") {
             fullMessage .= "`n  Stack: " . errorObj.Stack
         }
         
-        // 追加情報
+        ; 追加情報
         if (errorObj.HasProp("Extra")) {
             fullMessage .= "`n  Extra: " . errorObj.Extra
         }
@@ -374,7 +374,7 @@ EndPerfTimer(name, module := "Performance") {
         timer := g_performance_timers[name]
         duration := A_TickCount - timer.start
         
-        // 詳細なログ
+        ; 詳細なログ
         if (timer.checkpoints.Length > 0) {
             checkpointInfo := ""
             for cp in timer.checkpoints {
@@ -396,7 +396,7 @@ EndPerfTimer(name, module := "Performance") {
 ShowLogViewer() {
     global g_log_file
     
-    // バッファをフラッシュ
+    ; バッファをフラッシュ
     FlushLogBuffer()
     
     if (FileExist(g_log_file)) {
