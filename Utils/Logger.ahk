@@ -4,16 +4,16 @@
 ; ===================================================================
 
 ; --- ログレベル定義 ---
-global LOG_LEVEL := {
-    DEBUG: 0,
-    INFO: 1,
-    WARN: 2,
-    ERROR: 3,
-    CRITICAL: 4
-}
+global LOG_LEVEL := Map(
+    "DEBUG", 0,
+    "INFO", 1,
+    "WARN", 2,
+    "ERROR", 3,
+    "CRITICAL", 4
+)
 
 ; --- グローバル変数 ---
-global g_current_log_level := LOG_LEVEL.INFO
+global g_current_log_level := LOG_LEVEL["INFO"]
 global g_log_file := ""
 global g_log_dir := A_ScriptDir . "\logs"
 global g_log_buffer := []
@@ -35,7 +35,7 @@ InitializeLogger() {
     
     ; ログレベルを設定から取得
     if (ConfigManager.Get("General", "DebugMode", false)) {
-        g_current_log_level := LOG_LEVEL.DEBUG
+        g_current_log_level := LOG_LEVEL["DEBUG"]
     }
     
     ; ログディレクトリを作成
@@ -68,10 +68,10 @@ InitializeLogger() {
     }
     
     ; 初期ログエントリ
-    WriteLog(LOG_LEVEL.INFO, "Logger", "=== Path of Exile Macro Started ===")
-    WriteLog(LOG_LEVEL.INFO, "Logger", "Version: v2.9.2")
-    WriteLog(LOG_LEVEL.INFO, "Logger", "AutoHotkey: " . A_AhkVersion)
-    WriteLog(LOG_LEVEL.INFO, "Logger", "Log Level: " . GetLogLevelName(g_current_log_level))
+    WriteLog(LOG_LEVEL["INFO"], "Logger", "=== Path of Exile Macro Started ===")
+    WriteLog(LOG_LEVEL["INFO"], "Logger", "Version: v2.9.2")
+    WriteLog(LOG_LEVEL["INFO"], "Logger", "AutoHotkey: " . A_AhkVersion)
+    WriteLog(LOG_LEVEL["INFO"], "Logger", "Log Level: " . GetLogLevelName(g_current_log_level))
     
     ; バッファフラッシュタイマーを開始
     SetTimer(FlushLogBuffer, 1000)  ; 1秒ごと
@@ -123,12 +123,12 @@ WriteLog(level, module, message) {
     }
     
     ; 重要なログは即座にフラッシュ
-    if (level >= LOG_LEVEL.ERROR) {
+    if (level >= LOG_LEVEL["ERROR"]) {
         FlushLogBuffer()
     }
     
     ; デバッグモードならコンソールにも出力
-    if (g_current_log_level == LOG_LEVEL.DEBUG) {
+    if (g_current_log_level == LOG_LEVEL["DEBUG"]) {
         OutputDebug(logEntry)
     }
 }
@@ -142,7 +142,7 @@ RemoveLowPriorityLogs() {
     droppedCount := 0
     
     for log in g_log_buffer {
-        if (log.level > LOG_LEVEL.DEBUG || newBuffer.Length < g_log_buffer_size - 10) {
+        if (log.level > LOG_LEVEL["DEBUG"] || newBuffer.Length < g_log_buffer_size - 10) {
             newBuffer.Push(log)
         } else {
             droppedCount++
@@ -381,7 +381,7 @@ GetLogLevelName(level) {
 
 ; --- 便利なログ関数 ---
 LogDebug(module, message) {
-    WriteLog(LOG_LEVEL.DEBUG, module, message)
+    WriteLog(LOG_LEVEL["DEBUG"], module, message)
 }
 
 LogInfo(module, message) {
@@ -389,15 +389,15 @@ LogInfo(module, message) {
 }
 
 LogWarn(module, message) {
-    WriteLog(LOG_LEVEL.WARN, module, message)
+    WriteLog(LOG_LEVEL["WARN"], module, message)
 }
 
 LogError(module, message) {
-    WriteLog(LOG_LEVEL.ERROR, module, message)
+    WriteLog(LOG_LEVEL["ERROR"], module, message)
 }
 
 LogCritical(module, message) {
-    WriteLog(LOG_LEVEL.CRITICAL, module, message)
+    WriteLog(LOG_LEVEL["CRITICAL"], module, message)
 }
 
 ; --- エラーログ with スタックトレース（改善版） ---
@@ -624,7 +624,7 @@ GetLoggerStats() {
 SetLogLevel(level) {
     global g_current_log_level
     
-    if (level >= LOG_LEVEL.DEBUG && level <= LOG_LEVEL.CRITICAL) {
+    if (level >= LOG_LEVEL["DEBUG"] && level <= LOG_LEVEL["CRITICAL"]) {
         g_current_log_level := level
         LogInfo("Logger", "Log level changed to: " . GetLogLevelName(level))
         return true
