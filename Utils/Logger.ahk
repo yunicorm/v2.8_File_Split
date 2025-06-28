@@ -21,6 +21,7 @@ global g_log_buffer_size := 50  ; バッファサイズ
 global g_log_file_handle := ""
 global g_log_write_count := 0
 global g_log_rotation_in_progress := false
+global g_log_enabled := true  ; ログ有効フラグ
 global g_log_stats := {
     totalLogs: 0,
     droppedLogs: 0,
