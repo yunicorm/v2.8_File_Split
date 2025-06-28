@@ -269,6 +269,17 @@ F1:: {
 ; グローバルホットキー（ウィンドウに関係なく動作）
 ; ===================================================================
 
+; Ctrl+Shift+S: 設定ウィンドウを開く
+^+s:: {
+    try {
+        ShowSettingsWindow()
+        LogInfo("MainHotkeys", "Settings window opened via hotkey")
+    } catch Error as e {
+        LogError("MainHotkeys", "Failed to open settings window: " . e.Message)
+        ShowOverlay("設定ウィンドウを開けませんでした", 3000)
+    }
+}
+
 ; Ctrl+Alt+F12: スクリプト再起動（改善版）
 ^!F12:: {
     result := MsgBox("スクリプトを再起動しますか？`n未保存の設定は失われます。", "確認", "YesNo Icon?")

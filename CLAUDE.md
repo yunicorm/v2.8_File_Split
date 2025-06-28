@@ -16,6 +16,7 @@ Main.ahk
 ```
 
 ### Configuration Management
+- **Settings GUI**: `Ctrl+Shift+S` (opens graphical settings window)
 - **Hot reload config**: `Alt+F12` (reloads Config.ini without restart)
 - **Settings file**: `Config.ini` (auto-generated on first run)
 - **Reset macro state**: `Ctrl+R`
@@ -65,6 +66,7 @@ Utils (foundational) → UI → Config → Core → Features → Hotkeys (final)
 - `Overlay.ahk`: Temporary message displays
 - `StatusDisplay.ahk`: Persistent status information
 - `DebugDisplay.ahk`: Development interfaces
+- `SettingsWindow.ahk`: Graphical settings configuration interface
 
 ## Configuration System
 
@@ -88,6 +90,17 @@ Utils (foundational) → UI → Config → Core → Features → Hotkeys (final)
 - **Base resolution**: 3440x1440 (ultrawide)
 - **Auto-scaling**: Coordinates automatically scale for other resolutions
 - **Manual override**: Adjust coordinates in `[Mana]` section if needed
+
+### Settings GUI Interface
+- **Access**: Press `Ctrl+Shift+S` to open the graphical settings window
+- **Window size**: 800x600 pixels with resizable interface
+- **Tab organization**: Three main tabs for different setting categories
+  - **フラスコ (Flask)**: Flask timing, keys, and Tincture configuration
+  - **スキル (Skill)**: ER/T skill timing and Wine of the Prophet settings
+  - **一般 (General)**: Debug, logging, auto-start, and mana detection settings
+- **Save/Cancel/Reset**: Standard dialog buttons with confirmation for destructive operations
+- **Real-time validation**: Settings are validated before saving
+- **Hot-reload integration**: Changes are immediately available after saving
 
 ## Development Patterns
 

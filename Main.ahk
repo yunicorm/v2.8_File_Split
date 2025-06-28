@@ -22,6 +22,7 @@ GroupAdd("TargetWindows", "ahk_exe streaming_client.exe")
 #Include "UI\Overlay.ahk"
 #Include "UI\StatusDisplay.ahk"
 #Include "UI\DebugDisplay.ahk"
+#Include "UI\SettingsWindow.ahk"
 
 ; === 設定のインクルード ===
 #Include "Config.ahk"
