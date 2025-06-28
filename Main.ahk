@@ -249,8 +249,19 @@ StartMacro() {
         PerformInitialActions()
         
         ; 各システムを開始
-        StartSkillAutomation()
-        StartFlaskAutomation()
+        ; スキルシステム - 新しいシステムを優先的に使用
+        if (ConfigManager.Get("General", "SkillEnabled", true)) {
+            if (IsSet(StartNewSkillAutomation)) {
+                StartNewSkillAutomation()
+            } else {
+                StartSkillAutomation()
+            }
+        }
+        
+        if (ConfigManager.Get("General", "FlaskEnabled", true)) {
+            StartFlaskAutomation()
+        }
+        
         StartManaMonitoring()
         
         ; エリア検出を開始（設定に基づく）

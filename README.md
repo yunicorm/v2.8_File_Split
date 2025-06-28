@@ -10,6 +10,7 @@
 - **Tincture管理の強化**: 詳細な統計情報、使用履歴、検証方法の拡張
 - **スキル自動化の改善**: タイミング管理強化、Wine of the Prophetのステージ管理改善
 - **パフォーマンス最適化**: 実行時間計測、タイマー優先度管理、メモリ効率化
+- **グラフィカル設定GUI**: 全設定を視覚的に管理できる新しいGUIシステム
 
 ## 主要機能と動作原理
 
@@ -114,9 +115,17 @@ ConfigureFlasks(flaskConfig)
 - **優先度管理**: フラスコごとの優先度設定
 - **詳細統計**: 使用回数、成功率、エラー率の追跡
 
-### 5. スキル自動化（v2.9.2改善版）
+### 5. スキル自動化（v2.9.2拡張版）
 
-**実行されるスキル**（すべてConfig.iniで変更可能）：
+**新しいスキルシステム**：
+- **10個の設定可能スキル**: 2つのグループ（各5スキル）
+  - Group 1: キーボードスキル（Q,W,E,R,T など）
+  - Group 2: マウス/特殊スキル（LButton, RButton, MButton, XButton1/2）
+- **優先度システム**: 1-5の優先度で実行順序を制御
+- **カスタム名称**: 各スキルに名前を設定可能
+- **個別制御**: スキルごとにON/OFF、キー、間隔を設定
+
+**従来のスキル**（Config.ini [Timing]セクション）：
 - **E, R キー**：1-1.1秒間隔でランダムに実行
 - **T キー**：4.1-4.2秒間隔で実行
 - **4 キー**（Wine of the Prophet）：動的間隔（上記参照）
@@ -126,6 +135,7 @@ ConfigureFlasks(flaskConfig)
 - **最小間隔チェック**: 連続実行の防止
 - **カスタムスキル対応**: 任意のスキルを追加可能
 - **統計情報**: 使用回数、平均遅延、エラー率
+- **パフォーマンス監視**: 10スキル同時実行時の負荷予測
 
 ### 6. エリア検出システム（Client.txtログ監視）
 
@@ -230,6 +240,37 @@ PoE-Macro/
 4. Path of ExileまたはSteam Remote Playウィンドウをアクティブに
 5. **F12**キーでマクロのオン/オフ
 
+### 設定GUI（新機能）
+
+**Ctrl+Shift+S**を押して設定GUIを開く：
+
+#### フラスコタブ
+- **フラスコ1-5**: 各フラスコの有効化、キー、間隔、タイプを設定
+- **Tincture設定**: リトライ回数、間隔、検証遅延、クールダウンを調整
+- **全体有効化**: フラスコとTinctureの機能を個別にON/OFF
+
+#### スキルタブ
+- **Group 1 (スキル1-5)**: キーボードスキルの設定
+- **Group 2 (スキル6-10)**: マウス/特殊スキルの設定
+- 各スキル設定項目：
+  - **有効化チェック**: スキルのON/OFF
+  - **スキル名**: 識別しやすい名前を設定
+  - **キー**: 使用するキーを指定
+  - **間隔Min/Max**: ランダム実行間隔（ミリ秒）
+  - **優先度**: 1-5（数字が小さいほど高優先）
+- **Wine設定**: Wine of the Prophet間隔と動的タイミング
+
+#### 一般タブ
+- **デバッグ設定**: デバッグモード、ログ記録のON/OFF
+- **ログ管理**: 最大サイズ、保持日数
+- **自動開始**: マクロの自動開始と遅延時間
+- **マナ検出**: 中心座標、半径、青色閾値、最適化モード
+
+#### 操作ボタン
+- **保存**: 設定を保存してConfig.iniに反映
+- **キャンセル**: 変更を破棄して閉じる  
+- **リセット**: デフォルト設定に戻す（確認あり）
+
 ## ホットキー一覧
 
 ### メイン操作
@@ -241,6 +282,7 @@ PoE-Macro/
 | **Alt+F12** | 設定リロード（Config.ini再読み込み） |
 | **Pause** | 一時停止/再開 |
 | **ScrollLock** | ステータス表示の切り替え |
+| **Ctrl+Shift+S** | 設定GUIを開く |
 | **Ctrl+H** | 登録済みホットキー一覧表示 |
 | **F1** | クイックヘルプ |
 
@@ -318,14 +360,43 @@ VerifyDelay=1000     # 効果確認待機時間 (ms)
 DepletedCooldown=5410 # マナ枯渇時クールダウン (ms)
 ```
 
+#### [Skill] - 新しいスキル設定（v2.9.2）
+```ini
+; Group 1 - キーボードスキル
+Skill_1_1_Enabled=true
+Skill_1_1_Name=Molten Strike
+Skill_1_1_Key=q
+Skill_1_1_Min=1000
+Skill_1_1_Max=1500
+Skill_1_1_Priority=3
+
+; Group 2 - マウス/特殊スキル
+Skill_2_1_Enabled=true
+Skill_2_1_Name=Basic Attack
+Skill_2_1_Key=LButton
+Skill_2_1_Min=500
+Skill_2_1_Max=800
+Skill_2_1_Priority=1
+```
+
+#### [Flask] - フラスコ個別設定（v2.9.2）
+```ini
+Flask1_Enabled=true
+Flask1_Key=1
+Flask1_Min=2800
+Flask1_Max=3200
+Flask1_Type=Life
+```
+
 ### 設定の適用方法
-1. `Config.ini`をテキストエディタで編集
-2. 保存後、ゲーム内で`Alt+F12`を押して設定をリロード
-3. マクロの再起動は不要
+1. **設定GUI使用（推奨）**: `Ctrl+Shift+S`で設定GUIを開いて編集
+2. **手動編集**: `Config.ini`をテキストエディタで編集
+3. 保存後、ゲーム内で`Alt+F12`を押して設定をリロード
+4. マクロの再起動は不要
 
 ## 高度な機能（v2.9.2新機能）
 
-### カスタムフラスコ設定
+### カスタムフラスコ設定（プログラム的）
 
 ```autohotkey
 ; スクリプト内でカスタムフラスコを設定
@@ -335,7 +406,7 @@ flaskConfig := Map(
         type: "life",              ; フラスコタイプ
         minInterval: 5000,         ; 最小使用間隔
         maxInterval: 5500,         ; 最大使用間隔
-        enabled: true,             # 有効/無効
+        enabled: true,             ; 有効/無効
         maxCharges: 60,            ; 最大チャージ数
         chargePerUse: 20,          ; 使用時消費チャージ
         chargeGainRate: 6,         ; チャージ回復速度/秒
@@ -345,21 +416,25 @@ flaskConfig := Map(
 ConfigureFlasks(flaskConfig)
 ```
 
-### カスタムスキル追加
+### カスタムスキル追加（プログラム的）
 
 ```autohotkey
 ; 新しいスキルを追加
 skillConfig := Map(
-    "Q", {
+    "Skill_1_1", {
+        name: "Molten Strike",
         key: "Q",
         minInterval: 2000,
         maxInterval: 2500,
+        priority: 1,
         enabled: true
     },
-    "W", {
-        key: "W",
+    "Skill_2_1", {
+        name: "Movement Skill",
+        key: "RButton",
         minInterval: 5000,
         maxInterval: 5500,
+        priority: 2,
         enabled: false
     }
 )

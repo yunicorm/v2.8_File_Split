@@ -52,8 +52,11 @@ Utils (foundational) → UI → Config → Core → Features → Hotkeys (final)
 **Features/** - Domain-specific automation modules
 - `ManaMonitor.ahk`: Circular mana orb sampling with optimization modes
 - `TinctureManager.ahk`: Complex cooldown/retry logic with usage statistics
-- `FlaskManager.ahk`: Configurable flask automation
-- `SkillAutomation.ahk`: Dynamic skill timing management
+- `FlaskManager.ahk`: Configurable flask automation (5 flasks with types)
+- `SkillAutomation.ahk`: Advanced skill system with 10 configurable skills
+  - `InitializeNewSkillSystem()`: Loads skills from Config.ini
+  - `ConfigureSkills()`: Dynamic skill configuration
+  - `GetSkillPerformanceStats()`: Performance monitoring
 - `ClientLogMonitor.ahk`: Log file parsing for area transitions
 
 **Utils/** - Foundational services
@@ -80,10 +83,13 @@ Utils (foundational) → UI → Config → Core → Features → Hotkeys (final)
 ```ini
 [General]    - Debug, logging, auto-start settings
 [Mana]       - Mana orb detection parameters (coordinates, thresholds)
-[Timing]     - Skill and flask intervals
+[Timing]     - Skill and flask intervals (legacy)
 [Keys]       - Key mappings for all game actions
 [Wine]       - Dynamic timing stages for Wine of the Prophet
 [ClientLog]  - Log monitoring for area detection
+[Flask]      - Individual flask configuration (1-5)
+[Skill]      - New skill system (10 configurable skills)
+[Tincture]   - Tincture retry and cooldown settings
 ```
 
 ### Resolution Independence
@@ -91,16 +97,34 @@ Utils (foundational) → UI → Config → Core → Features → Hotkeys (final)
 - **Auto-scaling**: Coordinates automatically scale for other resolutions
 - **Manual override**: Adjust coordinates in `[Mana]` section if needed
 
-### Settings GUI Interface
+### Settings GUI Interface (New v2.9.2)
 - **Access**: Press `Ctrl+Shift+S` to open the graphical settings window
 - **Window size**: 800x600 pixels with resizable interface
 - **Tab organization**: Three main tabs for different setting categories
   - **フラスコ (Flask)**: Flask timing, keys, and Tincture configuration
-  - **スキル (Skill)**: ER/T skill timing and Wine of the Prophet settings
+    - 5 configurable flasks with individual enable/disable
+    - Min/Max interval settings for randomization
+    - Flask type selection (Life/Mana/Utility/Quicksilver/Unique)
+    - Tincture retry and cooldown configuration
+  - **スキル (Skill)**: Advanced skill automation system
+    - 10 configurable skills (2 groups of 5)
+    - Individual enable/disable per skill
+    - Custom skill names for easy identification
+    - Key binding, min/max intervals, and priority (1-5)
+    - Group 1: Keyboard skills (Q,W,E,R,T)
+    - Group 2: Mouse/special skills (LButton, RButton, MButton, XButton1/2)
+    - Wine of the Prophet dynamic timing configuration
   - **一般 (General)**: Debug, logging, auto-start, and mana detection settings
+- **Input validation**: Comprehensive validation system
+  - Empty key detection
+  - Numeric range validation
+  - Min/Max interval consistency checks
+  - Priority range enforcement (1-5)
+  - Error dialog with detailed validation messages
 - **Save/Cancel/Reset**: Standard dialog buttons with confirmation for destructive operations
 - **Real-time validation**: Settings are validated before saving
 - **Hot-reload integration**: Changes are immediately available after saving
+- **Performance monitoring**: Built-in performance prediction for skill configurations
 
 ## Development Patterns
 

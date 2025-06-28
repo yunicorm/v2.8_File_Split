@@ -419,14 +419,76 @@ ResetSkillTimings() {
     LogInfo("SkillAutomation", "Skill timings reset completed")
 }
 
+; --- 新しいスキル設定システムを初期化 ---
+InitializeNewSkillSystem() {
+    global g_skill_configs, g_skill_enabled, g_skill_stats
+    
+    try {
+        ; 既存の設定をクリア
+        g_skill_configs.Clear()
+        g_skill_enabled.Clear()
+        
+        ; Config.iniから新しいスキル設定を読み込み
+        skillGroups := ["1_1", "1_2", "1_3", "1_4", "1_5", "2_1", "2_2", "2_3", "2_4", "2_5"]
+        
+        for skillId in skillGroups {
+            enabled := ConfigManager.Get("Skill", "Skill_" . skillId . "_Enabled", false)
+            
+            if (enabled) {
+                name := ConfigManager.Get("Skill", "Skill_" . skillId . "_Name", "スキル" . skillId)
+                key := ConfigManager.Get("Skill", "Skill_" . skillId . "_Key", "q")
+                minInterval := Integer(ConfigManager.Get("Skill", "Skill_" . skillId . "_Min", "1000"))
+                maxInterval := Integer(ConfigManager.Get("Skill", "Skill_" . skillId . "_Max", "1500"))
+                priority := Integer(ConfigManager.Get("Skill", "Skill_" . skillId . "_Priority", "3"))
+                
+                skillKey := "Skill_" . skillId
+                
+                g_skill_configs[skillKey] := {
+                    key: key,
+                    name: name,
+                    minInterval: minInterval,
+                    maxInterval: maxInterval,
+                    priority: priority,
+                    group: StrSplit(skillId, "_")[1],
+                    enabled: true
+                }
+                
+                g_skill_enabled[skillKey] := true
+                
+                ; 統計を初期化
+                if (!g_skill_stats.Has(skillKey)) {
+                    g_skill_stats[skillKey] := {
+                        count: 0,
+                        lastUse: 0,
+                        totalDelay: 0,
+                        avgDelay: 0,
+                        errors: 0
+                    }
+                }
+                
+                LogDebug("SkillAutomation", Format("Loaded skill {}: {} ({}ms-{}ms)", 
+                    skillKey, name, minInterval, maxInterval))
+            }
+        }
+        
+        LogInfo("SkillAutomation", Format("New skill system initialized with {} skills", 
+            g_skill_configs.Count))
+        return true
+        
+    } catch Error as e {
+        LogError("SkillAutomation", "Failed to initialize new skill system: " . e.Message)
+        return false
+    }
+}
+
 ; --- カスタムスキル設定（実装版） ---
 ConfigureSkills(skillConfig) {
     global g_skill_configs, g_skill_enabled
     
     ; 使用例：
     ; skillConfig := Map(
-    ;     "Q", {key: "Q", minInterval: 2000, maxInterval: 2500, enabled: true},
-    ;     "W", {key: "W", minInterval: 5000, maxInterval: 5500, enabled: false}
+    ;     "Skill_1_1", {name: "Molten Strike", key: "Q", minInterval: 2000, maxInterval: 2500, enabled: true, priority: 1, group: 1},
+    ;     "Skill_2_1", {name: "Default Attack", key: "LButton", minInterval: 500, maxInterval: 800, enabled: true, priority: 1, group: 2}
     ; )
     
     try {
@@ -435,10 +497,21 @@ ConfigureSkills(skillConfig) {
             StopSkillAutomation()
         }
         
+        ; 既存の設定をクリア
+        g_skill_configs.Clear()
+        g_skill_enabled.Clear()
+        
         ; 新しい設定を適用
         for skill, config in skillConfig {
+            ; デフォルト値を設定
             if (!config.HasOwnProp("priority")) {
-                config.priority := 5  ; デフォルト優先度
+                config.priority := 3  ; デフォルト優先度
+            }
+            if (!config.HasOwnProp("name")) {
+                config.name := skill
+            }
+            if (!config.HasOwnProp("group")) {
+                config.group := 1
             }
             
             g_skill_configs[skill] := config
@@ -454,6 +527,9 @@ ConfigureSkills(skillConfig) {
                     errors: 0
                 }
             }
+            
+            LogDebug("SkillAutomation", Format("Configured skill {}: {} ({}ms-{}ms)", 
+                skill, config.name, config.minInterval, config.maxInterval))
         }
         
         ; 自動化を再開
@@ -471,6 +547,100 @@ ConfigureSkills(skillConfig) {
     }
 }
 
+; --- 新旧設定システム対応のスキル自動化開始 ---
+StartNewSkillAutomation() {
+    global g_macro_start_time, g_wine_stage_start_time, g_wine_current_stage
+    
+    try {
+        ; 新しいスキルシステムを初期化
+        if (!InitializeNewSkillSystem()) {
+            LogWarn("SkillAutomation", "Failed to initialize new skill system, falling back to legacy")
+            InitializeSkillConfigs()  ; レガシーシステムにフォールバック
+        }
+        
+        ; Wine of the Prophetのタイマーをリセット
+        g_wine_stage_start_time := g_macro_start_time
+        g_wine_current_stage := 0
+        
+        ; 各スキルのタイマーを開始
+        for skill, config in g_skill_configs {
+            if (g_skill_enabled[skill]) {
+                StartSkillTimer(skill, config)
+            }
+        }
+        
+        LogInfo("SkillAutomation", Format("New skill automation started with {} skills", 
+            g_skill_configs.Count))
+        return true
+        
+    } catch Error as e {
+        LogError("SkillAutomation", "Failed to start new skill automation: " . e.Message)
+        return false
+    }
+}
+
+; --- パフォーマンス統計の取得 ---
+GetSkillPerformanceStats() {
+    global g_skill_configs, g_skill_enabled, g_skill_timers, g_skill_stats
+    
+    performanceStats := {
+        totalSkills: g_skill_configs.Count,
+        activeSkills: 0,
+        runningTimers: g_skill_timers.Count,
+        totalExecutions: 0,
+        totalErrors: 0,
+        avgInterval: 0,
+        memoryUsage: 0,
+        skillsByPriority: Map()
+    }
+    
+    ; 優先度別統計
+    Loop 5 {
+        performanceStats.skillsByPriority[A_Index] := []
+    }
+    
+    ; スキル統計を集計
+    totalIntervals := 0
+    intervalCount := 0
+    
+    for skill, config in g_skill_configs {
+        if (g_skill_enabled[skill]) {
+            performanceStats.activeSkills++
+            
+            ; 優先度別分類
+            if (config.HasOwnProp("priority") && config.priority >= 1 && config.priority <= 5) {
+                performanceStats.skillsByPriority[config.priority].Push(skill)
+            }
+            
+            ; 実行統計
+            if (g_skill_stats.Has(skill)) {
+                stats := g_skill_stats[skill]
+                performanceStats.totalExecutions += stats.count
+                performanceStats.totalErrors += stats.errors
+                
+                if (stats.avgDelay > 0) {
+                    totalIntervals += stats.avgDelay
+                    intervalCount++
+                }
+            }
+            
+            ; 設定された間隔を平均に追加
+            if (config.HasOwnProp("minInterval") && config.HasOwnProp("maxInterval")) {
+                avgConfigInterval := (config.minInterval + config.maxInterval) / 2
+                totalIntervals += avgConfigInterval
+                intervalCount++
+            }
+        }
+    }
+    
+    ; 平均間隔を計算
+    if (intervalCount > 0) {
+        performanceStats.avgInterval := Round(totalIntervals / intervalCount)
+    }
+    
+    return performanceStats
+}
+
 ; --- デバッグ情報の取得 ---
 GetSkillDebugInfo() {
     global g_skill_configs, g_skill_enabled, g_skill_timers
@@ -479,10 +649,32 @@ GetSkillDebugInfo() {
     debugInfo := []
     debugInfo.Push("=== Skill Automation Debug ===")
     debugInfo.Push(Format("Active Timers: {}", g_skill_timers.Count))
+    
+    ; パフォーマンス統計を表示
+    perfStats := GetSkillPerformanceStats()
+    debugInfo.Push(Format("Total Skills: {} | Active: {} | Timers: {}", 
+        perfStats.totalSkills, perfStats.activeSkills, perfStats.runningTimers))
+    debugInfo.Push(Format("Executions: {} | Errors: {} | Avg Interval: {}ms", 
+        perfStats.totalExecutions, perfStats.totalErrors, perfStats.avgInterval))
     debugInfo.Push("")
     
-    ; 各スキルの状態
+    ; 優先度別表示
+    for priority, skills in perfStats.skillsByPriority {
+        if (skills.Length > 0) {
+            debugInfo.Push(Format("Priority {} ({} skills): {}", 
+                priority, skills.Length, StrReplace(Array2String(skills), ",", ", ")))
+        }
+    }
+    debugInfo.Push("")
+    
+    ; 各スキルの状態（上位5つのみ）
+    skillCount := 0
     for skill, config in g_skill_configs {
+        if (skillCount >= 5) {
+            debugInfo.Push("... (showing top 5 skills)")
+            break
+        }
+        
         status := g_skill_enabled[skill] ? "ON" : "OFF"
         if (g_skill_timers.Has(skill)) {
             status .= " (Active)"
@@ -493,9 +685,11 @@ GetSkillDebugInfo() {
         
         debugInfo.Push(Format("{}: {} - Key:{} Uses:{} Errors:{}", 
             skill, status, 
-            config.key, 
+            config.HasOwnProp("key") ? config.key : "?", 
             stats.count, 
             stats.errors))
+        
+        skillCount++
     }
     
     ; Wine of the Prophetの詳細
@@ -510,6 +704,18 @@ GetSkillDebugInfo() {
     }
     
     return debugInfo
+}
+
+; --- ヘルパー関数: 配列を文字列に変換 ---
+Array2String(arr) {
+    result := ""
+    for index, value in arr {
+        if (index > 1) {
+            result .= ","
+        }
+        result .= value
+    }
+    return result
 }
 
 ; --- 手動スキル実行（テスト用） ---

@@ -277,42 +277,96 @@ CreateGeneralTab() {
     
     g_settings_tab.UseTab(3)
     
+    ; システム設定グループ
+    systemGroup := g_settings_gui.Add("GroupBox", "x30 y60 w360 h140", "システム設定")
+    
+    g_settings_gui.Add("CheckBox", "x50 y90 vAutoStart", "マクロ自動開始")
+    g_settings_gui.Add("Text", "x50 y120", "開始遅延 (ms):")
+    g_settings_gui.Add("Edit", "x150 y117 w60 vAutoStartDelay")
+    
+    g_settings_gui.Add("Text", "x50 y150", "画面解像度:")
+    g_settings_gui.Add("Edit", "x130 y147 w60 vScreenWidth")
+    g_settings_gui.Add("Text", "x195 y150", "x")
+    g_settings_gui.Add("Edit", "x210 y147 w60 vScreenHeight")
+    g_settings_gui.Add("Button", "x280 y145 w80 h23 vDetectResolution", "自動検出").OnEvent("Click", DetectResolution)
+    
     ; デバッグ・ログ設定
-    debugGroup := g_settings_gui.Add("GroupBox", "x30 y60 w740 h120", "デバッグ・ログ設定")
+    debugGroup := g_settings_gui.Add("GroupBox", "x410 y60 w360 h140", "デバッグ・ログ設定")
     
-    g_settings_gui.Add("CheckBox", "x50 y90 vDebugMode", "デバッグモードを有効化")
-    g_settings_gui.Add("CheckBox", "x50 y120 vLogEnabled", "ログ出力を有効化")
+    g_settings_gui.Add("CheckBox", "x430 y90 vDebugMode", "デバッグモード")
+    g_settings_gui.Add("CheckBox", "x430 y120 vLogEnabled", "ログ記録")
     
-    g_settings_gui.Add("Text", "x250 y90", "最大ログサイズ (MB):")
-    g_settings_gui.Add("Edit", "x380 y87 w80 vMaxLogSize")
+    g_settings_gui.Add("Text", "x550 y90", "ログサイズ (MB):")
+    g_settings_gui.Add("Edit", "x655 y87 w50 vMaxLogSize")
     
-    g_settings_gui.Add("Text", "x250 y120", "ログ保持日数:")
-    g_settings_gui.Add("Edit", "x350 y117 w80 vLogRetentionDays")
+    g_settings_gui.Add("Text", "x550 y120", "保持日数:")
+    g_settings_gui.Add("Edit", "x620 y117 w50 vLogRetentionDays")
+    g_settings_gui.Add("Text", "x675 y120", "日")
     
-    ; 自動開始設定
-    autoGroup := g_settings_gui.Add("GroupBox", "x30 y200 w740 h100", "自動開始設定")
-    
-    g_settings_gui.Add("CheckBox", "x50 y230 vAutoStart", "自動開始を有効化")
-    g_settings_gui.Add("Text", "x50 y260", "開始遅延 (ms):")
-    g_settings_gui.Add("Edit", "x150 y257 w80 vAutoStartDelay")
+    g_settings_gui.Add("Button", "x430 y160 w100 h25 vOpenLogFolder", "ログフォルダを開く").OnEvent("Click", OpenLogFolder)
+    g_settings_gui.Add("Button", "x540 y160 w100 h25 vClearLogs", "ログをクリア").OnEvent("Click", ClearLogs)
     
     ; マナ検出設定
-    manaGroup := g_settings_gui.Add("GroupBox", "x30 y320 w740 h140", "マナ検出設定")
+    manaGroup := g_settings_gui.Add("GroupBox", "x30 y210 w360 h180", "マナ検出設定")
     
-    g_settings_gui.Add("Text", "x50 y350", "中心X座標:")
-    g_settings_gui.Add("Edit", "x130 y347 w80 vMana_CenterX")
-    g_settings_gui.Add("Text", "x230 y350", "中心Y座標:")
-    g_settings_gui.Add("Edit", "x310 y347 w80 vMana_CenterY")
+    g_settings_gui.Add("Text", "x50 y240", "中心X座標:")
+    g_settings_gui.Add("Edit", "x130 y237 w60 vMana_CenterX")
+    g_settings_gui.Add("Text", "x200 y240", "Y座標:")
+    g_settings_gui.Add("Edit", "x250 y237 w60 vMana_CenterY")
+    g_settings_gui.Add("Button", "x320 y235 w60 h23 vGetManaPos", "取得").OnEvent("Click", GetManaPosition)
     
-    g_settings_gui.Add("Text", "x50 y380", "検出半径:")
-    g_settings_gui.Add("Edit", "x130 y377 w80 vMana_Radius")
-    g_settings_gui.Add("Text", "x230 y380", "青閾値:")
-    g_settings_gui.Add("Edit", "x290 y377 w80 vMana_BlueThreshold")
+    g_settings_gui.Add("Text", "x50 y270", "検出半径:")
+    g_settings_gui.Add("Edit", "x130 y267 w60 vMana_Radius")
+    g_settings_gui.Add("Text", "x195 y270", "ピクセル")
     
-    g_settings_gui.Add("Text", "x50 y410", "監視間隔 (ms):")
-    g_settings_gui.Add("Edit", "x150 y407 w80 vMana_MonitorInterval")
+    g_settings_gui.Add("Text", "x50 y300", "青色閾値:")
+    g_settings_gui.Add("Edit", "x130 y297 w60 vMana_BlueThreshold")
+    g_settings_gui.Add("Text", "x195 y300", "(0-255)")
     
-    g_settings_gui.Add("CheckBox", "x270 y410 vMana_OptimizedDetection", "最適化検出を有効化")
+    g_settings_gui.Add("Text", "x50 y330", "青色優位性:")
+    g_settings_gui.Add("Edit", "x130 y327 w60 vMana_BlueDominance")
+    
+    g_settings_gui.Add("Text", "x50 y360", "監視間隔:")
+    g_settings_gui.Add("Edit", "x130 y357 w60 vMana_MonitorInterval")
+    g_settings_gui.Add("Text", "x195 y360", "ms")
+    
+    g_settings_gui.Add("CheckBox", "x250 y360 vMana_OptimizedDetection", "最適化検出")
+    
+    ; エリア検出設定
+    areaGroup := g_settings_gui.Add("GroupBox", "x410 y210 w360 h180", "エリア検出設定")
+    
+    g_settings_gui.Add("CheckBox", "x430 y240 vClientLog_Enabled", "ログ監視を有効化")
+    g_settings_gui.Add("Text", "x430 y270", "Client.txtパス:")
+    g_settings_gui.Add("Edit", "x430 y290 w250 vClientLog_Path")
+    g_settings_gui.Add("Button", "x690 y288 w70 h23 vBrowseLog", "参照...").OnEvent("Click", BrowseClientLog)
+    
+    g_settings_gui.Add("Text", "x430 y320", "チェック間隔:")
+    g_settings_gui.Add("Edit", "x520 y317 w60 vClientLog_CheckInterval")
+    g_settings_gui.Add("Text", "x585 y320", "ms")
+    
+    g_settings_gui.Add("CheckBox", "x430 y350 vClientLog_RestartInTown", "町での自動再開を有効化")
+    
+    ; パフォーマンス設定
+    perfGroup := g_settings_gui.Add("GroupBox", "x30 y400 w360 h90", "パフォーマンス設定")
+    
+    g_settings_gui.Add("Text", "x50 y430", "色検出タイムアウト:")
+    g_settings_gui.Add("Edit", "x180 y427 w60 vColorDetectTimeout")
+    g_settings_gui.Add("Text", "x245 y430", "ms")
+    
+    g_settings_gui.Add("Text", "x50 y460", "マナサンプルレート:")
+    g_settings_gui.Add("Edit", "x180 y457 w60 vManaSampleRate")
+    g_settings_gui.Add("Text", "x245 y460", "(1-10)")
+    
+    ; UI設定
+    uiGroup := g_settings_gui.Add("GroupBox", "x410 y400 w360 h90", "UI設定")
+    
+    g_settings_gui.Add("Text", "x430 y430", "オーバーレイ透明度:")
+    g_settings_gui.Add("Edit", "x560 y427 w60 vOverlayTransparency")
+    g_settings_gui.Add("Text", "x625 y430", "(0-255)")
+    
+    g_settings_gui.Add("Text", "x430 y460", "フォントサイズ:")
+    g_settings_gui.Add("Edit", "x520 y457 w60 vOverlayFontSize")
+    g_settings_gui.Add("Text", "x585 y460", "pt")
 }
 
 ; --- ボタンを作成 ---
@@ -461,13 +515,32 @@ LoadCurrentSettings() {
         g_settings_gui["AutoStart"].Checked := ConfigManager.Get("General", "AutoStart", false)
         g_settings_gui["AutoStartDelay"].Text := ConfigManager.Get("General", "AutoStartDelay", "5000")
         
+        ; 解像度設定
+        g_settings_gui["ScreenWidth"].Text := ConfigManager.Get("Resolution", "ScreenWidth", "3440")
+        g_settings_gui["ScreenHeight"].Text := ConfigManager.Get("Resolution", "ScreenHeight", "1440")
+        
         ; マナ設定
         g_settings_gui["Mana_CenterX"].Text := ConfigManager.Get("Mana", "CenterX", "1720")
         g_settings_gui["Mana_CenterY"].Text := ConfigManager.Get("Mana", "CenterY", "1300")
         g_settings_gui["Mana_Radius"].Text := ConfigManager.Get("Mana", "Radius", "25")
         g_settings_gui["Mana_BlueThreshold"].Text := ConfigManager.Get("Mana", "BlueThreshold", "100")
+        g_settings_gui["Mana_BlueDominance"].Text := ConfigManager.Get("Mana", "BlueDominance", "20")
         g_settings_gui["Mana_MonitorInterval"].Text := ConfigManager.Get("Mana", "MonitorInterval", "100")
         g_settings_gui["Mana_OptimizedDetection"].Checked := ConfigManager.Get("Mana", "OptimizedDetection", true)
+        
+        ; エリア検出設定
+        g_settings_gui["ClientLog_Enabled"].Checked := ConfigManager.Get("ClientLog", "Enabled", true)
+        g_settings_gui["ClientLog_Path"].Text := ConfigManager.Get("ClientLog", "Path", "C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs\Client.txt")
+        g_settings_gui["ClientLog_CheckInterval"].Text := ConfigManager.Get("ClientLog", "CheckInterval", "250")
+        g_settings_gui["ClientLog_RestartInTown"].Checked := ConfigManager.Get("ClientLog", "RestartInTown", false)
+        
+        ; パフォーマンス設定
+        g_settings_gui["ColorDetectTimeout"].Text := ConfigManager.Get("Performance", "ColorDetectTimeout", "50")
+        g_settings_gui["ManaSampleRate"].Text := ConfigManager.Get("Performance", "ManaSampleRate", "5")
+        
+        ; UI設定
+        g_settings_gui["OverlayTransparency"].Text := ConfigManager.Get("UI", "OverlayTransparency", "220")
+        g_settings_gui["OverlayFontSize"].Text := ConfigManager.Get("UI", "OverlayFontSize", "28")
         
         LogDebug("SettingsWindow", "Settings loaded successfully")
         
@@ -477,11 +550,247 @@ LoadCurrentSettings() {
     }
 }
 
+; --- 入力値を検証 ---
+ValidateSkillSettings() {
+    global g_settings_gui
+    
+    errors := []
+    
+    ; スキル設定の検証
+    skillGroups := ["1_1", "1_2", "1_3", "1_4", "1_5", "2_1", "2_2", "2_3", "2_4", "2_5"]
+    
+    for skillId in skillGroups {
+        controlName := "Skill_" . skillId
+        
+        ; 有効な場合のみ検証
+        if (g_settings_gui[controlName . "_Enabled"].Checked) {
+            ; キーの検証（空でないこと）
+            key := Trim(g_settings_gui[controlName . "_Key"].Text)
+            if (key = "") {
+                errors.Push("スキル " . skillId . ": キーが空です")
+            }
+            
+            ; 間隔の検証（数値のみ、正の値）
+            minInterval := Trim(g_settings_gui[controlName . "_Min"].Text)
+            maxInterval := Trim(g_settings_gui[controlName . "_Max"].Text)
+            
+            if (!IsInteger(minInterval) || Integer(minInterval) <= 0) {
+                errors.Push("スキル " . skillId . ": 最小間隔は正の整数である必要があります")
+            }
+            
+            if (!IsInteger(maxInterval) || Integer(maxInterval) <= 0) {
+                errors.Push("スキル " . skillId . ": 最大間隔は正の整数である必要があります")
+            }
+            
+            ; Min <= Max の検証
+            if (IsInteger(minInterval) && IsInteger(maxInterval)) {
+                if (Integer(minInterval) > Integer(maxInterval)) {
+                    errors.Push("スキル " . skillId . ": 最小間隔は最大間隔以下である必要があります")
+                }
+            }
+            
+            ; 優先度の検証（1-5の範囲）
+            priority := g_settings_gui[controlName . "_Priority"].Value
+            if (priority < 1 || priority > 5) {
+                errors.Push("スキル " . skillId . ": 優先度は1-5の範囲である必要があります")
+            }
+        }
+    }
+    
+    ; フラスコとTincture設定も検証
+    ValidateFlaskSettings(errors)
+    ValidateTinctureSettings(errors)
+    ValidateGeneralSettings(errors)
+    
+    return errors
+}
+
+ValidateFlaskSettings(errors) {
+    global g_settings_gui
+    
+    Loop 5 {
+        flaskNum := A_Index
+        if (g_settings_gui["Flask" . flaskNum . "_Enabled"].Checked) {
+            key := Trim(g_settings_gui["Flask" . flaskNum . "_Key"].Text)
+            if (key = "") {
+                errors.Push("フラスコ " . flaskNum . ": キーが空です")
+            }
+            
+            minVal := Trim(g_settings_gui["Flask" . flaskNum . "_Min"].Text)
+            maxVal := Trim(g_settings_gui["Flask" . flaskNum . "_Max"].Text)
+            
+            if (!IsInteger(minVal) || Integer(minVal) <= 0) {
+                errors.Push("フラスコ " . flaskNum . ": 最小間隔は正の整数である必要があります")
+            }
+            
+            if (!IsInteger(maxVal) || Integer(maxVal) <= 0) {
+                errors.Push("フラスコ " . flaskNum . ": 最大間隔は正の整数である必要があります")
+            }
+            
+            if (IsInteger(minVal) && IsInteger(maxVal) && Integer(minVal) > Integer(maxVal)) {
+                errors.Push("フラスコ " . flaskNum . ": 最小間隔は最大間隔以下である必要があります")
+            }
+        }
+    }
+}
+
+ValidateTinctureSettings(errors) {
+    global g_settings_gui
+    
+    if (g_settings_gui["TinctureEnabled"].Checked) {
+        key := Trim(g_settings_gui["TinctureKey"].Text)
+        if (key = "") {
+            errors.Push("Tincture: キーが空です")
+        }
+        
+        ; 数値設定の検証
+        retryMax := Trim(g_settings_gui["Tincture_RetryMax"].Text)
+        retryInterval := Trim(g_settings_gui["Tincture_RetryInterval"].Text)
+        verifyDelay := Trim(g_settings_gui["Tincture_VerifyDelay"].Text)
+        depletedCooldown := Trim(g_settings_gui["Tincture_DepletedCooldown"].Text)
+        
+        if (!IsInteger(retryMax) || Integer(retryMax) < 0) {
+            errors.Push("Tincture: リトライ最大回数は0以上の整数である必要があります")
+        }
+        
+        if (!IsInteger(retryInterval) || Integer(retryInterval) < 0) {
+            errors.Push("Tincture: リトライ間隔は0以上の整数である必要があります")
+        }
+        
+        if (!IsInteger(verifyDelay) || Integer(verifyDelay) < 0) {
+            errors.Push("Tincture: 検証遅延は0以上の整数である必要があります")
+        }
+        
+        if (!IsInteger(depletedCooldown) || Integer(depletedCooldown) < 0) {
+            errors.Push("Tincture: 枯渇クールダウンは0以上の整数である必要があります")
+        }
+    }
+}
+
+ValidateGeneralSettings(errors) {
+    global g_settings_gui
+    
+    ; 解像度設定の検証
+    screenWidth := Trim(g_settings_gui["ScreenWidth"].Text)
+    screenHeight := Trim(g_settings_gui["ScreenHeight"].Text)
+    
+    if (!IsInteger(screenWidth) || Integer(screenWidth) <= 0) {
+        errors.Push("画面幅は正の整数である必要があります")
+    }
+    
+    if (!IsInteger(screenHeight) || Integer(screenHeight) <= 0) {
+        errors.Push("画面高さは正の整数である必要があります")
+    }
+    
+    ; マナ設定の検証
+    centerX := Trim(g_settings_gui["Mana_CenterX"].Text)
+    centerY := Trim(g_settings_gui["Mana_CenterY"].Text)
+    radius := Trim(g_settings_gui["Mana_Radius"].Text)
+    blueThreshold := Trim(g_settings_gui["Mana_BlueThreshold"].Text)
+    blueDominance := Trim(g_settings_gui["Mana_BlueDominance"].Text)
+    monitorInterval := Trim(g_settings_gui["Mana_MonitorInterval"].Text)
+    
+    if (!IsInteger(centerX) || Integer(centerX) < 0) {
+        errors.Push("マナ中心X座標は0以上の整数である必要があります")
+    }
+    
+    if (!IsInteger(centerY) || Integer(centerY) < 0) {
+        errors.Push("マナ中心Y座標は0以上の整数である必要があります")
+    }
+    
+    if (!IsInteger(radius) || Integer(radius) <= 0) {
+        errors.Push("マナ検出半径は正の整数である必要があります")
+    }
+    
+    if (!IsInteger(blueThreshold) || Integer(blueThreshold) < 0 || Integer(blueThreshold) > 255) {
+        errors.Push("マナ青閾値は0-255の範囲である必要があります")
+    }
+    
+    if (!IsInteger(blueDominance) || Integer(blueDominance) < 0) {
+        errors.Push("マナ青色優位性は0以上の整数である必要があります")
+    }
+    
+    if (!IsInteger(monitorInterval) || Integer(monitorInterval) <= 0) {
+        errors.Push("マナ監視間隔は正の整数である必要があります")
+    }
+    
+    ; エリア検出設定の検証
+    clientLogPath := Trim(g_settings_gui["ClientLog_Path"].Text)
+    clientLogInterval := Trim(g_settings_gui["ClientLog_CheckInterval"].Text)
+    
+    if (g_settings_gui["ClientLog_Enabled"].Checked && clientLogPath == "") {
+        errors.Push("ログ監視が有効な場合、Client.txtパスを指定する必要があります")
+    }
+    
+    if (!IsInteger(clientLogInterval) || Integer(clientLogInterval) <= 0) {
+        errors.Push("ログチェック間隔は正の整数である必要があります")
+    }
+    
+    ; パフォーマンス設定の検証
+    colorTimeout := Trim(g_settings_gui["ColorDetectTimeout"].Text)
+    sampleRate := Trim(g_settings_gui["ManaSampleRate"].Text)
+    
+    if (!IsInteger(colorTimeout) || Integer(colorTimeout) <= 0) {
+        errors.Push("色検出タイムアウトは正の整数である必要があります")
+    }
+    
+    if (!IsInteger(sampleRate) || Integer(sampleRate) < 1 || Integer(sampleRate) > 10) {
+        errors.Push("マナサンプルレートは1-10の範囲である必要があります")
+    }
+    
+    ; UI設定の検証
+    transparency := Trim(g_settings_gui["OverlayTransparency"].Text)
+    fontSize := Trim(g_settings_gui["OverlayFontSize"].Text)
+    
+    if (!IsInteger(transparency) || Integer(transparency) < 0 || Integer(transparency) > 255) {
+        errors.Push("オーバーレイ透明度は0-255の範囲である必要があります")
+    }
+    
+    if (!IsInteger(fontSize) || Integer(fontSize) <= 0) {
+        errors.Push("フォントサイズは正の整数である必要があります")
+    }
+    
+    ; その他の数値設定
+    maxLogSize := Trim(g_settings_gui["MaxLogSize"].Text)
+    logRetentionDays := Trim(g_settings_gui["LogRetentionDays"].Text)
+    autoStartDelay := Trim(g_settings_gui["AutoStartDelay"].Text)
+    wineInterval := Trim(g_settings_gui["Wine_Interval"].Text)
+    
+    if (!IsInteger(maxLogSize) || Integer(maxLogSize) <= 0) {
+        errors.Push("最大ログサイズは正の整数である必要があります")
+    }
+    
+    if (!IsInteger(logRetentionDays) || Integer(logRetentionDays) <= 0) {
+        errors.Push("ログ保持日数は正の整数である必要があります")
+    }
+    
+    if (!IsInteger(autoStartDelay) || Integer(autoStartDelay) < 0) {
+        errors.Push("自動開始遅延は0以上の整数である必要があります")
+    }
+    
+    if (!IsInteger(wineInterval) || Integer(wineInterval) <= 0) {
+        errors.Push("Wine段階間隔は正の整数である必要があります")
+    }
+}
+
 ; --- 設定を保存 ---
 SaveSettings(*) {
     global g_settings_gui, g_settings_open
     
     try {
+        ; 入力値を検証
+        validationErrors := ValidateSkillSettings()
+        
+        if (validationErrors.Length > 0) {
+            errorMessage := "設定に以下のエラーがあります:`n`n"
+            for error in validationErrors {
+                errorMessage .= "• " . error . "`n"
+            }
+            
+            MsgBox(errorMessage, "設定エラー", "OK Icon!")
+            LogWarn("SettingsWindow", "Validation failed: " . validationErrors.Length . " errors")
+            return
+        }
         ; フラスコ設定を保存
         ConfigManager.Set("Flask", "Flask1_Enabled", g_settings_gui["Flask1_Enabled"].Checked)
         ConfigManager.Set("Flask", "Flask1_Key", g_settings_gui["Flask1_Key"].Text)
@@ -610,13 +919,32 @@ SaveSettings(*) {
         ConfigManager.Set("General", "AutoStart", g_settings_gui["AutoStart"].Checked)
         ConfigManager.Set("General", "AutoStartDelay", g_settings_gui["AutoStartDelay"].Text)
         
+        ; 解像度設定を保存
+        ConfigManager.Set("Resolution", "ScreenWidth", g_settings_gui["ScreenWidth"].Text)
+        ConfigManager.Set("Resolution", "ScreenHeight", g_settings_gui["ScreenHeight"].Text)
+        
         ; マナ設定を保存
         ConfigManager.Set("Mana", "CenterX", g_settings_gui["Mana_CenterX"].Text)
         ConfigManager.Set("Mana", "CenterY", g_settings_gui["Mana_CenterY"].Text)
         ConfigManager.Set("Mana", "Radius", g_settings_gui["Mana_Radius"].Text)
         ConfigManager.Set("Mana", "BlueThreshold", g_settings_gui["Mana_BlueThreshold"].Text)
+        ConfigManager.Set("Mana", "BlueDominance", g_settings_gui["Mana_BlueDominance"].Text)
         ConfigManager.Set("Mana", "MonitorInterval", g_settings_gui["Mana_MonitorInterval"].Text)
         ConfigManager.Set("Mana", "OptimizedDetection", g_settings_gui["Mana_OptimizedDetection"].Checked)
+        
+        ; エリア検出設定を保存
+        ConfigManager.Set("ClientLog", "Enabled", g_settings_gui["ClientLog_Enabled"].Checked)
+        ConfigManager.Set("ClientLog", "Path", g_settings_gui["ClientLog_Path"].Text)
+        ConfigManager.Set("ClientLog", "CheckInterval", g_settings_gui["ClientLog_CheckInterval"].Text)
+        ConfigManager.Set("ClientLog", "RestartInTown", g_settings_gui["ClientLog_RestartInTown"].Checked)
+        
+        ; パフォーマンス設定を保存
+        ConfigManager.Set("Performance", "ColorDetectTimeout", g_settings_gui["ColorDetectTimeout"].Text)
+        ConfigManager.Set("Performance", "ManaSampleRate", g_settings_gui["ManaSampleRate"].Text)
+        
+        ; UI設定を保存
+        ConfigManager.Set("UI", "OverlayTransparency", g_settings_gui["OverlayTransparency"].Text)
+        ConfigManager.Set("UI", "OverlayFontSize", g_settings_gui["OverlayFontSize"].Text)
         
         ; 設定を保存
         ConfigManager.Save()
@@ -821,5 +1149,114 @@ UpdateSkillManagerConfig() {
         
     } catch Error as e {
         LogError("SettingsWindow", "Failed to update SkillManager config: " . e.Message)
+    }
+}
+
+; --- 解像度自動検出 ---
+DetectResolution(*) {
+    global g_settings_gui
+    
+    try {
+        ; 現在のモニターの解像度を取得
+        MonitorGetWorkArea(1, &left, &top, &right, &bottom)
+        width := right - left
+        height := bottom - top
+        
+        ; 設定フィールドに反映
+        g_settings_gui["ScreenWidth"].Text := width
+        g_settings_gui["ScreenHeight"].Text := height
+        
+        ShowOverlay(Format("解像度検出: {}x{}", width, height), 2000)
+        LogInfo("SettingsWindow", Format("Resolution detected: {}x{}", width, height))
+        
+    } catch Error as e {
+        LogError("SettingsWindow", "Failed to detect resolution: " . e.Message)
+        ShowOverlay("解像度の検出に失敗しました", 2000)
+    }
+}
+
+; --- ログフォルダを開く ---
+OpenLogFolder(*) {
+    try {
+        logPath := A_ScriptDir . "\logs"
+        if (!DirExist(logPath)) {
+            DirCreate(logPath)
+        }
+        Run(logPath)
+        LogInfo("SettingsWindow", "Opened log folder: " . logPath)
+    } catch Error as e {
+        LogError("SettingsWindow", "Failed to open log folder: " . e.Message)
+        ShowOverlay("ログフォルダを開けませんでした", 2000)
+    }
+}
+
+; --- ログをクリア ---
+ClearLogs(*) {
+    result := MsgBox("すべてのログファイルを削除しますか？", "確認", "YesNo Icon?")
+    if (result == "Yes") {
+        try {
+            logPath := A_ScriptDir . "\logs"
+            if (DirExist(logPath)) {
+                ; ログファイルを削除
+                Loop Files, logPath . "\*.log" {
+                    try {
+                        FileDelete(A_LoopFileFullPath)
+                    } catch {
+                        ; 使用中のファイルはスキップ
+                    }
+                }
+                ShowOverlay("ログをクリアしました", 2000)
+                LogInfo("SettingsWindow", "Logs cleared")
+            }
+        } catch Error as e {
+            LogError("SettingsWindow", "Failed to clear logs: " . e.Message)
+            ShowOverlay("ログのクリアに失敗しました", 2000)
+        }
+    }
+}
+
+; --- マナ座標取得 ---
+GetManaPosition(*) {
+    global g_settings_gui
+    
+    MsgBox("マナオーブの中心をクリックしてください。`n3秒後に座標を取得します。", "マナ座標取得", "OK Icon!")
+    
+    Sleep(3000)
+    
+    try {
+        ; マウス座標を取得
+        MouseGetPos(&mouseX, &mouseY)
+        
+        ; 設定フィールドに反映
+        g_settings_gui["Mana_CenterX"].Text := mouseX
+        g_settings_gui["Mana_CenterY"].Text := mouseY
+        
+        ShowOverlay(Format("マナ座標取得: X={}, Y={}", mouseX, mouseY), 3000)
+        LogInfo("SettingsWindow", Format("Mana position captured: X={}, Y={}", mouseX, mouseY))
+        
+    } catch Error as e {
+        LogError("SettingsWindow", "Failed to get mana position: " . e.Message)
+        ShowOverlay("座標の取得に失敗しました", 2000)
+    }
+}
+
+; --- Client.txtパス参照 ---
+BrowseClientLog(*) {
+    global g_settings_gui
+    
+    try {
+        ; デフォルトパス
+        defaultPath := "C:\Program Files (x86)\Steam\steamapps\common\Path of Exile\logs"
+        
+        ; ファイル選択ダイアログ
+        selectedFile := FileSelect(3, defaultPath . "\Client.txt", "Client.txtファイルを選択", "Text files (*.txt)")
+        
+        if (selectedFile != "") {
+            g_settings_gui["ClientLog_Path"].Text := selectedFile
+            LogInfo("SettingsWindow", "Client.txt path selected: " . selectedFile)
+        }
+        
+    } catch Error as e {
+        LogError("SettingsWindow", "Failed to browse for Client.txt: " . e.Message)
     }
 }
