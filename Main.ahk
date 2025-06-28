@@ -63,7 +63,7 @@ GlobalErrorHandler(exception, mode) {
     
     ; エラーメッセージを作成
     errorMsg := Format("エラーが発生しました:`n{}`nFile: {}`nLine: {}", 
-        exception.Message, exception.File ?? "Unknown", exception.Line ?? "Unknown")
+        exception.Message, exception.HasProp("File") ? exception.File : "Unknown", exception.HasProp("Line") ? exception.Line : "Unknown")
     
     ; クリティカルなエラーの場合はマクロを停止
     if (InStr(exception.Message, "Critical") || InStr(exception.Message, "Access") || 
@@ -133,7 +133,7 @@ try {
     
 } catch Error as e {
     errorMsg := Format("初期化エラー: {}`nFile: {}`nLine: {}", 
-        e.Message, e.File ?? "Unknown", e.Line ?? "Unknown")
+        e.Message, e.HasProp("File") ? e.File : "Unknown", e.HasProp("Line") ? e.Line : "Unknown")
     
     MsgBox(errorMsg, "Path of Exile Macro - エラー", "OK Icon!")
     

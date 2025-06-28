@@ -328,9 +328,9 @@ LogErrorWithStack(module, message, errorObj := "") {
     fullMessage := message
     
     if (errorObj != "") {
-        fullMessage .= Format("`n  Error: {}", errorObj.Message ?? "Unknown")
-        fullMessage .= Format("`n  File: {}", errorObj.File ?? "Unknown")
-        fullMessage .= Format("`n  Line: {}", errorObj.Line ?? "Unknown")
+        fullMessage .= Format("`n  Error: {}", errorObj.HasProp("Message") ? errorObj.Message : "Unknown")
+        fullMessage .= Format("`n  File: {}", errorObj.HasProp("File") ? errorObj.File : "Unknown")
+        fullMessage .= Format("`n  Line: {}", errorObj.HasProp("Line") ? errorObj.Line : "Unknown")
         
         if (errorObj.HasProp("Stack")) {
             fullMessage .= "`n  Stack: " . errorObj.Stack

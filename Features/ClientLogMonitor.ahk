@@ -207,7 +207,7 @@ CheckForAreaChange(logData) {
     
     ; パターンを事前コンパイル（パフォーマンス向上）
     static pattern := "(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}).*\[INFO Client \d+\] : You have entered (.+)\."
-    static instancePattern := "(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}).*\[INFO Client \d+\] Generating level (\d+) area ""(.+)"""
+    static instancePattern := "(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}).*\[INFO Client \d+\] Generating level (\d+) area `"(.+)`""
     
     ; 最新のエリア移動を検索
     lastMatch := ""
