@@ -304,7 +304,7 @@ HandleLowManaWarning() {
     static lastWarningTime := 0
     
     currentTime := A_TickCount
-    if (currentTime - lastWarningTime > 5000) {  // 5秒に1回まで
+    if (currentTime - lastWarningTime > 5000) {  ; 5秒に1回まで
         ShowOverlay(Format("警告: 低マナ ({}%)", g_mana_fill_rate), 1500)
         lastWarningTime := currentTime
         LogWarn("ManaMonitor", Format("Low mana warning: {}%", g_mana_fill_rate))

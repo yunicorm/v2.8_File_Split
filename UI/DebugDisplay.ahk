@@ -474,7 +474,7 @@ ShowPerformanceDebug() {
     activeTimers := GetActiveTimers()
     perfInfo.Push(Format("アクティブタイマー: {}", activeTimers.Length))
     
-    // デバッグGUI数
+    ; デバッグGUI数
     global debugGuis
     perfInfo.Push(Format("デバッグGUI: {}", debugGuis.Length))
     

@@ -90,13 +90,13 @@ ValidateLogFile() {
         A_MyDocuments . "\My Games\Path of Exile\logs\Client.txt"
     ]
     
-    // 代替パスを試す
+    ; 代替パスを試す
     for path in alternatePaths {
         if (FileExist(path)) {
             g_client_log_path := path
             LogInfo("ClientLogMonitor", "Found Client.txt at alternate path: " . path)
             
-            // 設定を更新
+            ; 設定を更新
             ConfigManager.Set("ClientLog", "Path", path)
             return true
         }
@@ -417,7 +417,7 @@ IsNonCombatArea(areaName) {
         return true
     }
     
-    // メナジェリー
+    ; メナジェリー
     if (InStr(areaName, "Menagerie")) {
         return true
     }
@@ -435,7 +435,7 @@ HandleLogRotation() {
     g_last_file_size := 0
     g_last_read_position := 0
     
-    // ファイルハンドルを再オープン
+    ; ファイルハンドルを再オープン
     ReopenLogFile()
 }
 
