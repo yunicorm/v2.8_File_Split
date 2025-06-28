@@ -510,9 +510,9 @@ CleanupOldLogFiles() {
         if (oldFiles.Length > 0) {
             ; 簡単なバブルソート
             Loop oldFiles.Length - 1 {
-                i := A_Index
+    i := A_Index
                 Loop oldFiles.Length - i {
-                    j := A_Index
+    j := A_Index
                     if (oldFiles[j].time < oldFiles[j + 1].time) {
                         temp := oldFiles[j]
                         oldFiles[j] := oldFiles[j + 1]
@@ -525,7 +525,7 @@ CleanupOldLogFiles() {
             deletedCount := 0
             if (oldFiles.Length > 3) {
                 Loop oldFiles.Length - 3 {
-                    i := A_Index + 3  ; 4番目から開始
+    i := A_Index + 3  ; 4番目から開始
                     try {
                         FileDelete(oldFiles[i].path)
                         deletedCount++
@@ -561,7 +561,7 @@ CleanupOldLogs(daysToKeep := "") {
     try {
         ; .log ファイルをチェック
         Loop Files, g_log_dir . "\macro_*.log" {
-            fileTime := FileGetTime(A_LoopFilePath, "C")
+    fileTime := FileGetTime(A_LoopFilePath, "C")
             if (fileTime < cutoffTime) {
                 try {
                     totalSize += FileGetSize(A_LoopFilePath)
@@ -575,7 +575,7 @@ CleanupOldLogs(daysToKeep := "") {
         
         ; .old ファイルもチェック
         Loop Files, g_log_dir . "\macro_*.old" {
-            fileTime := FileGetTime(A_LoopFilePath, "C")
+    fileTime := FileGetTime(A_LoopFilePath, "C")
             if (fileTime < cutoffTime) {
                 try {
                     totalSize += FileGetSize(A_LoopFilePath)

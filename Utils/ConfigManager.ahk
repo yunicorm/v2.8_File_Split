@@ -347,7 +347,7 @@ class ConfigManager {
             cutoffTime := DateAdd(cutoffTime, -daysToKeep, "Days")
             
             Loop Files, this.backupDir . "\Config_backup_*.ini" {
-                fileTime := FileGetTime(A_LoopFilePath, "C")
+    fileTime := FileGetTime(A_LoopFilePath, "C")
                 if (fileTime < cutoffTime) {
                     try {
                         FileDelete(A_LoopFilePath)

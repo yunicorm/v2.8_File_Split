@@ -107,7 +107,7 @@ TestFlaskTypeConversion() {
     types := ["Life", "Mana", "Utility", "Quicksilver", "Unique"]
     
     Loop types.Length {
-        typeName := types[A_Index]
+    typeName := types[A_Index]
         index := GetFlaskTypeIndex(typeName)
         convertedName := GetFlaskTypeName(index)
         

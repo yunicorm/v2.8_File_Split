@@ -308,7 +308,7 @@ TestConditionSystem() {
         ]
         
         for funcName in conditionFunctions {
-            if (!IsSet(%funcName%)) {
+            if (!IsSet(funcName)) {
                 TestFail("Condition System", "Function not defined: " . funcName)
                 return
             }

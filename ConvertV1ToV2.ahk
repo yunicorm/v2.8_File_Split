@@ -12,6 +12,26 @@ global g_backup_dir := A_ScriptDir . "\backups"
 global g_converted_files := 0
 global g_errors := 0
 global g_warnings := 0
+global g_dry_run := false
+
+; --- 除外ファイルリスト ---
+global g_excluded_files := [
+    "ConvertV1ToV2.ahk",
+    "test_conversion_manually.py",
+    "run_test_conversion.ahk",
+    "test_conversion_expected.ahk",
+    "test_conversion_result.ahk",
+    "test_conversion.ahk",
+    "test_conversion_original.ahk",
+    "CONVERSION_SUMMARY.md"
+]
+
+; --- 除外ディレクトリリスト ---
+global g_excluded_dirs := [
+    "backups",
+    "logs",
+    ".git"
+]
 
 ; --- 変換統計 ---
 global g_conversion_stats := {
@@ -34,8 +54,8 @@ global g_conversion_rules := [
     },
     {
         name: "for i := start to end",
-        pattern: "for\s+(\w+)\s*:=\s*(\d+)\s+to\s+(\d+)",
-        replacement: "Loop ($3 - $2 + 1) {\n    $1 := A_Index + $2 - 1\n}",
+        pattern: "for\s+(\w+)\s*:=\s*(\d+)\s+to\s+(\d+)\s*\{",
+        replacement: "Loop ($3 - $2 + 1) {\n    $1 := A_Index + $2 - 1",
         type: "v1tov2"
     },
     {
@@ -56,35 +76,47 @@ global g_conversion_rules := [
         replacement: "If (IsObject(",
         type: "v1tov2"
     },
+    {
+        name: "If without closing parenthesis",
+        pattern: "If\s+\(([^)]+)$",
+        replacement: "If ($1)",
+        type: "v1tov2"
+    },
+    {
+        name: "If (condition without closing parenthesis",
+        pattern: "If\s+\\(([^)]+)(?:\\s*$|\\s*\\n)",
+        replacement: "If ($1)",
+        type: "v1tov2"
+    },
     ; Pythonライク → AutoHotkey v2 変換ルール
     {
         name: "for i in Range(n)",
-        pattern: "for\s+(\w+)\s+in\s+Range\((\d+)\)",
-        replacement: "Loop $2 {\n    $1 := A_Index\n}",
+        pattern: "for\s+(\w+)\s+in\s+Range\((\d+)\)\s*\{",
+        replacement: "Loop $2 {\n    $1 := A_Index",
         type: "python"
     },
     {
         name: "for i in Range(var)",
-        pattern: "for\s+(\w+)\s+in\s+Range\((\w+)\)",
-        replacement: "Loop $2 {\n    $1 := A_Index\n}",
+        pattern: "for\s+(\w+)\s+in\s+Range\((\w+)\)\s*\{",
+        replacement: "Loop $2 {\n    $1 := A_Index",
         type: "python"
     },
     {
         name: "for i in Range(start, end)",
-        pattern: "for\s+(\w+)\s+in\s+Range\((\d+),\s*(\d+)\)",
-        replacement: "Loop ($3 - $2 + 1) {\n    $1 := $2 + A_Index - 1\n}",
+        pattern: "for\s+(\w+)\s+in\s+Range\((\d+),\s*(\d+)\)\s*\{",
+        replacement: "Loop ($3 - $2 + 1) {\n    $1 := $2 + A_Index - 1",
         type: "python"
     },
     {
         name: "for i in Range(var1, var2)",
-        pattern: "for\s+(\w+)\s+in\s+Range\((\w+),\s*(\w+)\)",
-        replacement: "Loop ($3 - $2 + 1) {\n    $1 := $2 + A_Index - 1\n}",
+        pattern: "for\s+(\w+)\s+in\s+Range\((\w+),\s*(\w+)\)\s*\{",
+        replacement: "Loop ($3 - $2 + 1) {\n    $1 := $2 + A_Index - 1",
         type: "python"
     },
     {
         name: "for i in Range(start, end, step)",
-        pattern: "for\s+(\w+)\s+in\s+Range\((\d+),\s*(\d+),\s*(\d+)\)",
-        replacement: "Loop { $1 := $2 + (A_Index - 1) * $4; if ($1 >= $3) break",
+        pattern: "for\s+(\w+)\s+in\s+Range\((\d+),\s*(\d+),\s*(\d+)\)\s*\{",
+        replacement: "Loop {\n    $1 := $2 + (A_Index - 1) * $4\n    if ($1 >= $3)\n        break",
         type: "python"
     }
 ]
@@ -108,9 +140,50 @@ Initialize() {
     return true
 }
 
+; --- ファイル除外チェック ---
+IsFileExcluded(filePath) {
+    global g_excluded_files, g_excluded_dirs
+    
+    fileName := RegExReplace(filePath, ".*\\", "")  ; ファイル名のみ抽出
+    
+    ; ファイル名チェック
+    for excludedFile in g_excluded_files {
+        if (fileName = excludedFile) {
+            return true
+        }
+    }
+    
+    ; ディレクトリチェック
+    for excludedDir in g_excluded_dirs {
+        if (InStr(filePath, "\" . excludedDir . "\") || InStr(filePath, "/" . excludedDir . "/")) {
+            return true
+        }
+    }
+    
+    return false
+}
+
+; --- 統計リセット ---
+ResetStatistics() {
+    global g_converted_files, g_errors, g_warnings, g_conversion_stats
+    
+    g_converted_files := 0
+    g_errors := 0
+    g_warnings := 0
+    
+    g_conversion_stats.catchErrors := 0
+    g_conversion_stats.forLoops := 0
+    g_conversion_stats.objectProps := 0
+    g_conversion_stats.conditionals := 0
+    g_conversion_stats.rangeConversions := 0
+    g_conversion_stats.pythonLike := 0
+    
+    LogMessage("Statistics reset successfully")
+}
+
 ; --- 単一ファイル変換 ---
-ConvertFile(filePath) {
-    global g_converted_files, g_errors
+ConvertFile(filePath, dryRun := false) {
+    global g_converted_files, g_errors, g_dry_run
     
     if (!FileExist(filePath)) {
         LogError("File not found: " . filePath)
@@ -123,10 +196,20 @@ ConvertFile(filePath) {
         return false
     }
     
-    LogMessage("Converting file: " . filePath)
+    ; 除外ファイルチェック
+    if (IsFileExcluded(filePath)) {
+        LogMessage("Skipping excluded file: " . filePath)
+        return true
+    }
     
-    ; バックアップ作成
-    if (!CreateBackup(filePath)) {
+    if (dryRun) {
+        LogMessage("[DRY RUN] Would convert file: " . filePath)
+    } else {
+        LogMessage("Converting file: " . filePath)
+    }
+    
+    ; バックアップ作成（ドライランでない場合のみ）
+    if (!dryRun && !CreateBackup(filePath)) {
         LogError("Failed to create backup for: " . filePath)
         return false
     }
@@ -141,13 +224,22 @@ ConvertFile(filePath) {
         
         ; 変更があった場合のみ書き込み
         if (convertedContent != originalContent) {
-            FileDelete(filePath)
-            FileAppend(convertedContent, filePath)
+            if (dryRun) {
+                LogMessage("[DRY RUN] Would modify file: " . filePath)
+                LogMessage("[DRY RUN] Changes detected but not applied")
+            } else {
+                FileDelete(filePath)
+                FileAppend(convertedContent, filePath)
+                LogMessage("Successfully converted: " . filePath)
+            }
             g_converted_files++
-            LogMessage("Successfully converted: " . filePath)
             return true
         } else {
-            LogMessage("No changes needed: " . filePath)
+            if (dryRun) {
+                LogMessage("[DRY RUN] No changes needed: " . filePath)
+            } else {
+                LogMessage("No changes needed: " . filePath)
+            }
             return true
         }
         
@@ -159,18 +251,19 @@ ConvertFile(filePath) {
 }
 
 ; --- ディレクトリ一括変換 ---
-ConvertDirectory(dirPath, recursive := true) {
-    global g_converted_files, g_errors
+ConvertDirectory(dirPath, recursive := true, dryRun := false) {
+    global g_converted_files, g_errors, g_backup_dir
     
     if (!DirExist(dirPath)) {
         LogError("Directory not found: " . dirPath)
         return false
     }
     
-    LogMessage("Converting directory: " . dirPath)
-    
-    ; ファイル検索パターン
-    pattern := recursive ? (dirPath . "\*.ahk") : (dirPath . "\*.ahk")
+    if (dryRun) {
+        LogMessage("[DRY RUN] Would convert directory: " . dirPath)
+    } else {
+        LogMessage("Converting directory: " . dirPath)
+    }
     
     try {
         ; .ahkファイルを検索
@@ -180,10 +273,14 @@ ConvertDirectory(dirPath, recursive := true) {
                 continue
             }
             
-            ConvertFile(A_LoopFileFullPath)
+            ConvertFile(A_LoopFileFullPath, dryRun)
         }
         
-        LogMessage(Format("Directory conversion completed. Files: {}, Errors: {}", g_converted_files, g_errors))
+        if (dryRun) {
+            LogMessage(Format("[DRY RUN] Directory scan completed. Would process {} files, {} errors detected", g_converted_files, g_errors))
+        } else {
+            LogMessage(Format("Directory conversion completed. Files: {}, Errors: {}", g_converted_files, g_errors))
+        }
         return true
         
     } catch as e {
@@ -262,32 +359,130 @@ ApplyConversions(content, filePath) {
     return convertedContent
 }
 
-; --- 複数行パターンの修正 ---
+; --- 括弧バランスチェック関数 ---
+CountBraces(line) {
+    open := 0
+    close := 0
+    Loop Parse, line {
+        if (A_LoopField == "{")
+            open++
+        else if (A_LoopField == "}")
+            close++
+    }
+    return {open: open, close: close}
+}
+
+; --- 次の行が閉じ括弧かチェック ---
+IsNextLineClosingBrace(lines, currentIndex) {
+    nextIndex := currentIndex + 1
+    while (nextIndex <= lines.Length) {
+        nextLine := Trim(lines[nextIndex])
+        ; 空行はスキップ
+        if (nextLine == "") {
+            nextIndex++
+            continue
+        }
+        ; 閉じ括弧で始まる行かチェック
+        if (RegExMatch(nextLine, "^\s*\}")) {
+            return true
+        }
+        ; その他の行が見つかったら終了
+        return false
+    }
+    return false
+}
+
+; --- ブロック終了を探す ---
+FindBlockEnd(lines, startIndex) {
+    braceCount := 0
+    foundOpening := false
+    
+    for i := startIndex to lines.Length {
+        line := lines[i]
+        braces := CountBraces(line)
+        
+        ; 開始括弧を見つけた
+        if (braces.open > 0) {
+            foundOpening := true
+            braceCount += braces.open
+        }
+        
+        ; 閉じ括弧を処理
+        braceCount -= braces.close
+        
+        ; バランスが取れたらブロック終了
+        if (foundOpening && braceCount <= 0) {
+            return i
+        }
+    }
+    
+    return -1  ; 見つからない
+}
+
+; --- 複数行パターンの修正（改善版） ---
 FixMultiLinePatterns(content, filePath) {
-    ; 未閉じの括弧を検出・修正
     lines := StrSplit(content, "`n")
     fixedLines := []
+    changesApplied := 0
     
     for lineNum, line in lines {
         trimmedLine := Trim(line)
+        currentLine := line
         
-        ; Loop文で開始されているが閉じ括弧がない行を検出
-        if (RegExMatch(trimmedLine, "^Loop.*\{\s*\w+\s*:=.*$") && !InStr(trimmedLine, "}")) {
-            ; 次の行に閉じ括弧がない場合は追加
-            nextLineIndex := lineNum + 1
-            if (nextLineIndex <= lines.Length) {
-                nextLine := Trim(lines[nextLineIndex])
-                if (!RegExMatch(nextLine, "^\s*\}")) {
-                    line .= " }"
-                    LogMessage(Format("Added missing closing brace at line {} in {}", lineNum, filePath))
+        ; Loop文の後に変数代入があるパターンを検出
+        if (RegExMatch(trimmedLine, "^Loop.*\{\s*$")) {
+            ; 現在の行の括弧バランスをチェック
+            braces := CountBraces(line)
+            
+            ; 開始括弧があるが閉じ括弧がない場合
+            if (braces.open > braces.close) {
+                ; 次の行をチェック
+                if (lineNum < lines.Length) {
+                    nextLine := lines[lineNum + 1]
+                    nextTrimmed := Trim(nextLine)
+                    
+                    ; 次の行が変数代入で始まる場合
+                    if (RegExMatch(nextTrimmed, "^\s*\w+\s*:=")) {
+                        ; その後のブロック終了を探す
+                        blockEnd := FindBlockEnd(lines, lineNum + 1)
+                        
+                        if (blockEnd == -1 || blockEnd == lineNum + 1) {
+                            ; ブロック終了が見つからない、または変数代入行で終わっている場合
+                            if (!IsNextLineClosingBrace(lines, lineNum + 1)) {
+                                ; 次の行に閉じ括弧を追加する必要がある
+                                LogMessage(Format("Missing closing brace detected after line {} in {}", lineNum + 1, filePath))
+                                changesApplied++
+                            }
+                        }
+                    }
                 }
-            } else {
-                line .= " }"
-                LogMessage(Format("Added missing closing brace at end of file in {}", filePath))
             }
         }
         
-        fixedLines.Push(line)
+        ; If文の未閉じ括弧を検出・修正
+        if (RegExMatch(trimmedLine, "^If\s*\([^)]*$") && !InStr(trimmedLine, ")")) {
+            ; 行末に閉じ括弧を追加
+            currentLine := RegExReplace(currentLine, "(\s*)$", ")$1")
+            LogMessage(Format("Added missing closing parenthesis at line {} in {}", lineNum, filePath))
+            changesApplied++
+        }
+        
+        ; インデント修正: Loop文内の変数代入
+        if (RegExMatch(trimmedLine, "^(\w+\s*:=.*)$") && lineNum > 1) {
+            prevLine := Trim(lines[lineNum - 1])
+            ; 前の行がLoop文で始まる場合、インデントを追加
+            if (RegExMatch(prevLine, "^Loop.*\{")) {
+                currentLine := RegExReplace(currentLine, "^(\s*)", "    ")
+                LogMessage(Format("Fixed indentation at line {} in {}", lineNum, filePath))
+                changesApplied++
+            }
+        }
+        
+        fixedLines.Push(currentLine)
+    }
+    
+    if (changesApplied > 0) {
+        LogMessage(Format("Applied {} multi-line pattern fixes in {}", changesApplied, filePath))
     }
     
     return JoinArray(fixedLines, "`n")
@@ -429,10 +624,23 @@ ConvertDirectory(A_ScriptDir, true)
     }
 }
 
+; --- ドライラン実行 ---
+DryRunTest() {
+    if (!Initialize()) {
+        return
+    }
+    
+    MsgBox("Starting DRY RUN test on current directory...", "Dry Run", "OK")
+    ConvertDirectory(A_ScriptDir, true, true)  ; dryRun = true
+    ShowStatistics()
+    SaveLogToFile()
+}
+
 ; --- ホットキー定義 ---
 F12::Main()
 ^F12::ConvertDirectory(A_ScriptDir, true)
 ^+F12::ShowStatistics()
+^!F12::DryRunTest()  ; Ctrl+Alt+F12 でドライランテスト
 
 ; --- スクリプト開始時の自動実行 ---
 if (A_IsCompiled || !A_LineFile) {

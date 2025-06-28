@@ -230,7 +230,7 @@ UpdateFlaskManagerConfig() {
         
         ; 各フラスコの設定を読み込み
         Loop 5 {
-            flaskNum := A_Index
+    flaskNum := A_Index
             enabled := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Enabled", false)
             
             if (enabled) {

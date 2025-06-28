@@ -97,7 +97,7 @@ CheckManaRadialDetailed() {
         bottomY := g_mana_center_y + (g_mana_radius * ratio)
         
         Loop pointsPerLine {
-            xOffset := ((A_Index - 1) - (pointsPerLine - 1) / 2) * g_mana_radius * 0.4 / (pointsPerLine - 1)
+    xOffset := ((A_Index - 1) - (pointsPerLine - 1) / 2) * g_mana_radius * 0.4 / (pointsPerLine - 1)
             checkBatch.Push({
                 x: g_mana_center_x + xOffset,
                 y: bottomY,

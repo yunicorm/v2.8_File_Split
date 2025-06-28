@@ -94,7 +94,7 @@ GetManaDetectionDetails() {
         lineColors := []
         
         Loop 5 {
-            xOffset := (A_Index - 3) * g_mana_radius * 0.2
+    xOffset := (A_Index - 3) * g_mana_radius * 0.2
             checkX := g_mana_center_x + xOffset
             checkY := bottomY
             
@@ -204,7 +204,7 @@ ShowImprovedDetectionPoints() {
             
             ; 各ラインの5つの検出ポイント
             Loop 5 {
-                xOffset := (A_Index - 3) * g_mana_radius * 0.2
+    xOffset := (A_Index - 3) * g_mana_radius * 0.2
                 checkX := g_mana_center_x + xOffset
                 checkY := lineY
                 

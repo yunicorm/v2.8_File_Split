@@ -12,40 +12,40 @@ GroupAdd("TargetWindows", "ahk_exe PathOfExileSteam.exe")
 GroupAdd("TargetWindows", "ahk_exe streaming_client.exe")
 
 ; === ユーティリティのインクルード（最初に読み込む） ===
-#Include "Utils\Logger.ahk"
-#Include "Utils\ConfigManager.ahk"
-#Include "Utils\ColorDetection.ahk"
-#Include "Utils\Coordinates.ahk"
-#Include "Utils\HotkeyValidator.ahk"
-#Include "Utils\Validators.ahk"
+#Include "Utils/Logger.ahk"
+#Include "Utils/ConfigManager.ahk"
+#Include "Utils/ColorDetection.ahk"
+#Include "Utils/Coordinates.ahk"
+#Include "Utils/HotkeyValidator.ahk"
+#Include "Utils/Validators.ahk"
 
 ; === UIのインクルード（ユーティリティの後） ===
-#Include "UI\Overlay.ahk"
-#Include "UI\StatusDisplay.ahk"
-#Include "UI\DebugDisplay.ahk"
-#Include "UI\SettingsWindow.ahk"
+#Include "UI/Overlay.ahk"
+#Include "UI/StatusDisplay.ahk"
+#Include "UI/DebugDisplay.ahk"
+#Include "UI/SettingsWindow.ahk"
 
 ; === 設定のインクルード ===
 #Include "Config.ahk"
 
 ; === コア機能のインクルード ===
-#Include "Core\TimerManager.ahk"
-#Include "Core\WindowManager.ahk"
+#Include "Core/TimerManager.ahk"
+#Include "Core/WindowManager.ahk"
 
 ; === 機能モジュールのインクルード ===
-#Include "Features\ManaMonitor.ahk"
-#Include "Features\TinctureManager.ahk"
-#Include "Features\FlaskManager.ahk"
-#Include "Features\SkillAutomation.ahk"
-#Include "Features\LoadingScreen.ahk"
-#Include "Features\ClientLogMonitor.ahk"
+#Include "Features/ManaMonitor.ahk"
+#Include "Features/TinctureManager.ahk"
+#Include "Features/FlaskManager.ahk"
+#Include "Features/SkillAutomation.ahk"
+#Include "Features/LoadingScreen.ahk"
+#Include "Features/ClientLogMonitor.ahk"
 
 ; === マクロコントローラーのインクルード ===
-#Include "Core\MacroController.ahk"
+#Include "Core/MacroController.ahk"
 
 ; === ホットキーのインクルード（最後に読み込む） ===
-#Include "Hotkeys\MainHotkeys.ahk"
-#Include "Hotkeys\DebugHotkeys.ahk"
+#Include "Hotkeys/MainHotkeys.ahk"
+#Include "Hotkeys/DebugHotkeys.ahk"
 
 ; === グローバル変数の追加初期化 ===
 global g_auto_start_enabled := false

@@ -609,7 +609,7 @@ ValidateFlaskSettings(errors) {
     global g_settings_gui
     
     Loop 5 {
-        flaskNum := A_Index
+    flaskNum := A_Index
         if (g_settings_gui["Flask" . flaskNum . "_Enabled"].Checked) {
             key := Trim(g_settings_gui["Flask" . flaskNum . "_Key"].Text)
             if (key = "") {
@@ -1061,7 +1061,7 @@ UpdateFlaskManagerConfig() {
         
         ; 各フラスコの設定を読み込み
         Loop 5 {
-            flaskNum := A_Index
+    flaskNum := A_Index
             enabled := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Enabled", false)
             
             if (enabled) {
@@ -1097,7 +1097,7 @@ UpdateSkillManagerConfig() {
         
         ; Group 1 スキルの設定を読み込み (Skill_1_1 ~ Skill_1_5)
         Loop 5 {
-            skillNum := A_Index
+    skillNum := A_Index
             skillId := "Skill_1_" . skillNum
             enabled := ConfigManager.Get("Skill", skillId . "_Enabled", false)
             
@@ -1116,7 +1116,7 @@ UpdateSkillManagerConfig() {
         
         ; Group 2 スキルの設定を読み込み (Skill_2_1 ~ Skill_2_5)
         Loop 5 {
-            skillNum := A_Index
+    skillNum := A_Index
             skillId := "Skill_2_" . skillNum
             enabled := ConfigManager.Get("Skill", skillId . "_Enabled", false)
             

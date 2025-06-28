@@ -76,7 +76,7 @@ ValidateFlaskSettings(errors) {
     global g_settings_gui
     
     Loop 5 {
-        flaskNum := A_Index
+    flaskNum := A_Index
         if (g_settings_gui["Flask" . flaskNum . "_Enabled"].Checked) {
             key := Trim(g_settings_gui["Flask" . flaskNum . "_Key"].Text)
             if (key = "") {

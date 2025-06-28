@@ -90,7 +90,7 @@ CheckConfigStructure() {
 CheckCriticalSettings() {
     ; フラスコ設定
     Loop 5 {
-        flaskNum := A_Index
+    flaskNum := A_Index
         enabled := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Enabled", "false")
         key := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Key", "")
         minVal := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Min", "0")
