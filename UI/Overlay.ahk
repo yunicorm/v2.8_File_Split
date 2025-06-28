@@ -75,7 +75,7 @@ ShowCustomOverlay(message, options := {}) {
     ; オプションをマージ
     for key, value in defaults {
         if (!options.HasProp(key)) {
-            options.%key% := value
+            options[key] := value
         }
     }
     

@@ -166,7 +166,7 @@ EvaluateCondition(conditionName, params := []) {
     try {
         conditionFunc := g_condition_functions[conditionName]
         return conditionFunc(params*)
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskConditions", Format("Error evaluating condition '{}': {}", 
             conditionName, e.Message))
         return false
@@ -184,7 +184,7 @@ EvaluateFlaskCondition(flaskName, config) {
     
     try {
         return config.useCondition()
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskConditions", Format("Error evaluating flask '{}' condition: {}", 
             flaskName, e.Message))
         return false

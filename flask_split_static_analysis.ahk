@@ -60,7 +60,7 @@ CheckGlobalVariables() {
             CheckPass("Global Variable Conflicts")
         }
         
-    } catch Error as e {
+    } catch as e {
         CheckFail("Global Variable Conflicts", e.Message)
     }
 }
@@ -134,7 +134,7 @@ CheckFunctionExistence() {
             CheckPass("Required Function Existence")
         }
         
-    } catch Error as e {
+    } catch as e {
         CheckFail("Required Function Existence", e.Message)
     }
 }
@@ -176,7 +176,7 @@ CheckDependencies() {
             CheckPass("Module Dependencies")
         }
         
-    } catch Error as e {
+    } catch as e {
         CheckFail("Module Dependencies", e.Message)
     }
 }
@@ -220,7 +220,7 @@ CheckChargeSystem() {
         
         CheckPass("Charge Management System")
         
-    } catch Error as e {
+    } catch as e {
         CheckFail("Charge Management System", e.Message)
     }
 }
@@ -264,7 +264,7 @@ CheckConditionSystem() {
         
         CheckPass("Condition System")
         
-    } catch Error as e {
+    } catch as e {
         CheckFail("Condition System", e.Message)
     }
 }
@@ -302,7 +302,7 @@ CheckConfigurationSystem() {
         
         CheckPass("Configuration Management System")
         
-    } catch Error as e {
+    } catch as e {
         CheckFail("Configuration Management System", e.Message)
     }
 }
@@ -340,7 +340,7 @@ CheckStatisticsSystem() {
         
         CheckPass("Statistics System")
         
-    } catch Error as e {
+    } catch as e {
         CheckFail("Statistics System", e.Message)
     }
 }

@@ -46,7 +46,7 @@ ManualStopAllSkills() {
         LogInfo("SkillHelpers", Format("Manually stopped {} skill timers", stoppedCount))
         return stoppedCount
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillHelpers", "Failed to stop all skills: " . e.Message)
         return -1
     }
@@ -98,7 +98,7 @@ SanitizeSkillConfig(config) {
     
     ; 基本プロパティをコピー
     for prop, value in config.OwnProps() {
-        sanitized.%prop% := value
+        sanitized[prop] := value
     }
     
     ; デフォルト値を設定
@@ -223,7 +223,7 @@ BenchmarkSkillExecution(skill, iterations := 10) {
                 successCount++
             }
             Sleep(50)  ; 短い間隔で実行
-        } catch Error as e {
+        } catch as e {
             LogWarn("SkillHelpers", Format("Benchmark iteration {} failed: {}", A_Index, e.Message))
         }
     }

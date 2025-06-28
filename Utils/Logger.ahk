@@ -41,7 +41,7 @@ InitializeLogger() {
     if (!DirExist(g_log_dir)) {
         try {
             DirCreate(g_log_dir)
-        } catch Error as e {
+        } catch as e {
             MsgBox("ログディレクトリの作成に失敗しました: " . e.Message, "エラー", "OK Icon!")
             return false
         }
@@ -60,7 +60,7 @@ InitializeLogger() {
         ; バッファリングを有効化
         g_log_file_handle.Encoding := "UTF-8-RAW"
         
-    } catch Error as e {
+    } catch as e {
         ; ファイルハンドルが使えない場合は従来の方式にフォールバック
         g_log_file_handle := ""
         OutputDebug("Failed to open log file handle: " . e.Message)
@@ -187,7 +187,7 @@ FlushLogBuffer() {
         ; バッファをクリア
         g_log_buffer := []
         
-    } catch Error as e {
+    } catch as e {
         g_log_stats.writeErrors++
         OutputDebug("Failed to write log: " . e.Message)
         
@@ -240,7 +240,7 @@ CheckLogFileSizeBeforeWrite() {
                 PerformLogRotation()
             }
         }
-    } catch Error as e {
+    } catch as e {
         OutputDebug("Log size check failed: " . e.Message)
     }
 }
@@ -307,7 +307,7 @@ PerformLogRotation() {
         ; 3世代以上の古いログを削除
         CleanupOldLogFiles()
         
-    } catch Error as e {
+    } catch as e {
         OutputDebug("Log rotation failed: " . e.Message)
     } finally {
         g_log_rotation_in_progress := false
@@ -335,7 +335,7 @@ CheckLogRotation() {
         if (currentSize > maxSize || g_log_write_count > 5000) {
             PerformLogRotation()
         }
-    } catch Error as e {
+    } catch as e {
         OutputDebug("Log rotation check failed: " . e.Message)
     }
 }
@@ -463,7 +463,7 @@ ShowLogViewer() {
         try {
             ; デフォルトのテキストエディタで開く
             Run(g_log_file)
-        } catch Error as e {
+        } catch as e {
             ; Notepadで開く
             try {
                 Run("notepad.exe `"" . g_log_file . "`"")
@@ -493,8 +493,10 @@ CleanupOldLogFiles() {
         ; 時間順でソート（新しい順）
         if (oldFiles.Length > 0) {
             ; 簡単なバブルソート
-            for i := 1 to oldFiles.Length - 1 {
-                for j := 1 to oldFiles.Length - i {
+            Loop oldFiles.Length - 1 {
+                i := A_Index
+                Loop oldFiles.Length - i {
+                    j := A_Index
                     if (oldFiles[j].time < oldFiles[j + 1].time) {
                         temp := oldFiles[j]
                         oldFiles[j] := oldFiles[j + 1]
@@ -505,12 +507,15 @@ CleanupOldLogFiles() {
             
             ; 3世代以上は削除
             deletedCount := 0
-            for i := 4 to oldFiles.Length {
-                try {
-                    FileDelete(oldFiles[i].path)
-                    deletedCount++
-                } catch {
-                    ; 削除失敗は無視
+            if (oldFiles.Length > 3) {
+                Loop oldFiles.Length - 3 {
+                    i := A_Index + 3  ; 4番目から開始
+                    try {
+                        FileDelete(oldFiles[i].path)
+                        deletedCount++
+                    } catch {
+                        ; 削除失敗は無視
+                    }
                 }
             }
             
@@ -518,7 +523,7 @@ CleanupOldLogFiles() {
                 LogInfo("Logger", Format("Deleted {} old backup files", deletedCount))
             }
         }
-    } catch Error as e {
+    } catch as e {
         LogError("Logger", "Old file cleanup failed: " . e.Message)
     }
 }
@@ -570,7 +575,7 @@ CleanupOldLogs(daysToKeep := "") {
             LogInfo("Logger", Format("Deleted {} old log files ({} KB)", 
                 deletedCount, Round(totalSize / 1024)))
         }
-    } catch Error as e {
+    } catch as e {
         LogError("Logger", "Cleanup failed: " . e.Message)
     }
 }
@@ -624,7 +629,7 @@ PerformStartupCleanup() {
         CleanupOldLogFiles()
         
         LogInfo("Logger", "Startup cleanup completed")
-    } catch Error as e {
+    } catch as e {
         LogError("Logger", "Startup cleanup failed: " . e.Message)
     }
 }

@@ -62,7 +62,7 @@ InitialTinctureUse() {
         
         LogInfo("TinctureManager", Format("Initial Tincture use completed ({}ms)", duration))
         
-    } catch Error as e {
+    } catch as e {
         LogError("TinctureManager", "Initial Tincture use failed: " . e.Message)
         g_tincture_active := false
     }
@@ -202,7 +202,7 @@ AttemptTinctureUse() {
         ; タイムアウトタイマーも設定（フェイルセーフ）
         StartManagedTimer("TinctureTimeout", () => HandleTinctureTimeout(), -3000)
         
-    } catch Error as e {
+    } catch as e {
         g_tincture_retry_timer_active := false
         LogError("TinctureManager", "Error in AttemptTinctureUse: " . e.Message)
         
@@ -294,7 +294,7 @@ VerifyTinctureUse() {
             HandleTinctureFailure()
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("TinctureManager", "Error in VerifyTinctureUse: " . e.Message)
         HandleTinctureFailure()
     }

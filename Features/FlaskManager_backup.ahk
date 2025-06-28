@@ -158,7 +158,7 @@ StartFlaskTimer(flaskName, config) {
         
         return false
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskManager", Format("Failed to start flask '{}': {}", flaskName, e.Message))
         return false
     }
@@ -277,7 +277,7 @@ UseFlask(flaskName, config) {
         
         return true
         
-    } catch Error as e {
+    } catch as e {
         g_flask_stats.errors++
         g_flask_stats.successRate := Round((1 - g_flask_stats.errors / g_flask_stats.totalUses) * 100, 2)
         LogError("FlaskManager", Format("Failed to use flask '{}': {}", flaskName, e.Message))
@@ -574,7 +574,7 @@ ConfigureFlasks(flaskConfig) {
         LogInfo("FlaskManager", Format("Flask configuration updated ({} flasks)", flaskConfig.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskManager", "Failed to configure flasks: " . e.Message)
         return false
     }

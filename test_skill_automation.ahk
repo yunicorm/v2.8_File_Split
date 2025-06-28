@@ -79,7 +79,7 @@ TestBasicStartStop() {
         OutputDebug("TEST 1 PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         OutputDebug("TEST 1 FAILED: " . e.Message)
         return false
     }
@@ -108,7 +108,7 @@ TestIndividualSkills() {
         OutputDebug("TEST 2 PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         OutputDebug("TEST 2 FAILED: " . e.Message)
         return false
     }
@@ -136,7 +136,7 @@ TestWineExecution() {
         OutputDebug("TEST 3 PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         OutputDebug("TEST 3 FAILED: " . e.Message)
         return false
     }
@@ -158,7 +158,7 @@ TestWineStages() {
         OutputDebug("TEST 4 PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         OutputDebug("TEST 4 FAILED: " . e.Message)
         return false
     }
@@ -187,7 +187,7 @@ TestStatsInitialization() {
         OutputDebug("TEST 5 PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         OutputDebug("TEST 5 FAILED: " . e.Message)
         return false
     }
@@ -218,7 +218,7 @@ TestStatsUpdate() {
         OutputDebug("TEST 6 PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         OutputDebug("TEST 6 FAILED: " . e.Message)
         return false
     }
@@ -246,7 +246,7 @@ TestErrorHandling() {
         OutputDebug("TEST 7 PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         OutputDebug("TEST 7 FAILED: " . e.Message)
         return false
     }

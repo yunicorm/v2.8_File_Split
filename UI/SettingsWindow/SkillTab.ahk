@@ -200,7 +200,7 @@ LoadSkillSettings() {
         g_settings_gui["Wine_Interval"].Text := ConfigManager.Get("Wine", "WineInterval", "1000")
         g_settings_gui["Wine_DynamicTiming"].Checked := ConfigManager.Get("Wine", "DynamicTiming", true)
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillTab", "Failed to load skill settings: " . e.Message)
     }
 }
@@ -288,7 +288,7 @@ SaveSkillSettings() {
         ConfigManager.Set("Wine", "WineInterval", g_settings_gui["Wine_Interval"].Text)
         ConfigManager.Set("Wine", "DynamicTiming", g_settings_gui["Wine_DynamicTiming"].Checked)
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillTab", "Failed to save skill settings: " . e.Message)
         throw e
     }
@@ -352,7 +352,7 @@ UpdateSkillManagerConfig() {
             LogInfo("SkillTab", "Legacy SkillAutomation updated")
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillTab", "Failed to update SkillManager config: " . e.Message)
     }
 }

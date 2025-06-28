@@ -131,7 +131,7 @@ class ConfigManager {
                             }
                         }
                     }
-                } catch Error as e {
+                } catch as e {
                     LogError("ConfigManager", Format("Failed to read section {}: {}", 
                         section, e.Message))
                 }
@@ -147,7 +147,7 @@ class ConfigManager {
                 this.currentProfile))
             return true
             
-        } catch Error as e {
+        } catch as e {
             LogError("ConfigManager", "Failed to load config: " . e.Message)
             return false
         }
@@ -304,7 +304,7 @@ class ConfigManager {
             LogInfo("ConfigManager", Format("Configuration saved (Profile: {})", profileName))
             return true
             
-        } catch Error as e {
+        } catch as e {
             LogError("ConfigManager", "Failed to save config: " . e.Message)
             return false
         }
@@ -334,7 +334,7 @@ class ConfigManager {
             LogInfo("ConfigManager", "Backup created: " . backupFile)
             return true
             
-        } catch Error as e {
+        } catch as e {
             LogError("ConfigManager", "Failed to create backup: " . e.Message)
             return false
         }
@@ -357,7 +357,7 @@ class ConfigManager {
                     }
                 }
             }
-        } catch Error as e {
+        } catch as e {
             LogError("ConfigManager", "Backup cleanup failed: " . e.Message)
         }
     }
@@ -555,7 +555,7 @@ MonitoringEnabled=false
             FileAppend(defaultConfig, configPath)
             LogInfo("ConfigManager", "Default configuration file created")
             return true
-        } catch Error as e {
+        } catch as e {
             LogError("ConfigManager", "Failed to create default config: " . e.Message)
             return false
         }
@@ -625,7 +625,7 @@ MonitoringEnabled=false
             FileCopy(configPath, exportPath, 1)
             LogInfo("ConfigManager", Format("Configuration exported to: {}", exportPath))
             return true
-        } catch Error as e {
+        } catch as e {
             LogError("ConfigManager", "Failed to export config: " . e.Message)
             return false
         }
@@ -653,7 +653,7 @@ MonitoringEnabled=false
             }
             
             return false
-        } catch Error as e {
+        } catch as e {
             LogError("ConfigManager", "Failed to import config: " . e.Message)
             return false
         }

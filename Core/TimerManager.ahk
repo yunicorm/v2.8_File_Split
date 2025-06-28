@@ -72,7 +72,7 @@ StartManagedTimer(timerName, callback, period, priority := TimerPriority.NORMAL)
         
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("TimerManager", Format("Failed to start timer '{}': {}", timerName, e.Message))
         return false
     }
@@ -126,7 +126,7 @@ ExecuteTimerCallback(timerName, callback) {
             LogWarn("TimerManager", Format("Timer '{}' took {}ms to execute", timerName, executionTime))
         }
         
-    } catch Error as e {
+    } catch as e {
         g_timer_errors[timerName]++
         LogError("TimerManager", Format("Error in timer '{}' (errors: {}): {}", 
             timerName, g_timer_errors[timerName], e.Message))
@@ -205,7 +205,7 @@ StopManagedTimer(timerName) {
         LogDebug("TimerManager", Format("Timer '{}' stopped", timerName))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("TimerManager", Format("Failed to stop timer '{}': {}", timerName, e.Message))
         return false
     }

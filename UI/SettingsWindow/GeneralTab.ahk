@@ -141,7 +141,7 @@ LoadGeneralSettings() {
         g_settings_gui["OverlayTransparency"].Text := ConfigManager.Get("UI", "OverlayTransparency", "220")
         g_settings_gui["OverlayFontSize"].Text := ConfigManager.Get("UI", "OverlayFontSize", "28")
         
-    } catch Error as e {
+    } catch as e {
         LogError("GeneralTab", "Failed to load general settings: " . e.Message)
     }
 }
@@ -186,7 +186,7 @@ SaveGeneralSettings() {
         ConfigManager.Set("UI", "OverlayTransparency", g_settings_gui["OverlayTransparency"].Text)
         ConfigManager.Set("UI", "OverlayFontSize", g_settings_gui["OverlayFontSize"].Text)
         
-    } catch Error as e {
+    } catch as e {
         LogError("GeneralTab", "Failed to save general settings: " . e.Message)
         throw e
     }
@@ -209,7 +209,7 @@ DetectResolution(*) {
         ShowOverlay(Format("解像度検出: {}x{}", width, height), 2000)
         LogInfo("GeneralTab", Format("Resolution detected: {}x{}", width, height))
         
-    } catch Error as e {
+    } catch as e {
         LogError("GeneralTab", "Failed to detect resolution: " . e.Message)
         ShowOverlay("解像度の検出に失敗しました", 2000)
     }
@@ -224,7 +224,7 @@ OpenLogFolder(*) {
         }
         Run(logPath)
         LogInfo("GeneralTab", "Opened log folder: " . logPath)
-    } catch Error as e {
+    } catch as e {
         LogError("GeneralTab", "Failed to open log folder: " . e.Message)
         ShowOverlay("ログフォルダを開けませんでした", 2000)
     }
@@ -248,7 +248,7 @@ ClearLogs(*) {
                 ShowOverlay("ログをクリアしました", 2000)
                 LogInfo("GeneralTab", "Logs cleared")
             }
-        } catch Error as e {
+        } catch as e {
             LogError("GeneralTab", "Failed to clear logs: " . e.Message)
             ShowOverlay("ログのクリアに失敗しました", 2000)
         }
@@ -274,7 +274,7 @@ GetManaPosition(*) {
         ShowOverlay(Format("マナ座標取得: X={}, Y={}", mouseX, mouseY), 3000)
         LogInfo("GeneralTab", Format("Mana position captured: X={}, Y={}", mouseX, mouseY))
         
-    } catch Error as e {
+    } catch as e {
         LogError("GeneralTab", "Failed to get mana position: " . e.Message)
         ShowOverlay("座標の取得に失敗しました", 2000)
     }
@@ -296,7 +296,7 @@ BrowseClientLog(*) {
             LogInfo("GeneralTab", "Client.txt path selected: " . selectedFile)
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("GeneralTab", "Failed to browse for Client.txt: " . e.Message)
     }
 }

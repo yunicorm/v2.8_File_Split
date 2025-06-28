@@ -17,7 +17,7 @@ ValidateAllSettings() {
         
         LogDebug("SettingsValidation", Format("Validation completed with {} errors", errors.Length))
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsValidation", "Validation error: " . e.Message)
         errors.Push("検証中にエラーが発生しました: " . e.Message)
     }

@@ -22,7 +22,7 @@ TestFlaskSettings() {
     try {
         ConfigManager.Initialize()
         OutputDebug("ConfigManager初期化: 成功`n")
-    } catch Error as e {
+    } catch as e {
         OutputDebug("ConfigManager初期化: 失敗 - " . e.Message . "`n")
         return
     }
@@ -76,7 +76,7 @@ TestSaveSettings() {
     try {
         ConfigManager.Save()
         OutputDebug("設定保存: 成功`n")
-    } catch Error as e {
+    } catch as e {
         OutputDebug("設定保存: 失敗 - " . e.Message . "`n")
     }
 }

@@ -157,7 +157,7 @@ ConfigureFlasks(flaskConfig) {
         LogInfo("FlaskManager", Format("Flask configuration updated ({} flasks)", flaskConfig.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskManager", "Failed to configure flasks: " . e.Message)
         return false
     }
@@ -203,7 +203,7 @@ UpdateFlaskConfig(flaskName, configUpdates) {
         
         ; 設定を更新
         for key, value in configUpdates {
-            config.%key% := value
+            config[key] := value
         }
         
         ; 有効フラスコの場合はタイマーを再開
@@ -216,7 +216,7 @@ UpdateFlaskConfig(flaskName, configUpdates) {
         LogInfo("FlaskConfiguration", Format("Flask '{}' configuration updated", flaskName))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskConfiguration", Format("Failed to update flask '{}': {}", flaskName, e.Message))
         return false
     }
@@ -265,7 +265,7 @@ LoadFlaskConfigFromINI() {
         LogInfo("FlaskConfiguration", Format("Loaded {} flask configurations from INI", g_flask_configs.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskConfiguration", "Failed to load flask config from INI: " . e.Message)
         return false
     }
@@ -413,10 +413,10 @@ ApplyFlaskPreset(presetName) {
     }
     
     try {
-        ConfigureFlasks(presets.%presetName%)
+        ConfigureFlasks(presets[presetName])
         LogInfo("FlaskConfiguration", Format("Applied flask preset: {}", presetName))
         return true
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskConfiguration", Format("Failed to apply preset '{}': {}", presetName, e.Message))
         return false
     }
@@ -432,7 +432,7 @@ ExportFlaskConfig() {
         exportConfig := {}
         for key, value in config {
             if (key != "useCondition") {
-                exportConfig.%key% := value
+                exportConfig[key] := value
             }
         }
         exportData[flaskName] := exportConfig
@@ -462,7 +462,7 @@ ResetFlaskConfigs() {
         LogInfo("FlaskConfiguration", "Flask configurations reset to defaults")
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskConfiguration", "Failed to reset flask configs: " . e.Message)
         return false
     }

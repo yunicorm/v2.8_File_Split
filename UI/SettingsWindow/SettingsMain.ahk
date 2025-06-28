@@ -31,7 +31,7 @@ ShowSettingsWindow() {
         
         LogInfo("SettingsWindow", "Settings window opened")
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to show settings window: " . e.Message)
         ShowOverlay("設定ウィンドウの表示に失敗しました", 3000)
     }
@@ -101,7 +101,7 @@ LoadCurrentSettings() {
         
         LogDebug("SettingsWindow", "Settings loaded successfully")
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to load settings: " . e.Message)
         ShowOverlay("設定の読み込みに失敗しました", 3000)
     }
@@ -144,7 +144,7 @@ SaveSettings(*) {
         ; ウィンドウを閉じる
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to save settings: " . e.Message)
         ShowOverlay("設定の保存に失敗しました", 3000)
     }
@@ -165,7 +165,7 @@ ResetSettings(*) {
             LoadCurrentSettings()
             ShowOverlay("設定をリセットしました", 2000)
             LogInfo("SettingsWindow", "Settings reset to defaults")
-        } catch Error as e {
+        } catch as e {
             LogError("SettingsWindow", "Failed to reset settings: " . e.Message)
             ShowOverlay("設定のリセットに失敗しました", 3000)
         }
@@ -182,7 +182,7 @@ CloseSettingsWindow() {
         }
         g_settings_open := false
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Error closing settings window: " . e.Message)
     }
 }

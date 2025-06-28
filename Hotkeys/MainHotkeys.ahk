@@ -51,7 +51,7 @@ F12:: {
         LogInfo("MainHotkeys", "F12 pressed - Resetting macro")
         ResetMacro()
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("エラー: " . e.Message, 2000)
         LogErrorWithStack("MainHotkeys", "Error in F12 handler", e)
     } finally {
@@ -84,7 +84,7 @@ F12:: {
             LogInfo("MainHotkeys", "Shift+F12 pressed - Macro started")
         }
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("エラー: " . e.Message, 2000)
         LogError("MainHotkeys", "Error in Shift+F12 handler: " . e.Message)
     } finally {
@@ -111,7 +111,7 @@ F12:: {
         ; 確認メッセージ
         ShowOverlay("緊急停止完了 - 全機能無効", 3000)
         
-    } catch Error as e {
+    } catch as e {
         ; 緊急停止のエラーは最小限のログ
         OutputDebug("Emergency stop error: " . e.Message)
     } finally {
@@ -148,7 +148,7 @@ F12:: {
             LogError("MainHotkeys", "Failed to reload configuration")
         }
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("設定リロードエラー: " . e.Message, 3000)
         LogError("MainHotkeys", "Configuration reload error: " . e.Message)
     } finally {
@@ -188,7 +188,7 @@ Pause:: {
             LogInfo("MainHotkeys", "Macro resumed")
         }
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("一時停止エラー: " . e.Message, 2000)
         LogError("MainHotkeys", "Pause key error: " . e.Message)
     } finally {
@@ -221,7 +221,7 @@ ScrollLock:: {
         
         LogDebug("MainHotkeys", Format("Status display toggled: {}", !isHidden))
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("ステータス表示エラー", 1500)
         LogError("MainHotkeys", "Status display error: " . e.Message)
     }
@@ -235,7 +235,7 @@ ScrollLock:: {
         hotkeyList := GetHotkeyList()
         ShowMultiLineOverlay(hotkeyList, 7000)
         LogDebug("MainHotkeys", "Hotkey list displayed")
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("ホットキー一覧表示エラー", 1500)
         LogError("MainHotkeys", "Hotkey list error: " . e.Message)
     }
@@ -274,7 +274,7 @@ F1:: {
     try {
         ShowSettingsWindow()
         LogInfo("MainHotkeys", "Settings window opened via hotkey")
-    } catch Error as e {
+    } catch as e {
         LogError("MainHotkeys", "Failed to open settings window: " . e.Message)
         ShowOverlay("設定ウィンドウを開けませんでした", 3000)
     }
@@ -352,7 +352,7 @@ CheckHotkeyCooldown(hotkeyName, showWarning := true) {
     global g_hotkey_last_press, HOTKEY_COOLDOWNS, g_hotkey_press_count
     
     currentTime := A_TickCount
-    cooldown := HOTKEY_COOLDOWNS.HasOwnProp(hotkeyName) ? HOTKEY_COOLDOWNS.%hotkeyName% : 500
+    cooldown := HOTKEY_COOLDOWNS.HasOwnProp(hotkeyName) ? HOTKEY_COOLDOWNS[hotkeyName] : 500
     
     if (g_hotkey_last_press.Has(hotkeyName)) {
         timeSinceLastPress := currentTime - g_hotkey_last_press[hotkeyName]

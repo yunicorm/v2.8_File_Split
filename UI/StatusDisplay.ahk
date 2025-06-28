@@ -45,7 +45,7 @@ CreateStatusOverlay() {
         
         LogInfo("StatusDisplay", "Status overlay created successfully")
         
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Failed to create status overlay: " . e.Message)
         ShowOverlay("ステータス表示の作成に失敗しました", 3000)
     } finally {
@@ -67,7 +67,7 @@ CheckStatusUpdate() {
             g_last_status_hash := currentHash
             RecreateStatusGui()
         }
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Status update check failed: " . e.Message)
     }
 }
@@ -99,7 +99,7 @@ ComputeStatusHash() {
             g_tincture_retry_count)
         
         return stateString
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Failed to compute status hash: " . e.Message)
         return "error"
     }
@@ -142,7 +142,7 @@ RecreateStatusGui() {
             ShowStatusWindowSafe()
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Failed to recreate status GUI: " . e.Message)
     } finally {
         g_status_gui_creating := false
@@ -163,7 +163,7 @@ CleanupStatusControls() {
                 ; 個別のエラーは無視
             }
         }
-    } catch Error as e {
+    } catch as e {
         LogDebug("StatusDisplay", "Control cleanup error: " . e.Message)
     }
 }
@@ -222,7 +222,7 @@ BuildStatusText() {
         ; コントロールへの参照を保存（将来の更新用）
         statusGui.statusTextControl := textControl
         
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Failed to build status text: " . e.Message)
         
         ; エラー時の簡易表示
@@ -297,7 +297,7 @@ CheckWindowStatus() {
                 ; Hide失敗は無視
             }
         }
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Error in CheckWindowStatus: " . e.Message)
     }
 }
@@ -327,7 +327,7 @@ ShowStatusWindowSafe() {
         statusGui.Show(Format("x{} y{} w{} h{} NoActivate NA", 
             statusX, statusY, statusWidth, statusHeight))
         
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Failed to show status window: " . e.Message)
     }
 }
@@ -377,7 +377,7 @@ CleanupUI() {
         
         LogInfo("StatusDisplay", "UI cleanup completed")
         
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "UI cleanup failed: " . e.Message)
     }
 }
@@ -393,7 +393,7 @@ RefreshStatusDisplay() {
             RecreateStatusGui()
             LogDebug("StatusDisplay", "Status display refreshed")
         }
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Failed to refresh status display: " . e.Message)
     }
 }
@@ -407,7 +407,7 @@ TemporaryHideStatus(duration := 2000) {
             statusGui.Hide()
             SetTimer(() => ShowStatusIfActive(), -duration)
         }
-    } catch Error as e {
+    } catch as e {
         LogError("StatusDisplay", "Failed to temporarily hide status: " . e.Message)
     }
 }

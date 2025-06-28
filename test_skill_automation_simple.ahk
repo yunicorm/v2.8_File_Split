@@ -61,7 +61,7 @@ StopManagedTimer(name) {
 }
 
 ; Mock Send関数
-Send(key) {
+MockSend(key) {
     testResults.Push("[SEND] Key: " . key)
 }
 
@@ -92,7 +92,7 @@ TestSkillConfigurator() {
         testResults.Push("✓ SkillConfigurator structure test PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         testResults.Push("✗ SkillConfigurator test FAILED: " . e.Message)
         return false
     }
@@ -119,7 +119,7 @@ TestSkillController() {
         testResults.Push("✓ SkillController structure test PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         testResults.Push("✗ SkillController test FAILED: " . e.Message)
         return false
     }
@@ -153,7 +153,7 @@ TestWineManager() {
         testResults.Push("✓ WineManager structure test PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         testResults.Push("✗ WineManager test FAILED: " . e.Message)
         return false
     }
@@ -180,7 +180,7 @@ TestSkillStatistics() {
         testResults.Push("✓ SkillStatistics structure test PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         testResults.Push("✗ SkillStatistics test FAILED: " . e.Message)
         return false
     }
@@ -207,7 +207,7 @@ TestSkillHelpers() {
         testResults.Push("✓ SkillHelpers structure test PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         testResults.Push("✗ SkillHelpers test FAILED: " . e.Message)
         return false
     }
@@ -240,7 +240,7 @@ TestMainIntegration() {
         testResults.Push("✓ Main integration test PASSED")
         return true
         
-    } catch Error as e {
+    } catch as e {
         testResults.Push("✗ Main integration test FAILED: " . e.Message)
         return false
     }

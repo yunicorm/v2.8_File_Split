@@ -54,7 +54,7 @@ ExecuteWineOfProphet() {
         LogDebug("WineManager", Format("Wine used at stage {} ({}s elapsed), next in {}ms", 
             stageInfo.stage, Round(elapsedTime/1000), nextDelay))
         
-    } catch Error as e {
+    } catch as e {
         g_skill_stats["4"].errors++
         LogError("WineManager", "Failed to use Wine of Prophet: " . e.Message)
         
@@ -160,7 +160,7 @@ UpdateWineConfiguration(wineConfig) {
         
         return false
         
-    } catch Error as e {
+    } catch as e {
         LogError("WineManager", "Failed to update Wine configuration: " . e.Message)
         return false
     }
@@ -185,7 +185,7 @@ ResetWineTimer() {
         
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("WineManager", "Failed to reset Wine timer: " . e.Message)
         return false
     }

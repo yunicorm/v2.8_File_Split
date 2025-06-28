@@ -130,7 +130,7 @@ LoadFlaskSettings() {
         g_settings_gui["TinctureKey"].Text := ConfigManager.Get("Keys", "Tincture", "e")
         g_settings_gui["TinctureEnabled"].Checked := ConfigManager.Get("General", "TinctureEnabled", true)
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskTab", "Failed to load flask settings: " . e.Message)
     }
 }
@@ -181,7 +181,7 @@ SaveFlaskSettings() {
         ConfigManager.Set("Keys", "Tincture", g_settings_gui["TinctureKey"].Text)
         ConfigManager.Set("General", "TinctureEnabled", g_settings_gui["TinctureEnabled"].Checked)
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskTab", "Failed to save flask settings: " . e.Message)
         throw e
     }
@@ -253,7 +253,7 @@ UpdateFlaskManagerConfig() {
             LogWarn("FlaskTab", "ConfigureFlasks function not available")
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskTab", "Failed to update FlaskManager config: " . e.Message)
     }
 }

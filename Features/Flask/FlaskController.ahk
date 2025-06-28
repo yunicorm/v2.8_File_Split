@@ -81,7 +81,7 @@ StartFlaskTimer(flaskName, config) {
         
         return false
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskManager", Format("Failed to start flask '{}': {}", flaskName, e.Message))
         return false
     }
@@ -200,7 +200,7 @@ UseFlask(flaskName, config) {
         
         return true
         
-    } catch Error as e {
+    } catch as e {
         g_flask_stats.errors++
         LogError("FlaskManager", Format("Failed to use flask '{}': {}", flaskName, e.Message))
         return false
@@ -224,7 +224,7 @@ StopFlaskTimer(flaskName) {
         
         LogDebug("FlaskManager", Format("Flask '{}' timer stopped", flaskName))
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskManager", Format("Failed to stop flask '{}' timer: {}", flaskName, e.Message))
     }
 }
@@ -263,7 +263,7 @@ ResetFlaskTiming() {
         
         LogInfo("FlaskManager", "Flask timing reset completed")
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskManager", "Failed to reset flask timing: " . e.Message)
     }
 }
@@ -289,7 +289,7 @@ StopFlaskAutomation() {
         
         LogInfo("FlaskManager", "Flask automation stopped")
         
-    } catch Error as e {
+    } catch as e {
         LogError("FlaskManager", "Failed to stop flask automation: " . e.Message)
     }
 }

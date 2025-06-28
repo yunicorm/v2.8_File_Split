@@ -133,7 +133,7 @@ try {
         g_auto_start_timer := SetTimer(TryAutoStart, -autoStartDelay)
     }
     
-} catch Error as e {
+} catch as e {
     errorMsg := Format("初期化エラー: {}`nFile: {}`nLine: {}", 
         e.Message, e.HasProp("File") ? e.File : "Unknown", e.HasProp("Line") ? e.Line : "Unknown")
     
@@ -174,7 +174,7 @@ TryAutoStart() {
             LogInfo("Main", "Macro auto-started after window became active")
             g_auto_start_enabled := false
             g_auto_start_attempts := 0
-        } catch Error as e {
+        } catch as e {
             LogError("Main", "Failed to auto-start macro: " . e.Message)
             ; エラーの場合は再試行
             SetTimer(TryAutoStart, -1000)
@@ -207,7 +207,7 @@ ExitHandler(reason, exitCode) {
         Sleep(100)
         
         LogInfo("Main", "Shutdown completed successfully")
-    } catch Error as e {
+    } catch as e {
         ; 終了処理中のエラーは無視
     }
     
@@ -278,7 +278,7 @@ StartMacro() {
         ShowOverlay("マクロ開始", 2000)
         LogInfo("Main", "Macro started successfully")
         
-    } catch Error as e {
+    } catch as e {
         ; 開始に失敗した場合は状態をリセット
         g_macro_active := false
         StopAllTimers()
@@ -310,7 +310,7 @@ StopMacro() {
         ShowOverlay("マクロ停止", 2000)
         LogInfo("Main", "Macro stopped successfully")
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("マクロ停止エラー: " . e.Message, 3000)
         LogError("Main", "Error while stopping macro: " . e.Message)
     }
@@ -344,7 +344,7 @@ ResetMacro() {
         
         LogInfo("Main", "Macro reset completed")
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("マクロリセットエラー: " . e.Message, 3000)
         LogError("Main", "Failed to reset macro: " . e.Message)
         

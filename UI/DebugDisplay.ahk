@@ -68,7 +68,7 @@ ShowManaDebug(*) {
         
         LogInfo("DebugDisplay", "Mana debug info displayed")
         
-    } catch Error as e {
+    } catch as e {
         LogError("DebugDisplay", "Failed to show mana debug: " . e.Message)
         ShowOverlay("マナデバッグ表示エラー", 2000)
     } finally {
@@ -119,7 +119,7 @@ GetManaDetectionDetails() {
                     isBlue: isBlue
                 })
                 
-            } catch Error as e {
+            } catch as e {
                 LogDebug("DebugDisplay", Format("Failed to check point at {},{}: {}", 
                     checkX, checkY, e.Message))
                 lineColors.Push({
@@ -231,7 +231,7 @@ ShowImprovedDetectionPoints() {
         )
         debugGuis.Push({gui: infoGui, type: "info"})
         
-    } catch Error as e {
+    } catch as e {
         LogError("DebugDisplay", "Failed to show detection points: " . e.Message)
     }
 }

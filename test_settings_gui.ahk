@@ -36,7 +36,7 @@ try {
     ; 結果表示
     ShowTestResults()
     
-} catch Error as e {
+} catch as e {
     MsgBox("テストエラー: " . e.Message, "エラー", "OK Icon!")
     LogError("SettingsGUITest", "Test failed: " . e.Message)
 }
@@ -103,7 +103,7 @@ TestBasicOperation() {
             FailTest("ウィンドウを閉じることができませんでした")
         }
         
-    } catch Error as e {
+    } catch as e {
         FailTest("基本動作テストでエラー: " . e.Message)
     }
 }
@@ -154,7 +154,7 @@ TestConfigLoadSave() {
         
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         FailTest("設定読み込み/保存テストでエラー: " . e.Message)
     }
 }
@@ -179,7 +179,7 @@ TestErrorHandling() {
         
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         FailTest("エラーハンドリングテストでエラー: " . e.Message)
     }
 }
@@ -212,7 +212,7 @@ TestValidation() {
         
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         FailTest("バリデーションテストでエラー: " . e.Message)
     }
 }
@@ -254,7 +254,7 @@ TestIntegration() {
         
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         FailTest("統合テストでエラー: " . e.Message)
     }
 }

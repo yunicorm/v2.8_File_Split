@@ -22,7 +22,7 @@ try {
     ValidateGUIImplementation()
     ShowValidationResults()
     
-} catch Error as e {
+} catch as e {
     MsgBox("検証エラー: " . e.Message, "エラー", "OK Icon!")
 }
 
@@ -81,7 +81,7 @@ CheckConfigStructure() {
         ; 重要な設定値確認
         CheckCriticalSettings()
         
-    } catch Error as e {
+    } catch as e {
         AddError("❌ Config.ini読み込みエラー: " . e.Message)
     }
 }

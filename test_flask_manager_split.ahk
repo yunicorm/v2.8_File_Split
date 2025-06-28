@@ -88,7 +88,7 @@ EndPerfTimer(name, module) {
     return Random(5, 15) ; 5-15ms のモック実行時間
 }
 
-Send(key) {
+MockSend(key) {
     testResults.Push("[SEND] Key: " . key)
 }
 
@@ -149,7 +149,7 @@ TestBasicStartStop() {
         
         TestPass("Basic Start/Stop")
         
-    } catch Error as e {
+    } catch as e {
         TestFail("Basic Start/Stop", e.Message)
     }
 }
@@ -211,7 +211,7 @@ TestIndividualFlasks() {
         
         TestPass("Individual Flask Execution")
         
-    } catch Error as e {
+    } catch as e {
         TestFail("Individual Flask Execution", e.Message)
     }
 }
@@ -289,7 +289,7 @@ TestChargeManagement() {
         
         TestPass("Charge Management")
         
-    } catch Error as e {
+    } catch as e {
         TestFail("Charge Management", e.Message)
     }
 }
@@ -350,7 +350,7 @@ TestConditionSystem() {
         
         TestPass("Condition System")
         
-    } catch Error as e {
+    } catch as e {
         TestFail("Condition System", e.Message)
     }
 }
@@ -417,7 +417,7 @@ TestConfigurationManagement() {
         
         TestPass("Configuration Management")
         
-    } catch Error as e {
+    } catch as e {
         TestFail("Configuration Management", e.Message)
     }
 }
@@ -486,7 +486,7 @@ TestStatistics() {
         
         TestPass("Statistics System")
         
-    } catch Error as e {
+    } catch as e {
         TestFail("Statistics System", e.Message)
     }
 }
@@ -528,7 +528,7 @@ TestErrorHandling() {
         
         TestPass("Error Handling")
         
-    } catch Error as e {
+    } catch as e {
         TestFail("Error Handling", e.Message)
     }
 }
