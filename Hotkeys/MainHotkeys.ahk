@@ -10,13 +10,13 @@ global g_hotkey_last_press := Map()
 global g_hotkey_press_count := Map()
 
 ; --- ホットキー設定 ---
-global HOTKEY_COOLDOWNS := {
-    F12: 1000,          ; 1秒
-    ShiftF12: 500,      ; 0.5秒
-    CtrlF12: 2000,      ; 2秒（緊急停止は長めに）
-    AltF12: 1000,       ; 1秒
-    Pause: 500          ; 0.5秒
-}
+global HOTKEY_COOLDOWNS := Map(
+    "F12", 1000,          ; 1秒
+    "ShiftF12", 500,      ; 0.5秒
+    "CtrlF12", 2000,      ; 2秒（緊急停止は長めに）
+    "AltF12", 1000,       ; 1秒
+    "Pause", 500          ; 0.5秒
+)
 
 ; --- ホットキーコンテキスト設定 ---
 #HotIf WinActive("ahk_group TargetWindows")
@@ -352,7 +352,7 @@ CheckHotkeyCooldown(hotkeyName, showWarning := true) {
     global g_hotkey_last_press, HOTKEY_COOLDOWNS, g_hotkey_press_count
     
     currentTime := A_TickCount
-    cooldown := HOTKEY_COOLDOWNS.HasOwnProp(hotkeyName) ? HOTKEY_COOLDOWNS[hotkeyName] : 500
+    cooldown := HOTKEY_COOLDOWNS.Has(hotkeyName) ? HOTKEY_COOLDOWNS[hotkeyName] : 500
     
     if (g_hotkey_last_press.Has(hotkeyName)) {
         timeSinceLastPress := currentTime - g_hotkey_last_press[hotkeyName]
@@ -433,10 +433,10 @@ GetHotkeyStats() {
         lastPress := g_hotkey_last_press.Has(key) ? 
             Round((A_TickCount - g_hotkey_last_press[key]) / 1000, 1) : 0
             
-        stats[key] := {
-            pressCount: count,
-            lastPressAgo: lastPress
-        }
+        stats[key] := Map(
+            "pressCount", count,
+            "lastPressAgo", lastPress
+        )
     }
     
     return stats

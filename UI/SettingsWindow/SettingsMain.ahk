@@ -188,15 +188,19 @@ CloseSettingsWindow() {
 }
 
 ; --- イベントハンドラー ---
-SettingsWindow_Resize(GuiObj, MinMax, Width, Height) {
+SettingsWindow_Resize(*) {
     ; ウィンドウリサイズ時の処理（将来の拡張用）
 }
 
-SettingsWindow_Close(GuiObj) {
+SettingsWindow_Close(*) {
     CloseSettingsWindow()
 }
 
-Tab_Change(GuiCtrlObj, Info) {
+Tab_Change(*) {
     ; タブ変更時の処理（将来の拡張用）
-    LogDebug("SettingsWindow", "Tab changed to: " . Info)
+    global g_settings_tab
+    if (IsSet(g_settings_tab)) {
+        currentTab := g_settings_tab.Value
+        LogDebug("SettingsWindow", "Tab changed to: " . currentTab)
+    }
 }
