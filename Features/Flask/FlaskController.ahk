@@ -158,6 +158,24 @@ UseFlask(flaskName, config) {
             }
         }
         
+        ; 視覚的検出の実行（Visual/Hybridモード）
+        detectionMode := GetDetectionMode()
+        if (detectionMode != "Timer") {
+            ; フラスコ番号を取得（flask1, flask2等からの数字部分）
+            flaskNumber := RegExReplace(flaskName, "^flask", "")
+            if (IsNumber(flaskNumber) && flaskNumber >= 1 && flaskNumber <= 5) {
+                chargeStatus := DetectFlaskCharge(flaskNumber)
+                if (chargeStatus == 0) {
+                    LogDebug("FlaskManager", Format("Flask '{}' visual detection: NO CHARGES", flaskName))
+                    return false
+                } else if (chargeStatus == -1) {
+                    LogDebug("FlaskManager", Format("Flask '{}' visual detection failed, falling back to timer mode", flaskName))
+                } else if (chargeStatus == 1) {
+                    LogDebug("FlaskManager", Format("Flask '{}' visual detection: HAS CHARGES", flaskName))
+                }
+            }
+        }
+        
         ; チャージチェック（実装されている場合）
         if (config.maxCharges > 0 && config.chargePerUse > 0) {
             chargeInfo := g_flask_charge_tracker[flaskName]

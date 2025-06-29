@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a sophisticated **Path of Exile automation macro** written in **AutoHotkey v2** (v2.9.3), specifically designed for the "Wine of the Prophet" build. The codebase features robust error handling, modular architecture, and comprehensive game automation capabilities.
+This is a sophisticated **Path of Exile automation macro** written in **AutoHotkey v2** (v2.9.4), specifically designed for the "Wine of the Prophet" build. The codebase features robust error handling, modular architecture, and comprehensive game automation capabilities.
 
 ## Development Commands
 
@@ -66,7 +66,7 @@ error-handling-details.md - エラー処理パターンと回復戦略
 config-validation-rules.md - Config.ini検証ルールの完全仕様
 
 これらのドキュメントは、コードベースの深い理解が必要な場合に参照。
-Key Directories (v2.9.3 Updated)
+Key Directories (v2.9.4 Updated)
 Core/ - Central control systems
 
 MacroController.ahk: State management and initial actions
@@ -77,7 +77,7 @@ Features/ - Domain-specific automation modules
 
 ManaMonitor.ahk: Circular mana orb sampling with optimization modes
 TinctureManager.ahk: Complex cooldown/retry logic with usage statistics
-Flask/ (v2.9.3で5ファイルに分割)
+Flask/ (v2.9.4で5ファイルに分割)
 
 FlaskController.ahk: 制御・タイマー管理
 FlaskChargeManager.ahk: チャージ管理・計算
@@ -86,7 +86,7 @@ FlaskConfiguration.ahk: 設定管理・プリセット
 FlaskStatistics.ahk: 統計・履歴管理
 
 
-Skills/ (v2.9.3で5ファイルに分割)
+Skills/ (v2.9.4で5ファイルに分割)
 
 SkillController.ahk: メイン制御・タイマー管理
 SkillConfigurator.ahk: 設定読み込み・初期化
@@ -96,6 +96,10 @@ SkillHelpers.ahk: ヘルパー・テスト機能
 
 
 ClientLogMonitor.ahk: Log file parsing for area transitions
+VisualDetection.ahk (v2.9.4 NEW): Flask charge visual detection
+- FindText wrapper with error handling
+- Timer/Visual/Hybrid detection modes
+- 100ms interval limiting, automatic fallback
 
 Utils/ - Foundational services
 
@@ -103,14 +107,14 @@ ConfigManager.ahk: INI management with validation and hot-reloading
 Logger.ahk: Comprehensive logging with rotation and buffering (改善済み: 自動ローテーション機能追加)
 ColorDetection.ahk: Optimized pixel color detection
 HotkeyValidator.ahk: Conflict detection and registration
-Validators.ahk: Common input validation functions (v2.9.3で追加)
+Validators.ahk: Common input validation functions (v2.9.4で追加)
 
 UI/ - User interface components
 
 Overlay.ahk: Temporary message displays
 StatusDisplay.ahk: Persistent status information
 DebugDisplay.ahk: Development interfaces
-SettingsWindow/ (v2.9.3で5ファイルに分割)
+SettingsWindow/ (v2.9.4で5ファイルに分割)
 
 SettingsMain.ahk: メインウィンドウ・制御
 FlaskTab.ahk: フラスコタブUI
@@ -119,6 +123,13 @@ GeneralTab.ahk: 一般タブUI
 SettingsValidation.ahk: 設定検証・エラー処理
 
 
+
+External Libraries
+
+FindText.ahk (v10.0): Image pattern matching library
+- Location: Utils/FindText.ahk
+- Purpose: Visual flask charge detection
+- Integration: VisualDetection.ahk wrapper
 
 Configuration System
 Primary Config File: Config.ini

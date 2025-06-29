@@ -1,8 +1,8 @@
-# Path of Exile マクロ v2.9.3 - 開発者向けドキュメント
+# Path of Exile マクロ v2.9.4 - 開発者向けドキュメント
 
 ## プロジェクト概要
 
-Path of Exileマクロは、「Wine of the Prophet」ビルド向けに特化した自動化ツールです。v2.9.3では大規模なモジュール分割リファクタリングを実施し、保守性と拡張性を大幅に向上させました。
+Path of Exileマクロは、「Wine of the Prophet」ビルド向けに特化した自動化ツールです。v2.9.4では視覚的検出機能を追加し、従来のタイマーベースシステムと統合しました。
 
 ## プロジェクトの制約事項
 - AutoHotkey v2.0+ 準拠のコードのみ
@@ -264,8 +264,20 @@ TestStatisticsIntegration()
 
 ## 外部ライブラリ統合ガイド
 
-### FindText (v10.0)
-画像認識ベースの自動化に使用するライブラリ
+### FindText (v10.0) - 実装済み
+画像認識ベースのフラスコチャージ検出に使用
+
+**統合状況**: ✅ v2.9.4で実装完了
+- VisualDetection.ahk でラップ
+- FlaskController.ahk で使用
+- 3つの検出モード対応
+
+**使用例**:
+```ahk
+; フラスコチャージ検出
+chargeStatus := DetectFlaskCharge(flaskNumber)
+// 1: チャージあり, 0: 空, -1: 検出失敗
+```
 
 **配置場所**: `Utils/FindText.ahk`
 
@@ -285,10 +297,8 @@ ok := FindText().FindText(&X, &Y, x1, y1, x2, y2, err1, err0, Text)
 
 ; テキスト形式
 Text := "|<comment>*similarity$width.base64data"
+```
 
-## さらに追加すべき情報
-
-```markdown
 ### 画像キャプチャ方法
 ```autohotkey
 ; GUIツールを使用したキャプチャ
@@ -296,6 +306,60 @@ FindText().Gui("Show")
 
 ; コードからの直接キャプチャ
 Text := FindText().GetTextFromScreen(x1, y1, x2, y2)
+```
+
+## Visual Detection System (v2.9.4実装)
+
+### 概要
+FindTextを使用したフラスコチャージの視覚的検出システム
+
+### 検出モード
+- **Timer**: 従来のタイマーベース（デフォルト）
+- **Visual**: 視覚的検出のみ
+- **Hybrid**: 視覚的検出→失敗時タイマー
+
+### 統合ポイント
+- **UseFlask()**: 視覚的検出を最初に試行
+- **PerformInitialActions()**: 起動時初期化
+
+### アーキテクチャ
+```ahk
+// 初期化フロー
+InitializeVisualDetection()
+├── CheckFindTextFile()           // ファイル存在確認
+├── InitializeDefaultVisualDetectionConfig()  // デフォルト設定
+└── FindText() インスタンス作成
+
+// 検出フロー  
+UseFlask(flaskName, config)
+├── GetDetectionMode() != "Timer"
+├── DetectFlaskCharge(flaskNumber)
+│   ├── CanPerformDetection()     // 100ms間隔制限
+│   └── DetectFlaskChargeInternal() // FindText実行
+└── フォールバック処理
+```
+
+### 設定項目
+```ini
+[VisualDetection]
+Enabled=false                    // 機能有効/無効
+DetectionMode=Timer             // Timer/Visual/Hybrid
+Flask1X=0                       // フラスコ1のX座標
+Flask1Y=0                       // フラスコ1のY座標
+Flask1ChargedPattern=           // チャージパターン（base64）
+DetectionInterval=100           // 検出間隔制限（ms）
+SearchAreaSize=25               // 検索エリアサイズ
+```
+
+### エラーハンドリング
+- **FindText.ahk不在**: 自動的にTimerモードで動作
+- **検出失敗**: -1を返してフォールバック
+- **設定不備**: エラーログ出力後、無効化
+
+### パフォーマンス最適化
+- **間隔制限**: 100ms以内の再検出を防止
+- **エリア限定**: ±25px範囲での検索
+- **失敗時フォールバック**: 既存システムへの自動切り替え
 
 ## 今後の拡張ポイント
 

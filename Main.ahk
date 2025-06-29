@@ -33,6 +33,8 @@ GroupAdd("TargetWindows", "ahk_exe streaming_client.exe")
 #Include "Core/WindowManager.ahk"
 
 ; === 機能モジュールのインクルード ===
+#Include "Utils/FindText.ahk"
+#Include "Features/VisualDetection.ahk"
 #Include "Features/ManaMonitor.ahk"
 #Include "Features/TinctureManager.ahk"
 #Include "Features/FlaskManager.ahk"

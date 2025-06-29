@@ -16,5 +16,8 @@ PerformInitialActions() {
     ; マナ状態を初期化
     InitializeManaState()
     
+    ; 視覚的検出システムを初期化
+    InitializeVisualDetection()
+    
     LogInfo("MacroController", "Initial actions performed")
 }
