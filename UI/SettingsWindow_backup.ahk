@@ -175,7 +175,7 @@ CreateSkillTab() {
     g_settings_gui.Add("Text", "x410 y85", "優先度")
     
     ; Group 1 (Skill_1_1 ~ Skill_1_5)
-    g_settings_gui.Add("Text", "x50 y110", "Group 1", "Bold")
+    g_settings_gui.Add("Text", "x50 y110", "Group 1")
     
     ; Skill_1_1
     g_settings_gui.Add("CheckBox", "x40 y130 vSkill_1_1_Enabled")
@@ -218,7 +218,7 @@ CreateSkillTab() {
     g_settings_gui.Add("DropDownList", "x410 y227 w60 vSkill_1_5_Priority", ["1", "2", "3", "4", "5"])
     
     ; Group 2 (Skill_2_1 ~ Skill_2_5)
-    g_settings_gui.Add("Text", "x50 y260", "Group 2", "Bold")
+    g_settings_gui.Add("Text", "x50 y260", "Group 2")
     
     ; Skill_2_1
     g_settings_gui.Add("CheckBox", "x40 y280 vSkill_2_1_Enabled")
