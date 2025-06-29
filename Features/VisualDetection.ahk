@@ -12,6 +12,12 @@ global g_visual_detection_state := Map(
     "detection_interval", 100  ; Minimum interval between detections (ms)
 )
 
+; Flask overlay capture globals
+global g_flask_overlay_gui := ""
+global g_current_flask_index := 1
+global g_flask_rect_width := 60
+global g_flask_rect_height := 100
+
 ; Check if FindText.ahk file exists
 CheckFindTextFile() {
     try {
@@ -361,14 +367,102 @@ CleanupVisualDetection() {
 
 ; フラスコ座標取得開始
 StartFlaskPositionCapture() {
-    ShowOverlay("1-5でFlask位置保存、ESCで終了", 2000)
-    SetTimer(ShowMousePosition, 100)
+    global g_current_flask_index
     
-    Loop 5 {
-        n := A_Index
-        Hotkey(String(n), (*) => CaptureFlaskPosition(n), "On")
+    ShowOverlay("矢印:移動 =/- :サイズ ]/[ :幅 '/; :高さ", 3000)
+    g_current_flask_index := 1
+    CreateFlaskOverlay(1720, 1300)
+    
+    ; ホットキー設定
+    Hotkey("Up", (*) => MoveOverlay(0, -10), "On")
+    Hotkey("Down", (*) => MoveOverlay(0, 10), "On")
+    Hotkey("Left", (*) => MoveOverlay(-10, 0), "On")
+    Hotkey("Right", (*) => MoveOverlay(10, 0), "On")
+    Hotkey("Enter", SaveFlaskPosition, "On")
+    Hotkey("Tab", NextFlask, "On")
+    Hotkey("Escape", EndOverlayCapture, "On")
+    ; サイズ変更（テンキー不要版）
+    Hotkey("=", (*) => ResizeOverlay(5, 5), "On")      ; 全体拡大
+    Hotkey("-", (*) => ResizeOverlay(-5, -5), "On")    ; 全体縮小
+    Hotkey("]", (*) => ResizeOverlay(10, 0), "On")     ; 幅拡大
+    Hotkey("[", (*) => ResizeOverlay(-10, 0), "On")    ; 幅縮小
+    Hotkey("'", (*) => ResizeOverlay(0, 10), "On")     ; 高さ拡大
+    Hotkey(";", (*) => ResizeOverlay(0, -10), "On")    ; 高さ縮小
+}
+
+; オーバーレイ作成
+CreateFlaskOverlay(x, y) {
+    global g_flask_overlay_gui, g_flask_rect_width, g_flask_rect_height
+    
+    if (g_flask_overlay_gui) {
+        g_flask_overlay_gui.Destroy()
     }
-    Hotkey("Escape", EndPositionCapture, "On")
+    
+    g_flask_overlay_gui := Gui()
+    g_flask_overlay_gui.Opt("+AlwaysOnTop -Caption +ToolWindow")
+    g_flask_overlay_gui.BackColor := "Red"
+    g_flask_overlay_gui.Show(Format("x{} y{} w{} h{} NA", 
+        x, y, g_flask_rect_width, g_flask_rect_height))
+    WinSetTransparent(100, g_flask_overlay_gui)
+}
+
+; 移動
+MoveOverlay(dx, dy) {
+    global g_flask_overlay_gui
+    if (!g_flask_overlay_gui || g_flask_overlay_gui == "") {
+        return
+    }
+    
+    g_flask_overlay_gui.GetPos(&x, &y)
+    g_flask_overlay_gui.Move(x + dx, y + dy)
+}
+
+; サイズ変更
+ResizeOverlay(dw, dh) {
+    global g_flask_overlay_gui, g_flask_rect_width, g_flask_rect_height
+    if (!g_flask_overlay_gui) {
+        return
+    }
+    
+    ; 最小20ピクセル
+    g_flask_rect_width := Max(20, g_flask_rect_width + dw)
+    g_flask_rect_height := Max(20, g_flask_rect_height + dh)
+    
+    ; 再作成
+    g_flask_overlay_gui.GetPos(&x, &y)
+    CreateFlaskOverlay(x, y)
+    
+    ; サイズ表示
+    ToolTip(Format("Size: {}x{}", g_flask_rect_width, g_flask_rect_height))
+    SetTimer(() => ToolTip(), -1000)
+}
+
+; 位置保存
+SaveFlaskPosition() {
+    global g_flask_overlay_gui, g_current_flask_index
+    if (!g_flask_overlay_gui || g_flask_overlay_gui == "") {
+        return
+    }
+    
+    g_flask_overlay_gui.GetPos(&x, &y, &w, &h)
+    centerX := x + w // 2
+    centerY := y + h // 2
+    
+    ConfigManager.Set("VisualDetection", 
+        "Flask" . g_current_flask_index . "X", centerX)
+    ConfigManager.Set("VisualDetection", 
+        "Flask" . g_current_flask_index . "Y", centerY)
+    
+    ShowOverlay(Format("Flask{} 保存", g_current_flask_index), 1500)
+}
+
+; 次へ
+NextFlask() {
+    global g_current_flask_index
+    g_current_flask_index++
+    if (g_current_flask_index > 5) {
+        EndOverlayCapture()
+    }
 }
 
 ; マウス位置表示
@@ -392,24 +486,22 @@ CaptureFlaskPosition(flaskNumber) {
     LogInfo("VisualDetection", Format("Flask{} position captured: {}, {}", flaskNumber, x, y))
 }
 
-; 座標取得モード終了
-EndPositionCapture(*) {
-    ; タイマーとホットキーを無効化
-    SetTimer(ShowMousePosition, 0)
-    ToolTip()
-    
-    Loop 5 {
-        n := A_Index
-        try {
-            Hotkey(String(n), "Off")
-        }
-    }
-    try {
-        Hotkey("Escape", "Off")
+; 終了
+EndOverlayCapture(*) {
+    global g_flask_overlay_gui
+    if (g_flask_overlay_gui) {
+        g_flask_overlay_gui.Destroy()
+        g_flask_overlay_gui := ""
     }
     
-    ShowOverlay("座標取得モード終了", 1500)
-    LogInfo("VisualDetection", "Position capture mode ended")
+    ; ホットキー無効化
+    for key in ["Up","Down","Left","Right","Enter","Tab","Escape",
+               "=","-","]","[","'",";"] {
+        try Hotkey(key, "Off")
+    }
+    
+    ShowOverlay("設定完了", 1500)
+    LogInfo("VisualDetection", "Flask overlay capture ended")
 }
 
 ; Test visual detection for all flasks
