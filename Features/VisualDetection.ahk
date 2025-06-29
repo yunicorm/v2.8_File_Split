@@ -411,3 +411,58 @@ EndPositionCapture(*) {
     ShowOverlay("座標取得モード終了", 1500)
     LogInfo("VisualDetection", "Position capture mode ended")
 }
+
+; Test visual detection for all flasks
+TestAllFlaskDetection() {
+    if (!IsVisualDetectionEnabled()) {
+        LogInfo("VisualDetection", "Visual detection not enabled - cannot test all flasks")
+        ShowOverlay("Visual Detection is disabled", 2000)
+        return false
+    }
+    
+    try {
+        LogInfo("VisualDetection", "Testing visual detection for all flasks")
+        ShowOverlay("Testing all flask detection...", 1000)
+        
+        results := []
+        successCount := 0
+        
+        ; Test each flask
+        Loop 5 {
+            flaskNumber := A_Index
+            result := TestFlaskDetection(flaskNumber)
+            
+            if (result) {
+                successCount++
+                ; Get the actual detection result for display
+                chargeStatus := DetectFlaskCharge(flaskNumber)
+                switch chargeStatus {
+                    case 1:
+                        status := "HAS CHARGES"
+                    case 0:
+                        status := "EMPTY"
+                    case -1:
+                        status := "FAILED"
+                }
+                results.Push(Format("Flask{}: {}", flaskNumber, status))
+            } else {
+                results.Push(Format("Flask{}: TEST FAILED", flaskNumber))
+            }
+        }
+        
+        ; Display results
+        results.InsertAt(1, "=== Flask Detection Test Results ===")
+        results.Push("")
+        results.Push(Format("Success: {}/5 flasks", successCount))
+        
+        ShowMultiLineOverlay(results, 5000)
+        LogInfo("VisualDetection", Format("All flask test completed: {}/5 successful", successCount))
+        
+        return successCount > 0
+        
+    } catch as e {
+        LogError("VisualDetection", "Test all flasks failed: " . e.Message)
+        ShowOverlay("Flask detection test failed", 2000)
+        return false
+    }
+}
