@@ -58,28 +58,11 @@ F10:: {
 }
 
 ; ===================================================================
-; F9: エリア検出デバッグ
+; F9: フラスコ座標設定モード
 ; ===================================================================
 F9:: {
-    global g_client_log_path, g_last_area_name
-    
-    ; Client.txt監視が有効な場合
-    if (ConfigManager.Get("ClientLog", "Enabled", true)) {
-        ; 最後のエリアエントリーを表示
-        ShowLastAreaEntry()
-        
-        debugInfo := []
-        debugInfo.Push("=== エリア検出デバッグ ===")
-        debugInfo.Push("ログパス: " . g_client_log_path)
-        debugInfo.Push("最後のエリア: " . g_last_area_name)
-        debugInfo.Push("ファイルサイズ: " . g_last_file_size)
-        
-        ShowMultiLineOverlay(debugInfo, 5000)
-    } else {
-        ShowOverlay("Client.txt監視が無効です", 2000)
-    }
-    
-    LogInfo("DebugHotkeys", "F9 pressed - Area detection debug")
+    StartFlaskPositionCapture()
+    LogInfo("DebugHotkeys", "F9 pressed - Flask position capture mode")
 }
 
 ; ===================================================================

@@ -358,3 +358,56 @@ CleanupVisualDetection() {
         return false
     }
 }
+
+; フラスコ座標取得開始
+StartFlaskPositionCapture() {
+    ShowOverlay("1-5でFlask位置保存、ESCで終了", 2000)
+    SetTimer(ShowMousePosition, 100)
+    
+    Loop 5 {
+        n := A_Index
+        Hotkey(String(n), (*) => CaptureFlaskPosition(n), "On")
+    }
+    Hotkey("Escape", EndPositionCapture, "On")
+}
+
+; マウス位置表示
+ShowMousePosition() {
+    MouseGetPos(&x, &y)
+    ToolTip(Format("X: {} Y: {}", x, y))
+}
+
+; フラスコ位置をキャプチャ
+CaptureFlaskPosition(flaskNumber) {
+    MouseGetPos(&x, &y)
+    
+    ; Config.iniに座標を保存
+    ConfigManager.Set("VisualDetection", "Flask" . flaskNumber . "X", x)
+    ConfigManager.Set("VisualDetection", "Flask" . flaskNumber . "Y", y)
+    
+    ; フラスコ名を取得
+    flaskName := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "Name", "Flask" . flaskNumber)
+    
+    ShowOverlay(Format("{} 位置保存: {}, {}", flaskName, x, y), 1500)
+    LogInfo("VisualDetection", Format("Flask{} position captured: {}, {}", flaskNumber, x, y))
+}
+
+; 座標取得モード終了
+EndPositionCapture(*) {
+    ; タイマーとホットキーを無効化
+    SetTimer(ShowMousePosition, 0)
+    ToolTip()
+    
+    Loop 5 {
+        n := A_Index
+        try {
+            Hotkey(String(n), "Off")
+        }
+    }
+    try {
+        Hotkey("Escape", "Off")
+    }
+    
+    ShowOverlay("座標取得モード終了", 1500)
+    LogInfo("VisualDetection", "Position capture mode ended")
+}
