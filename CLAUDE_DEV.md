@@ -318,7 +318,27 @@ ApplyFlaskPreset("combat")
 
 ## 既知の問題（v2.9.3時点）
 
-### 1. catch文構文エラー
+### 1. 設定ウィンドウGUIエラー（修正済み）
+**ファイル**: `UI/SettingsWindow/SkillTab.ahk`  
+**行**: 24, 67  
+**エラー**: `Too many parameters passed to function`  
+**問題**: `gui.Add("Text", "x50 y110", "Group 1", "Bold")` - 4パラメータ使用
+
+**修正内容**: 
+- ❌ 修正前: `gui.Add("Text", "x50 y110", "Group 1", "Bold")`
+- ✅ 修正後: `gui.Add("Text", "x50 y110", "Group 1")`
+- **教訓**: AutoHotkey v2のGui.Add()は3パラメータのみ (Type, Options, Text)
+
+### 2. 無効なオプション指定エラー（修正済み）
+**問題**: `gui.Add("Text", "x50 y110 Bold", "Group 1")` - "Bold"が無効オプション
+**修正方法**: フォントスタイルはSetFont()で設定
+```ahk
+gui.SetFont("Bold")
+gui.Add("Text", "x50 y110", "Group 1")
+gui.SetFont()  ; デフォルトに戻す
+```
+
+### 3. catch文構文エラー（未修正）
 **ファイル**: `UI/SettingsWindow/SettingsMain.ahk`  
 **行**: 145-147  
 **エラー**: `Invalid class`  
@@ -348,6 +368,62 @@ ApplyFlaskPreset("combat")
 **対処必要**:
 - `/docs/technical-specs/function-signatures.md` の更新
 - API仕様書の同期
+
+## GUI開発の学習項目（今回の修正から）
+
+### AutoHotkey v2 GUIの重要な制約
+1. **パラメータ数制限**: `gui.Add(Type, Options, Text)` - 必ず3パラメータ以内
+2. **オプション文字列形式**: 座標・サイズ・スタイルは全てOptions文字列に記述
+3. **フォントスタイル**: SetFont()メソッドで事前設定が必要
+4. **デバッグ重要性**: エラー後は完全再起動推奨（キャッシュ問題）
+
+### 実践的対処パターン
+```ahk
+// ❌ 避けるべきパターン
+gui.Add("Text", "x10 y10", "テキスト", "Bold")  // 4パラメータ
+gui.Add("Text", "x10 y10 Bold", "テキスト")     // 無効オプション
+
+// ✅ 推奨パターン
+gui.SetFont("Bold")                              // フォント設定
+gui.Add("Text", "x10 y10", "テキスト")          // 正しい3パラメータ
+gui.SetFont()                                    // デフォルトに戻す
+```
+
+## トラブルシューティングガイド
+
+### 設定ウィンドウが開かない場合のデバッグ手順
+
+#### エラーログの確認
+`Logs/` フォルダの最新ログファイルで以下を確認：
+- "Too many parameters passed to function"
+- "Invalid option"  
+- ShowSettingsWindow関連のエラー
+
+#### 段階的デバッグアプローチ
+
+1. **ステップ1**: エラーメッセージの詳細確認（ファイル名、行番号）
+2. **ステップ2**: 問題のあるGUI作成コードを特定
+3. **ステップ3**: AutoHotkey v2のGUI構文に準拠しているか確認
+4. **ステップ4**: 最小限のテストスクリプトで問題を再現
+
+#### よくある原因と解決策
+
+| エラーメッセージ | 原因 | 解決策 |
+|---|---|---|
+| Too many parameters | イベントハンドラーの引数不一致 | Variadic関数 `(*)` を使用 |
+| Invalid option | 無効なGUIオプション（Bold等） | `SetFont()` を使用 |
+| Multiple parameters to Add() | v1構文の混在 | 3パラメータに修正 |
+
+## 開発のベストプラクティス
+
+### AutoHotkey v2 GUI開発チェックリスト
+
+- [ ] `Gui.Add()` は3パラメータのみ使用
+- [ ] フォントスタイルは `SetFont()` で設定  
+- [ ] イベントハンドラーは `(*)` パラメータを使用
+- [ ] `Tab3.OnEvent("Change", Tab_Change)` のような登録
+- [ ] エラー時は必ずログファイルを確認
+- [ ] 複雑なGUIは分割モジュールで管理
 
 ## 開発優先度
 

@@ -299,6 +299,28 @@ C言語スタイルfor文: for i := 1; i <= 5; i++ → Loop 5 { i := A_Index }
 関数定義の競合: 組み込み関数名を避ける
 catch文: catch Error as e → catch as e または正しいクラス名を使用
 
+AutoHotkey v2 GUI開発の注意点
+GUI作成時のよくあるエラーと対処法
+
+1. Gui.Add()メソッドのパラメータ数
+   - ❌ 間違い: gui.Add("Text", "x10 y10", "テキスト", "Bold")
+   - ✅ 正解: gui.Add("Text", "x10 y10", "テキスト")
+   - v2では3つのパラメータのみ: Type, Options, Text/Content
+
+2. 無効なオプションの使用
+   - ❌ 間違い: gui.Add("Text", "x10 y10 Bold", "テキスト")
+   - ✅ 正解: フォントスタイルはSetFont()で設定
+   ```ahk
+   gui.SetFont("Bold")
+   gui.Add("Text", "x10 y10", "テキスト")
+   gui.SetFont()  ; デフォルトに戻す
+   ```
+
+3. デバッグのベストプラクティス
+   - エラー発生時は必ずログを確認 (F6)
+   - AutoHotkeyプロセスの完全再起動が必要な場合がある
+   - 修正後はキャッシュクリアのため完全再起動推奨
+
 実行時エラーの対処
 一般的な手順:
 
