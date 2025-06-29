@@ -22,21 +22,29 @@ global g_log_file_handle := ""
 global g_log_write_count := 0
 global g_log_rotation_in_progress := false
 global g_log_enabled := true  ; ログ有効フラグ
-global g_log_stats := {
-    totalLogs: 0,
-    droppedLogs: 0,
-    rotations: 0,
-    writeErrors: 0
-}
+global g_log_stats := Map(
+    "totalLogs", 0,
+    "droppedLogs", 0,
+    "rotations", 0,
+    "writeErrors", 0
+)
 
 ; --- ログ初期化（改善版） ---
+global g_logger_initialized := false
+
 InitializeLogger() {
     global g_log_file, g_log_dir, g_log_file_handle, g_current_log_level
+    global g_logger_initialized
     
-    ; ログレベルを設定から取得
-    if (ConfigManager.Get("General", "DebugMode", false)) {
-        g_current_log_level := LOG_LEVEL["DEBUG"]
+    ; 既に初期化されている場合は何もしない
+    if (g_logger_initialized) {
+        OutputDebug("Logger already initialized - skipping")
+        return
     }
+    g_logger_initialized := true
+    
+    ; ログレベルはデフォルトを使用（後でConfigから設定適用）
+    ; g_current_log_level := LOG_LEVEL["INFO"]  ; 既に初期化済み
     
     ; ログディレクトリを作成
     if (!DirExist(g_log_dir)) {
@@ -77,6 +85,23 @@ InitializeLogger() {
     SetTimer(FlushLogBuffer, 1000)  ; 1秒ごと
     
     ; ログローテーションタイマーを開始
+}
+
+; --- 設定適用（ConfigManager初期化後に呼び出し） ---
+ApplyLoggerConfig() {
+    global g_current_log_level, LOG_LEVEL
+    
+    ; ConfigManagerが利用可能になってから設定を適用
+    if (IsSet(ConfigManager) && ConfigManager.HasMethod("Get")) {
+        try {
+            if (ConfigManager.Get("General", "DebugMode", false)) {
+                g_current_log_level := LOG_LEVEL["DEBUG"]
+                WriteLog(LOG_LEVEL["INFO"], "Logger", "Debug mode enabled via config")
+            }
+        } catch {
+            ; ConfigManagerがまだ利用できない場合は無視
+        }
+    }
     SetTimer(CheckLogRotation, 60000)  ; 1分ごと
     
     ; 起動時クリーンアップ
@@ -97,7 +122,7 @@ WriteLog(level, module, message) {
     ; ファイルサイズチェック（書き込み前）
     CheckLogFileSizeBeforeWrite()
     
-    g_log_stats.totalLogs++
+    g_log_stats["totalLogs"]++
     
     ; タイムスタンプ
     timestamp := FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss")
@@ -150,7 +175,7 @@ RemoveLowPriorityLogs() {
     }
     
     g_log_buffer := newBuffer
-    g_log_stats.droppedLogs += droppedCount
+    g_log_stats["droppedLogs"] += droppedCount
     
     if (droppedCount > 0) {
         OutputDebug(Format("Dropped {} low priority logs", droppedCount))
@@ -189,11 +214,11 @@ FlushLogBuffer() {
         g_log_buffer := []
         
     } catch as e {
-        g_log_stats.writeErrors++
+        g_log_stats["writeErrors"]++
         OutputDebug("Failed to write log: " . e.Message)
         
         ; エラーが続く場合はファイルハンドルを再オープン
-        if (g_log_stats.writeErrors > 5) {
+        if (g_log_stats["writeErrors"] > 5) {
             ReopenLogFile()
         }
     }
@@ -215,7 +240,7 @@ ReopenLogFile() {
     ; 新しいハンドルを開く
     try {
         g_log_file_handle := FileOpen(g_log_file, "a", "UTF-8-RAW")
-        g_log_stats.writeErrors := 0
+        g_log_stats["writeErrors"] := 0
         OutputDebug("Log file reopened successfully")
     } catch {
         g_log_file_handle := ""
@@ -232,7 +257,7 @@ CheckLogFileSizeBeforeWrite() {
     }
     
     try {
-        maxSize := ConfigManager.Get("General", "MaxLogSize", 5) * 1024 * 1024  ; MB to bytes
+        maxSize := 5 * 1024 * 1024  ; デフォルト5MB
         
         ; ファイルサイズをチェック
         if (FileExist(g_log_file)) {
@@ -299,10 +324,10 @@ PerformLogRotation() {
         }
         
         g_log_write_count := 0
-        g_log_stats.rotations++
+        g_log_stats["rotations"]++
         
         ; ローテーション完了ログ
-        WriteLog(LOG_LEVEL.INFO, "Logger", 
+        WriteLog(LOG_LEVEL["INFO"], "Logger", 
             Format("Log rotation completed: {} -> {}", oldFile, g_log_file))
         
         ; 3世代以上の古いログを削除
@@ -324,7 +349,7 @@ CheckLogRotation() {
     }
     
     try {
-        maxSize := ConfigManager.Get("General", "MaxLogSize", 5) * 1024 * 1024  ; MB to bytes
+        maxSize := 5 * 1024 * 1024  ; デフォルト5MB
         
         ; ファイルサイズをチェック
         currentSize := 0
@@ -385,7 +410,7 @@ LogDebug(module, message) {
 }
 
 LogInfo(module, message) {
-    WriteLog(LOG_LEVEL.INFO, module, message)
+    WriteLog(LOG_LEVEL["INFO"], module, message)
 }
 
 LogWarn(module, message) {
@@ -550,7 +575,7 @@ CleanupOldLogs(daysToKeep := "") {
     global g_log_dir
     
     if (daysToKeep == "") {
-        daysToKeep := ConfigManager.Get("General", "LogRetentionDays", 3)
+        daysToKeep := 3  ; デフォルト3日
     }
     
     cutoffTime := A_Now
@@ -607,17 +632,17 @@ GetLoggerStats() {
         fileSize := FileGetSize(g_log_file)
     }
     
-    return {
-        totalLogs: g_log_stats.totalLogs,
-        droppedLogs: g_log_stats.droppedLogs,
-        dropRate: g_log_stats.totalLogs > 0 ? 
-            Round(g_log_stats.droppedLogs / g_log_stats.totalLogs * 100, 2) : 0,
-        rotations: g_log_stats.rotations,
-        writeErrors: g_log_stats.writeErrors,
-        bufferSize: g_log_buffer.Length,
-        writeCount: g_log_write_count,
-        fileSize: Round(fileSize / 1024, 2)  ; KB
-    }
+    return Map(
+        "totalLogs", g_log_stats["totalLogs"],
+        "droppedLogs", g_log_stats["droppedLogs"],
+        "dropRate", g_log_stats["totalLogs"] > 0 ? 
+            Round(g_log_stats["droppedLogs"] / g_log_stats["totalLogs"] * 100, 2) : 0,
+        "rotations", g_log_stats["rotations"],
+        "writeErrors", g_log_stats["writeErrors"],
+        "bufferSize", g_log_buffer.Length,
+        "writeCount", g_log_write_count,
+        "fileSize", Round(fileSize / 1024, 2)  ; KB
+    )
 }
 
 ; --- ログレベルの動的変更 ---

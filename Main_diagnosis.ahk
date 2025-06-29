@@ -58,29 +58,28 @@ try {
     ExitApp()
 }
 
-; === 段階4: 実際のインクルードテスト ===
+; === 段階4: ConfigManagerインクルードテスト ===
 try {
-    FileAppend(A_Now . " - Stage 4: Testing actual include`n", "diagnosis.log")
+    FileAppend(A_Now . " - Stage 4: Testing ConfigManager include`n", "diagnosis.log")
     
-    ; Logger.ahkを実際にインクルード
-    #Include "Utils/Logger.ahk"
+    #Include "Utils/ConfigManager.ahk"
     
-    FileAppend("Logger.ahk included successfully`n", "diagnosis.log")
-    MsgBox("Stage 4: Logger include successful", "Diagnosis - Stage 4")
+    FileAppend("ConfigManager.ahk included successfully`n", "diagnosis.log")
+    MsgBox("Stage 4: ConfigManager include successful", "Diagnosis - Stage 4")
 } catch as e {
     FileAppend(A_Now . " - Stage 4 ERROR: " . e.Message . "`n", "diagnosis.log")
     MsgBox("Stage 4 FAILED: " . e.Message, "Diagnosis - Stage 4 ERROR")
     ExitApp()
 }
 
-; === 段階5: ConfigManagerインクルードテスト ===
+; === 段階5: Loggerインクルードテスト ===
 try {
-    FileAppend(A_Now . " - Stage 5: Testing ConfigManager include`n", "diagnosis.log")
+    FileAppend(A_Now . " - Stage 5: Testing Logger include`n", "diagnosis.log")
     
-    #Include "Utils/ConfigManager.ahk"
+    #Include "Utils/Logger.ahk"
     
-    FileAppend("ConfigManager.ahk included successfully`n", "diagnosis.log")
-    MsgBox("Stage 5: ConfigManager include successful", "Diagnosis - Stage 5")
+    FileAppend("Logger.ahk included successfully`n", "diagnosis.log")
+    MsgBox("Stage 5: Logger include successful", "Diagnosis - Stage 5")
 } catch as e {
     FileAppend(A_Now . " - Stage 5 ERROR: " . e.Message . "`n", "diagnosis.log")
     MsgBox("Stage 5 FAILED: " . e.Message, "Diagnosis - Stage 5 ERROR")

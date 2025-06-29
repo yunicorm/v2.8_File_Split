@@ -84,7 +84,7 @@ class ConfigManager {
         
         ; プロファイルファイルが存在しない場合はデフォルトを使用
         if (!FileExist(configPath) && profileName != "default") {
-            LogInfo("ConfigManager", Format("Profile '{}' not found, using default", profileName))
+            OutputDebug("ConfigManager: " . Format("Profile '{}' not found, using default", profileName))
             configPath := this.configFile
         }
         
@@ -126,13 +126,13 @@ class ConfigManager {
                             if (this.ValidateValue(section, key, parsedValue)) {
                                 this.config[section][key] := parsedValue
                             } else {
-                                LogWarn("ConfigManager", Format("Invalid value for {}.{}: {}", 
+                                OutputDebug("ConfigManager WARNING: " . Format("Invalid value for {}.{}: {}", 
                                     section, key, value))
                             }
                         }
                     }
                 } catch as e {
-                    LogError("ConfigManager", Format("Failed to read section {}: {}", 
+                    OutputDebug("ConfigManager ERROR: " . Format("Failed to read section {}: {}", 
                         section, e.Message))
                 }
             }
@@ -143,12 +143,12 @@ class ConfigManager {
             ; 設定の検証と修正
             this.ValidateConfig()
             
-            LogInfo("ConfigManager", Format("Configuration loaded successfully (Profile: {})", 
+            OutputDebug("ConfigManager: " . Format("Configuration loaded successfully (Profile: {})", 
                 this.currentProfile))
             return true
             
         } catch as e {
-            LogError("ConfigManager", "Failed to load config: " . e.Message)
+            OutputDebug("ConfigManager ERROR: " . "Failed to load config: " . e.Message)
             return false
         }
     }
@@ -255,7 +255,7 @@ class ConfigManager {
         
         ; 値を検証
         if (!this.ValidateValue(section, key, value)) {
-            LogWarn("ConfigManager", Format("Invalid value for {}.{}: {}", section, key, value))
+            OutputDebug("ConfigManager WARNING: " . Format("Invalid value for {}.{}: {}", section, key, value))
             return false
         }
         
@@ -301,11 +301,11 @@ class ConfigManager {
             }
             
             this.isDirty := false
-            LogInfo("ConfigManager", Format("Configuration saved (Profile: {})", profileName))
+            OutputDebug("ConfigManager: " . Format("Configuration saved (Profile: {})", profileName))
             return true
             
         } catch as e {
-            LogError("ConfigManager", "Failed to save config: " . e.Message)
+            OutputDebug("ConfigManager ERROR: " . "Failed to save config: " . e.Message)
             return false
         }
     }
@@ -331,11 +331,11 @@ class ConfigManager {
             ; 古いバックアップを削除
             this.CleanupOldBackups()
             
-            LogInfo("ConfigManager", "Backup created: " . backupFile)
+            OutputDebug("ConfigManager: " . "Backup created: " . backupFile)
             return true
             
         } catch as e {
-            LogError("ConfigManager", "Failed to create backup: " . e.Message)
+            OutputDebug("ConfigManager ERROR: " . "Failed to create backup: " . e.Message)
             return false
         }
     }
@@ -351,14 +351,14 @@ class ConfigManager {
                 if (fileTime < cutoffTime) {
                     try {
                         FileDelete(A_LoopFilePath)
-                        LogInfo("ConfigManager", "Deleted old backup: " . A_LoopFileName)
+                        OutputDebug("ConfigManager: " . "Deleted old backup: " . A_LoopFileName)
                     } catch {
                         ; 削除失敗は無視
                     }
                 }
             }
         } catch as e {
-            LogError("ConfigManager", "Backup cleanup failed: " . e.Message)
+            OutputDebug("ConfigManager ERROR: " . "Backup cleanup failed: " . e.Message)
         }
     }
     
@@ -394,7 +394,7 @@ class ConfigManager {
                 this.Set("Timing", pair[1], pair[3])
                 this.Set("Timing", pair[2], pair[4])
                 modified := true
-                LogWarn("ConfigManager", Format("Fixed timing values for {}/{}", pair[1], pair[2]))
+                OutputDebug("ConfigManager WARNING: " . Format("Fixed timing values for {}/{}", pair[1], pair[2]))
             }
         }
         
@@ -415,7 +415,7 @@ class ConfigManager {
         
         if (modified) {
             this.Save()
-            LogInfo("ConfigManager", "Configuration validated and corrected")
+            OutputDebug("ConfigManager: " . "Configuration validated and corrected")
         }
     }
     
@@ -553,10 +553,10 @@ MonitoringEnabled=false
         
         try {
             FileAppend(defaultConfig, configPath)
-            LogInfo("ConfigManager", "Default configuration file created")
+            OutputDebug("ConfigManager: " . "Default configuration file created")
             return true
         } catch as e {
-            LogError("ConfigManager", "Failed to create default config: " . e.Message)
+            OutputDebug("ConfigManager ERROR: " . "Failed to create default config: " . e.Message)
             return false
         }
     }
@@ -610,7 +610,7 @@ MonitoringEnabled=false
         ; 新しいプロファイルを読み込み
         if (this.Load(profileName)) {
             this.currentProfile := profileName
-            LogInfo("ConfigManager", Format("Switched to profile: {}", profileName))
+            OutputDebug("ConfigManager: " . Format("Switched to profile: {}", profileName))
             return true
         }
         
@@ -623,10 +623,10 @@ MonitoringEnabled=false
             ; 現在の設定をエクスポート先にコピー
             configPath := this.GetProfilePath(this.currentProfile)
             FileCopy(configPath, exportPath, 1)
-            LogInfo("ConfigManager", Format("Configuration exported to: {}", exportPath))
+            OutputDebug("ConfigManager: " . Format("Configuration exported to: {}", exportPath))
             return true
         } catch as e {
-            LogError("ConfigManager", "Failed to export config: " . e.Message)
+            OutputDebug("ConfigManager ERROR: " . "Failed to export config: " . e.Message)
             return false
         }
     }
@@ -634,7 +634,7 @@ MonitoringEnabled=false
     ; --- 設定をインポート ---
     static Import(importPath) {
         if (!FileExist(importPath)) {
-            LogError("ConfigManager", "Import file not found: " . importPath)
+            OutputDebug("ConfigManager ERROR: " . "Import file not found: " . importPath)
             return false
         }
         
@@ -648,13 +648,13 @@ MonitoringEnabled=false
             
             ; 設定をリロード
             if (this.Reload()) {
-                LogInfo("ConfigManager", Format("Configuration imported from: {}", importPath))
+                OutputDebug("ConfigManager: " . Format("Configuration imported from: {}", importPath))
                 return true
             }
             
             return false
         } catch as e {
-            LogError("ConfigManager", "Failed to import config: " . e.Message)
+            OutputDebug("ConfigManager ERROR: " . "Failed to import config: " . e.Message)
             return false
         }
     }

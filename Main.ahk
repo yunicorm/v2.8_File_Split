@@ -100,6 +100,9 @@ try {
         ExitApp()
     }
     
+    ; Logger設定適用（ConfigManager初期化後）
+    ApplyLoggerConfig()
+    
     ; 設定の検証
     if (ConfigManager.HasMethod("ValidateConfig")) {
         ConfigManager.ValidateConfig()
