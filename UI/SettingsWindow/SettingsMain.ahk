@@ -32,7 +32,14 @@ ShowSettingsWindow() {
         LogInfo("SettingsWindow", "Settings window opened")
         
     } catch as e {
-        LogError("SettingsWindow", "Failed to show settings window: " . e.Message)
+        ; 詳細なエラー情報をログに記録
+        errorDetails := Format("Error: {} | File: {} | Line: {} | Stack: {}", 
+            e.Message, 
+            e.HasProp("File") ? e.File : "Unknown",
+            e.HasProp("Line") ? e.Line : "Unknown",
+            e.HasProp("Stack") ? e.Stack : "No stack trace")
+        
+        LogError("SettingsWindow", "Failed to show settings window: " . errorDetails)
         ShowOverlay("設定ウィンドウの表示に失敗しました", 3000)
     }
 }
