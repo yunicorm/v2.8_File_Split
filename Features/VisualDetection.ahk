@@ -18,6 +18,10 @@ global g_current_flask_index := 1
 global g_flask_rect_width := 60
 global g_flask_rect_height := 100
 
+; 複数フラスコオーバーレイ管理
+global g_flask_overlay_guis := []
+global g_flask_spacing := 20
+
 ; Check if FindText.ahk file exists
 CheckFindTextFile() {
     try {
@@ -365,36 +369,61 @@ CleanupVisualDetection() {
     }
 }
 
+; サイズ変更用ヘルパー関数（グローバル）
+ResizeWithLog(dw, dh, key) {
+    LogDebug("VisualDetection", key . " key pressed")
+    ResizeOverlay(dw, dh)
+}
+
 ; フラスコ座標取得開始
 StartFlaskPositionCapture() {
     global g_current_flask_index
     
-    ShowOverlay("矢印:移動 =/- :サイズ ]/[ :幅 '/; :高さ", 3000)
+    ShowOverlay("矢印:移動 +/-:間隔 =/- :サイズ Space:保存", 3000)
     g_current_flask_index := 1
-    CreateFlaskOverlay(1720, 1300)
+    CreateAllFlaskOverlays(1720, 1300)
     
     ; ホットキー設定
-    Hotkey("Up", (*) => MoveOverlay(0, -10), "On")
-    Hotkey("Down", (*) => MoveOverlay(0, 10), "On")
-    Hotkey("Left", (*) => MoveOverlay(-10, 0), "On")
-    Hotkey("Right", (*) => MoveOverlay(10, 0), "On")
-    Hotkey("Enter", SaveFlaskPosition, "On")
-    Hotkey("Tab", NextFlask, "On")
-    Hotkey("Escape", EndOverlayCapture, "On")
-    ; サイズ変更（テンキー不要版）
-    Hotkey("=", (*) => ResizeOverlay(5, 5), "On")      ; 全体拡大
-    Hotkey("-", (*) => ResizeOverlay(-5, -5), "On")    ; 全体縮小
-    Hotkey("]", (*) => ResizeOverlay(10, 0), "On")     ; 幅拡大
-    Hotkey("[", (*) => ResizeOverlay(-10, 0), "On")    ; 幅縮小
-    Hotkey("'", (*) => ResizeOverlay(0, 10), "On")     ; 高さ拡大
-    Hotkey(";", (*) => ResizeOverlay(0, -10), "On")    ; 高さ縮小
+    LogDebug("VisualDetection", "Setting up hotkeys for flask position capture")
+    Hotkey("Up", (*) => MoveAllOverlays(0, -10), "On")
+    Hotkey("Down", (*) => MoveAllOverlays(0, 10), "On")
+    Hotkey("Left", (*) => MoveAllOverlays(-10, 0), "On")
+    Hotkey("Right", (*) => MoveAllOverlays(10, 0), "On")
+    Hotkey("Space", (*) => SaveAllFlaskPositions(), "On")  ; 一括保存
+    Hotkey("Enter", (*) => SaveFlaskPosition(), "On")      ; 個別保存（念のため残す）
+    Hotkey("Tab", (*) => NextFlask(), "On")
+    Hotkey("Escape", (*) => EndOverlayCapture(), "On")
+    LogDebug("VisualDetection", "Movement and control hotkeys set")
+    
+    ; サイズ変更（一括操作版）
+    Hotkey("=", (*) => ResizeAllOverlays(5, 5), "On")      ; 全体拡大
+    LogDebug("VisualDetection", "Hotkey '=' set for all overlays resize +5,+5")
+    Hotkey("-", (*) => ResizeAllOverlays(-5, -5), "On")    ; 全体縮小
+    LogDebug("VisualDetection", "Hotkey '-' set for all overlays resize -5,-5")
+    Hotkey("]", (*) => ResizeAllOverlays(10, 0), "On")     ; 幅拡大
+    LogDebug("VisualDetection", "Hotkey ']' set for all overlays width +10")
+    Hotkey("[", (*) => ResizeAllOverlays(-10, 0), "On")    ; 幅縮小
+    LogDebug("VisualDetection", "Hotkey '[' set for all overlays width -10")
+    Hotkey("'", (*) => ResizeAllOverlays(0, 10), "On")     ; 高さ拡大
+    LogDebug("VisualDetection", "Hotkey ''' set for all overlays height +10")
+    Hotkey(";", (*) => ResizeAllOverlays(0, -10), "On")    ; 高さ縮小
+    LogDebug("VisualDetection", "Hotkey ';' set for all overlays height -10")
+    LogDebug("VisualDetection", "All resize hotkeys configured successfully")
+    
+    ; 間隔調整
+    Hotkey("+", (*) => AdjustFlaskSpacing(2), "On")    ; 5→2に変更
+    Hotkey("_", (*) => AdjustFlaskSpacing(-2), "On")   ; -5→-2に変更
+    LogDebug("VisualDetection", "Flask spacing hotkeys set")
 }
 
 ; オーバーレイ作成
 CreateFlaskOverlay(x, y) {
     global g_flask_overlay_gui, g_flask_rect_width, g_flask_rect_height
     
+    LogDebug("VisualDetection", Format("CreateFlaskOverlay called: x={}, y={}, size={}x{}", x, y, g_flask_rect_width, g_flask_rect_height))
+    
     if (g_flask_overlay_gui) {
+        LogDebug("VisualDetection", "Destroying existing overlay GUI")
         g_flask_overlay_gui.Destroy()
     }
     
@@ -404,6 +433,37 @@ CreateFlaskOverlay(x, y) {
     g_flask_overlay_gui.Show(Format("x{} y{} w{} h{} NA", 
         x, y, g_flask_rect_width, g_flask_rect_height))
     WinSetTransparent(100, g_flask_overlay_gui)
+    
+    LogDebug("VisualDetection", Format("Flask overlay created successfully at {},{} with size {}x{}", x, y, g_flask_rect_width, g_flask_rect_height))
+}
+
+; 複数フラスコオーバーレイ一括作成
+CreateAllFlaskOverlays(startX, startY) {
+    global g_flask_overlay_guis, g_flask_rect_width, g_flask_rect_height, g_flask_spacing
+    
+    LogDebug("VisualDetection", Format("Creating all flask overlays starting at {},{}", startX, startY))
+    
+    ; 既存のオーバーレイをクリア
+    for existingGui in g_flask_overlay_guis {
+        if (existingGui) {
+            existingGui.Destroy()
+        }
+    }
+    g_flask_overlay_guis := []
+    
+    Loop 5 {
+        x := startX + (A_Index - 1) * (g_flask_rect_width + g_flask_spacing)
+        newGui := Gui()  ; 変数名を変更
+        newGui.Opt("+AlwaysOnTop -Caption +ToolWindow")
+        newGui.BackColor := "Red"
+        newGui.Show(Format("x{} y{} w{} h{} NA", x, startY, g_flask_rect_width, g_flask_rect_height))
+        WinSetTransparent(100, newGui)
+        g_flask_overlay_guis.Push(newGui)
+        
+        LogDebug("VisualDetection", Format("Flask{} overlay created at {},{}", A_Index, x, startY))
+    }
+    
+    LogDebug("VisualDetection", "All flask overlays created successfully")
 }
 
 ; 移動
@@ -417,24 +477,97 @@ MoveOverlay(dx, dy) {
     g_flask_overlay_gui.Move(x + dx, y + dy)
 }
 
+; 全オーバーレイ一括移動
+MoveAllOverlays(dx, dy) {
+    global g_flask_overlay_guis
+    
+    LogDebug("VisualDetection", Format("Moving all overlays by dx={}, dy={}", dx, dy))
+    
+    for gui in g_flask_overlay_guis {
+        if (gui) {
+            gui.GetPos(&x, &y)
+            gui.Move(x + dx, y + dy)
+            LogDebug("VisualDetection", Format("Moved overlay to {},{}", x + dx, y + dy))
+        }
+    }
+}
+
 ; サイズ変更
 ResizeOverlay(dw, dh) {
     global g_flask_overlay_gui, g_flask_rect_width, g_flask_rect_height
+    LogDebug("VisualDetection", Format("ResizeOverlay called: dw={}, dh={}", dw, dh))
+    
     if (!g_flask_overlay_gui) {
+        LogDebug("VisualDetection", "ResizeOverlay: No overlay GUI exists")
         return
     }
     
     ; 最小20ピクセル
+    old_width := g_flask_rect_width
+    old_height := g_flask_rect_height
     g_flask_rect_width := Max(20, g_flask_rect_width + dw)
     g_flask_rect_height := Max(20, g_flask_rect_height + dh)
     
+    LogDebug("VisualDetection", Format("Size changed: {}x{} -> {}x{}", old_width, old_height, g_flask_rect_width, g_flask_rect_height))
+    
     ; 再作成
     g_flask_overlay_gui.GetPos(&x, &y)
+    LogDebug("VisualDetection", Format("Recreating overlay at: {}, {}", x, y))
     CreateFlaskOverlay(x, y)
     
     ; サイズ表示
     ToolTip(Format("Size: {}x{}", g_flask_rect_width, g_flask_rect_height))
     SetTimer(() => ToolTip(), -1000)
+}
+
+; 全オーバーレイ一括サイズ変更
+ResizeAllOverlays(dw, dh) {
+    global g_flask_overlay_guis, g_flask_rect_width, g_flask_rect_height
+    
+    LogDebug("VisualDetection", Format("Resizing all overlays: dw={}, dh={}", dw, dh))
+    
+    ; サイズ更新（最小20ピクセル）
+    old_width := g_flask_rect_width
+    old_height := g_flask_rect_height
+    g_flask_rect_width := Max(20, g_flask_rect_width + dw)
+    g_flask_rect_height := Max(20, g_flask_rect_height + dh)
+    
+    LogDebug("VisualDetection", Format("Size changed: {}x{} -> {}x{}", old_width, old_height, g_flask_rect_width, g_flask_rect_height))
+    
+    ; 最初のオーバーレイの位置を基準に再作成
+    if (g_flask_overlay_guis.Length > 0 && g_flask_overlay_guis[1]) {
+        g_flask_overlay_guis[1].GetPos(&startX, &startY)
+        LogDebug("VisualDetection", Format("Recreating all overlays from position {},{}", startX, startY))
+        CreateAllFlaskOverlays(startX, startY)
+        
+        ; サイズ表示
+        ToolTip(Format("All Flasks: {}x{}", g_flask_rect_width, g_flask_rect_height))
+        SetTimer(() => ToolTip(), -1000)
+    }
+}
+
+; フラスコ間隔調整
+AdjustFlaskSpacing(delta) {
+    global g_flask_spacing, g_flask_overlay_guis
+    
+    LogDebug("VisualDetection", Format("Adjusting flask spacing by delta={}", delta))
+    
+    ; 間隔更新（最小5ピクセル）
+    old_spacing := g_flask_spacing
+    g_flask_spacing := Max(5, g_flask_spacing + delta)
+    
+    LogDebug("VisualDetection", Format("Spacing changed: {} -> {}", old_spacing, g_flask_spacing))
+    
+    ; 最初のオーバーレイの位置を基準に再配置
+    if (g_flask_overlay_guis.Length > 0 && g_flask_overlay_guis[1]) {
+        g_flask_overlay_guis[1].GetPos(&startX, &startY)
+        LogDebug("VisualDetection", Format("Recreating all overlays with new spacing from {},{}", startX, startY))
+        CreateAllFlaskOverlays(startX, startY)
+        
+        ; 間隔表示
+        ToolTip(Format("Flask Spacing: {} pixels", g_flask_spacing))
+        SetTimer(() => ToolTip(), -1000)
+    }
 }
 
 ; 位置保存
@@ -454,6 +587,45 @@ SaveFlaskPosition() {
         "Flask" . g_current_flask_index . "Y", centerY)
     
     ShowOverlay(Format("Flask{} 保存", g_current_flask_index), 1500)
+}
+
+; 全フラスコ位置一括保存
+SaveAllFlaskPositions() {
+    global g_flask_overlay_guis
+    
+    LogDebug("VisualDetection", "Starting to save all flask positions")
+    
+    if (g_flask_overlay_guis.Length != 5) {
+        LogError("VisualDetection", Format("Invalid overlay count: {} (expected 5)", g_flask_overlay_guis.Length))
+        ShowOverlay("エラー: 5つのオーバーレイが必要です", 2000)
+        return
+    }
+    
+    successCount := 0
+    Loop 5 {
+        gui := g_flask_overlay_guis[A_Index]
+        if (gui) {
+            gui.GetPos(&x, &y, &w, &h)
+            centerX := x + w // 2
+            centerY := y + h // 2
+            
+            ConfigManager.Set("VisualDetection", "Flask" . A_Index . "X", centerX)
+            ConfigManager.Set("VisualDetection", "Flask" . A_Index . "Y", centerY)
+            
+            LogDebug("VisualDetection", Format("Flask{} saved at center: {},{}", A_Index, centerX, centerY))
+            successCount++
+        } else {
+            LogError("VisualDetection", Format("Flask{} overlay is invalid", A_Index))
+        }
+    }
+    
+    if (successCount == 5) {
+        ShowOverlay("全フラスコ位置を保存しました", 2000)
+        LogInfo("VisualDetection", "All flask positions saved successfully")
+    } else {
+        ShowOverlay(Format("警告: {}/5 フラスコのみ保存", successCount), 2000)
+        LogWarn("VisualDetection", Format("Only {}/5 flask positions saved", successCount))
+    }
 }
 
 ; 次へ
@@ -495,8 +667,8 @@ EndOverlayCapture(*) {
     }
     
     ; ホットキー無効化
-    for key in ["Up","Down","Left","Right","Enter","Tab","Escape",
-               "=","-","]","[","'",";"] {
+    for key in ["Up","Down","Left","Right","Space","Enter","Tab","Escape",
+               "=","-","]","[","'",";","+","_"] {
         try Hotkey(key, "Off")
     }
     
