@@ -247,6 +247,41 @@ TestConditionBasedUsage()
 TestStatisticsIntegration()
 ```
 
+## 外部ライブラリ統合ガイド
+
+### FindText (v10.0)
+画像認識ベースの自動化に使用するライブラリ
+
+**配置場所**: `Utils/FindText.ahk`
+
+**基本的な使い方**:
+```autohotkey
+; インスタンス取得
+ft := FindText()
+
+; 画像検索（基本形）
+ok := FindText().FindText(&X, &Y, x1, y1, x2, y2, err1, err0, Text)
+
+; 戻り値
+; ok: 見つかった場合は配列、見つからない場合は0
+; X, Y: 見つかった座標（絶対座標）
+; ok[1].x, ok[1].y: 中心座標
+; ok[1].id: コメント文字列
+
+; テキスト形式
+Text := "|<comment>*similarity$width.base64data"
+
+## さらに追加すべき情報
+
+```markdown
+### 画像キャプチャ方法
+```autohotkey
+; GUIツールを使用したキャプチャ
+FindText().Gui("Show")
+
+; コードからの直接キャプチャ
+Text := FindText().GetTextFromScreen(x1, y1, x2, y2)
+
 ## 今後の拡張ポイント
 
 ### 1. 条件判定システム拡張
