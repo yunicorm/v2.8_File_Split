@@ -70,7 +70,16 @@ InitializeDefaultVisualDetectionConfig() {
             "Flask5ChargedPattern", "",
             "DetectionTimeout", "1000",
             "SearchAreaSize", "25",
-            "DetectionInterval", "100"
+            "DetectionInterval", "100",
+            ; 拡張設定項目
+            "ShowDetectionOverlay", "false",
+            "OverlayDuration", "2000",
+            "DebugMode", "false",
+            "Flask1Name", "Life Flask",
+            "Flask2Name", "Mana Flask",
+            "Flask3Name", "Utility Flask 1",
+            "Flask4Name", "Utility Flask 2",
+            "Flask5Name", "Unique Flask"
         )
         
         ; Set defaults if section doesn't exist
@@ -225,15 +234,39 @@ DetectFlaskChargeInternal(searchArea, flaskNumber) {
             0, 0, chargedPattern)) {
             
             LogDebug("VisualDetection", "Flask" . flaskNumber . " charged pattern found at " . x . "," . y)
-            return 1  ; チャージあり
+            result := 1  ; チャージあり
+
+            ; デバッグオーバーレイ表示
+            if (ConfigManager.Get("VisualDetection", "ShowDetectionOverlay", false)) {
+                ShowOverlay(Format("Flask{}: {}", flaskNumber, "Charged"),
+                    ConfigManager.Get("VisualDetection", "OverlayDuration", 2000))
+            }
+
+            return result
         }
         
         LogDebug("VisualDetection", "Flask" . flaskNumber . " charged pattern not found")
-        return 0  ; 空の状態
+        result := 0  ; 空の状態
+        
+        ; デバッグオーバーレイ表示
+        if (ConfigManager.Get("VisualDetection", "ShowDetectionOverlay", false)) {
+            ShowOverlay(Format("Flask{}: {}", flaskNumber, "Empty"), 
+                ConfigManager.Get("VisualDetection", "OverlayDuration", 2000))
+        }
+        
+        return result
         
     } catch as e {
         LogError("VisualDetection", "Internal detection error: " . e.Message)
-        return -1
+        result := -1
+        
+        ; デバッグオーバーレイ表示
+        if (ConfigManager.Get("VisualDetection", "ShowDetectionOverlay", false)) {
+            ShowOverlay(Format("Flask{}: {}", flaskNumber, "Failed"), 
+                ConfigManager.Get("VisualDetection", "OverlayDuration", 2000))
+        }
+        
+        return result
     }
 }
 

@@ -6,11 +6,17 @@
 #HotIf WinActive("ahk_group TargetWindows")
 
 ; ===================================================================
-; F11: マナ状態デバッグ表示
+; F11: 視覚的検出テスト (v2.9.4)
 ; ===================================================================
 F11:: {
-    ShowManaDebug()
-    LogInfo("DebugHotkeys", "F11 pressed - Mana debug displayed")
+    ; Visual Detection Test (v2.9.4)
+    if (IsVisualDetectionEnabled()) {
+        TestAllFlaskDetection()
+        LogInfo("DebugHotkeys", "F11 pressed - Visual detection test")
+    } else {
+        ShowManaDebug()  ; 従来の機能を維持
+        LogInfo("DebugHotkeys", "F11 pressed - Mana debug displayed")
+    }
 }
 
 ; ===================================================================
