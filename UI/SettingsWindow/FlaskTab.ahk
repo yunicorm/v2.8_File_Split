@@ -140,6 +140,8 @@ SaveFlaskSettings() {
     global g_settings_gui
     
     try {
+        LogDebug("FlaskTab", "SaveFlaskSettings開始")
+        LogDebug("FlaskTab", "g_settings_gui type: " . Type(g_settings_gui))
         ; フラスコ設定を保存
         ConfigManager.Set("Flask", "Flask1_Enabled", g_settings_gui["Flask1_Enabled"].Checked)
         ConfigManager.Set("Flask", "Flask1_Key", g_settings_gui["Flask1_Key"].Text)
@@ -181,8 +183,11 @@ SaveFlaskSettings() {
         ConfigManager.Set("Keys", "Tincture", g_settings_gui["TinctureKey"].Text)
         ConfigManager.Set("General", "TinctureEnabled", g_settings_gui["TinctureEnabled"].Checked)
         
+        LogDebug("FlaskTab", "ConfigManager.Set calls completed successfully")
+        
     } catch as e {
         LogError("FlaskTab", "Failed to save flask settings: " . e.Message)
+        LogError("FlaskTab", "Error details - File: " . (e.HasProp("File") ? e.File : "Unknown") . " Line: " . (e.HasProp("Line") ? e.Line : "Unknown"))
         throw e
     }
 }

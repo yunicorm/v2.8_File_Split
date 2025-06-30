@@ -33,47 +33,47 @@ class ConfigManager {
     static InitializeValidationRules() {
         ; 解像度設定
         this.validationRules["Resolution"] := Map(
-            "ScreenWidth", {min: 800, max: 7680, type: "integer"},
-            "ScreenHeight", {min: 600, max: 4320, type: "integer"}
+            "ScreenWidth", Map("min", 800, "max", 7680, "type", "integer"),
+            "ScreenHeight", Map("min", 600, "max", 4320, "type", "integer")
         )
         
         ; マナ設定
         this.validationRules["Mana"] := Map(
-            "CenterX", {min: 0, max: 7680, type: "integer"},
-            "CenterY", {min: 0, max: 4320, type: "integer"},
-            "Radius", {min: 10, max: 500, type: "integer"},
-            "BlueThreshold", {min: 0, max: 255, type: "integer"},
-            "BlueDominance", {min: 0, max: 255, type: "integer"},
-            "MonitorInterval", {min: 10, max: 1000, type: "integer"},
-            "OptimizedDetection", {type: "boolean"}
+            "CenterX", Map("min", 0, "max", 7680, "type", "integer"),
+            "CenterY", Map("min", 0, "max", 4320, "type", "integer"),
+            "Radius", Map("min", 10, "max", 500, "type", "integer"),
+            "BlueThreshold", Map("min", 0, "max", 255, "type", "integer"),
+            "BlueDominance", Map("min", 0, "max", 255, "type", "integer"),
+            "MonitorInterval", Map("min", 10, "max", 1000, "type", "integer"),
+            "OptimizedDetection", Map("type", "boolean")
         )
         
         ; Tincture設定
         this.validationRules["Tincture"] := Map(
-            "RetryMax", {min: 1, max: 10, type: "integer"},
-            "RetryInterval", {min: 100, max: 5000, type: "integer"},
-            "VerifyDelay", {min: 100, max: 5000, type: "integer"},
-            "DepletedCooldown", {min: 1000, max: 10000, type: "integer"}
+            "RetryMax", Map("min", 1, "max", 10, "type", "integer"),
+            "RetryInterval", Map("min", 100, "max", 5000, "type", "integer"),
+            "VerifyDelay", Map("min", 100, "max", 5000, "type", "integer"),
+            "DepletedCooldown", Map("min", 1000, "max", 10000, "type", "integer")
         )
         
         ; タイミング設定
         this.validationRules["Timing"] := Map(
-            "SkillER_Min", {min: 100, max: 10000, type: "integer"},
-            "SkillER_Max", {min: 100, max: 10000, type: "integer"},
-            "SkillT_Min", {min: 100, max: 20000, type: "integer"},
-            "SkillT_Max", {min: 100, max: 20000, type: "integer"},
-            "Flask_Min", {min: 100, max: 20000, type: "integer"},
-            "Flask_Max", {min: 100, max: 20000, type: "integer"}
+            "SkillER_Min", Map("min", 100, "max", 10000, "type", "integer"),
+            "SkillER_Max", Map("min", 100, "max", 10000, "type", "integer"),
+            "SkillT_Min", Map("min", 100, "max", 20000, "type", "integer"),
+            "SkillT_Max", Map("min", 100, "max", 20000, "type", "integer"),
+            "Flask_Min", Map("min", 100, "max", 20000, "type", "integer"),
+            "Flask_Max", Map("min", 100, "max", 20000, "type", "integer")
         )
         
         ; 一般設定
         this.validationRules["General"] := Map(
-            "DebugMode", {type: "boolean"},
-            "LogEnabled", {type: "boolean"},
-            "MaxLogSize", {min: 1, max: 100, type: "integer"},
-            "LogRetentionDays", {min: 1, max: 365, type: "integer"},
-            "AutoStart", {type: "boolean"},
-            "AutoStartDelay", {min: 0, max: 30000, type: "integer"}
+            "DebugMode", Map("type", "boolean"),
+            "LogEnabled", Map("type", "boolean"),
+            "MaxLogSize", Map("min", 1, "max", 100, "type", "integer"),
+            "LogRetentionDays", Map("min", 1, "max", 365, "type", "integer"),
+            "AutoStart", Map("type", "boolean"),
+            "AutoStartDelay", Map("min", 0, "max", 30000, "type", "integer")
         )
     }
     
@@ -193,20 +193,39 @@ class ConfigManager {
     
     ; --- 値の検証 ---
     static ValidateValue(section, key, value) {
-        if (!this.validationRules.Has(section)) {
+        if (Type(this.validationRules) == "Map") {
+            if (!this.validationRules.Has(section)) {
+                return true  ; ルールがない場合は許可
+            }
+        } else {
             return true  ; ルールがない場合は許可
         }
         
         sectionRules := this.validationRules[section]
-        if (!sectionRules.Has(key)) {
+        if (Type(sectionRules) == "Map") {
+            if (!sectionRules.Has(key)) {
+                return true  ; ルールがない場合は許可
+            }
+        } else if (Type(sectionRules) == "Object") {
+            if (!sectionRules.HasOwnProp(key)) {
+                return true  ; ルールがない場合は許可
+            }
+        } else {
             return true  ; ルールがない場合は許可
         }
         
         rule := sectionRules[key]
         
         ; 型チェック
-        if (rule.Has("type")) {
-            switch rule.type {
+        ruleType := ""
+        if (Type(rule) == "Map" && rule.Has("type")) {
+            ruleType := rule.type
+        } else if (Type(rule) == "Object" && rule.HasOwnProp("type")) {
+            ruleType := rule.type
+        }
+        
+        if (ruleType != "") {
+            switch ruleType {
                 case "boolean":
                     if (Type(value) != "Integer" && Type(value) != "String") {
                         return false
@@ -223,11 +242,20 @@ class ConfigManager {
         ; 範囲チェック（数値のみ）
         if (IsNumber(value)) {
             numValue := Number(value)
-            if (rule.Has("min") && numValue < rule.min) {
-                return false
-            }
-            if (rule.Has("max") && numValue > rule.max) {
-                return false
+            if (Type(rule) == "Map") {
+                if (rule.Has("min") && numValue < rule.min) {
+                    return false
+                }
+                if (rule.Has("max") && numValue > rule.max) {
+                    return false
+                }
+            } else if (Type(rule) == "Object") {
+                if (rule.HasOwnProp("min") && numValue < rule.min) {
+                    return false
+                }
+                if (rule.HasOwnProp("max") && numValue > rule.max) {
+                    return false
+                }
             }
         }
         
@@ -240,8 +268,16 @@ class ConfigManager {
             this.Load()
         }
         
-        if (this.config.Has(section) && this.config[section].Has(key)) {
-            return this.config[section][key]
+        if (this.config.Has(section)) {
+            if (Type(this.config[section]) == "Map") {
+                if (this.config[section].Has(key)) {
+                    return this.config[section][key]
+                }
+            } else if (HasMethod(this.config[section], "HasOwnProp")) {
+                if (this.config[section].HasOwnProp(key)) {
+                    return this.config[section].%key%
+                }
+            }
         }
         
         return defaultValue
@@ -253,6 +289,11 @@ class ConfigManager {
             this.config[section] := Map()
         }
         
+        ; セクションがMapでない場合は強制的にMapに変換
+        if (Type(this.config[section]) != "Map") {
+            this.config[section] := Map()
+        }
+        
         ; 値を検証
         if (!this.ValidateValue(section, key, value)) {
             OutputDebug("ConfigManager WARNING: " . Format("Invalid value for {}.{}: {}", section, key, value))
@@ -260,7 +301,12 @@ class ConfigManager {
         }
         
         ; 値が変更されたかチェック
-        oldValue := this.config[section].Has(key) ? this.config[section][key] : ""
+        oldValue := ""
+        if (Type(this.config[section]) == "Map") {
+            oldValue := this.config[section].Has(key) ? this.config[section][key] : ""
+        } else if (HasMethod(this.config[section], "HasOwnProp")) {
+            oldValue := this.config[section].HasOwnProp(key) ? this.config[section].%key% : ""
+        }
         if (oldValue != value) {
             this.config[section][key] := value
             this.isDirty := true
@@ -288,10 +334,19 @@ class ConfigManager {
                 for key, value in sectionData {
                     ; ブール値を文字列に変換
                     if (Type(value) == "Integer" && (value == 0 || value == 1)) {
-                        if (this.validationRules.Has(section) && 
-                            this.validationRules[section].Has(key) &&
-                            this.validationRules[section][key].Has("type") &&
-                            this.validationRules[section][key].type == "boolean") {
+                        isBoolean := false
+                        if (Type(this.validationRules) == "Map" && this.validationRules.Has(section)) {
+                            sectionRules := this.validationRules[section]
+                            if (Type(sectionRules) == "Map" && sectionRules.Has(key)) {
+                                rule := sectionRules[key]
+                                if (Type(rule) == "Map" && rule.Has("type") && rule.type == "boolean") {
+                                    isBoolean := true
+                                } else if (Type(rule) == "Object" && rule.HasOwnProp("type") && rule.type == "boolean") {
+                                    isBoolean := true
+                                }
+                            }
+                        }
+                        if (isBoolean) {
                             value := value ? "true" : "false"
                         }
                     }

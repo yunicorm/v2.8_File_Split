@@ -51,11 +51,20 @@ StartFlaskTimer(flaskName, config) {
     
     try {
         ; 統計を初期化
-        if (!g_flask_use_count.Has(flaskName)) {
-            g_flask_use_count[flaskName] := 0
+        if (Type(g_flask_use_count) == "Map") {
+            if (!g_flask_use_count.Has(flaskName)) {
+                g_flask_use_count[flaskName] := 0
+            }
+        } else {
+            LogError("FlaskController", "g_flask_use_count is not a Map: " . Type(g_flask_use_count))
         }
-        if (!g_flask_last_use_time.Has(flaskName)) {
-            g_flask_last_use_time[flaskName] := 0
+        
+        if (Type(g_flask_last_use_time) == "Map") {
+            if (!g_flask_last_use_time.Has(flaskName)) {
+                g_flask_last_use_time[flaskName] := 0
+            }
+        } else {
+            LogError("FlaskController", "g_flask_last_use_time is not a Map: " . Type(g_flask_last_use_time))
         }
         
         ; 使用条件をチェック

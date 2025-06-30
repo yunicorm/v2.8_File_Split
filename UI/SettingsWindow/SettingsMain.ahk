@@ -16,7 +16,7 @@ ShowSettingsWindow() {
     ; 既に開いている場合は前面に表示
     if (g_settings_open && IsSet(g_settings_gui) && IsObject(g_settings_gui)) {
         try {
-            g_settings_gui.Show()
+            g_settings_gui.Show("w800 h600")
             return
         } catch {
             ; エラーの場合は再作成
@@ -26,7 +26,7 @@ ShowSettingsWindow() {
     try {
         CreateSettingsWindow()
         LoadCurrentSettings()
-        g_settings_gui.Show()
+        g_settings_gui.Show("w800 h600")
         g_settings_open := true
         
         LogInfo("SettingsWindow", "Settings window opened")
@@ -68,7 +68,7 @@ CreateSettingsWindow() {
     g_settings_gui.OnEvent("Close", SettingsWindow_Close)
     
     ; タブコントロールを作成
-    g_settings_tab := g_settings_gui.Add("Tab3", "x15 y15 w770 h520", ["フラスコ", "スキル", "一般"])
+    g_settings_tab := g_settings_gui.Add("Tab3", "x15 y15 w770 h480", ["フラスコ", "スキル", "一般"])
     g_settings_tab.OnEvent("Change", Tab_Change)
     
     ; 各タブの内容を作成
@@ -76,22 +76,18 @@ CreateSettingsWindow() {
     CreateSkillTab()
     CreateGeneralTab()
     
-    ; ボタンを作成
-    CreateButtons()
+    ; タブ選択を解除（重要）
+    g_settings_tab.UseTab()
+    
+    ; ボタンを作成（タブの外側）
+    g_settings_gui.Add("Button", "x530 y510 w100 h30 vSaveButton", "保存").OnEvent("Click", SaveSettings)
+    g_settings_gui.Add("Button", "x640 y510 w100 h30 vCancelButton", "キャンセル").OnEvent("Click", CancelSettings)
+    g_settings_gui.Add("Button", "x420 y510 w100 h30 vResetButton", "リセット").OnEvent("Click", ResetSettings)
     
     ; 初期タブを選択
     g_settings_tab.Choose(1)
 }
 
-; --- ボタンを作成 ---
-CreateButtons() {
-    global g_settings_gui
-    
-    ; 下部にボタンを配置
-    g_settings_gui.Add("Button", "x530 y550 w100 h30 vSaveButton", "保存").OnEvent("Click", SaveSettings)
-    g_settings_gui.Add("Button", "x640 y550 w100 h30 vCancelButton", "キャンセル").OnEvent("Click", CancelSettings)
-    g_settings_gui.Add("Button", "x420 y550 w100 h30 vResetButton", "リセット").OnEvent("Click", ResetSettings)
-}
 
 ; --- 現在の設定を読み込み ---
 LoadCurrentSettings() {

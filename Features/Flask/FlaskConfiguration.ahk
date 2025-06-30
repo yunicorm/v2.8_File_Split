@@ -167,7 +167,12 @@ ConfigureFlasks(flaskConfig) {
 ToggleFlask(flaskName, enabled := "") {
     global g_flask_configs, g_flask_active_flasks
     
-    if (!g_flask_configs.Has(flaskName)) {
+    if (Type(g_flask_configs) == "Map") {
+        if (!g_flask_configs.Has(flaskName)) {
+            return false
+        }
+    } else {
+        LogError("FlaskConfiguration", "g_flask_configs is not a Map: " . Type(g_flask_configs))
         return false
     }
     
@@ -178,8 +183,12 @@ ToggleFlask(flaskName, enabled := "") {
     g_flask_configs[flaskName].enabled := enabled
     
     if (enabled) {
-        if (g_flask_timer_active && !g_flask_active_flasks.Has(flaskName)) {
-            StartFlaskTimer(flaskName, g_flask_configs[flaskName])
+        if (g_flask_timer_active) {
+            if (Type(g_flask_active_flasks) == "Map" && !g_flask_active_flasks.Has(flaskName)) {
+                StartFlaskTimer(flaskName, g_flask_configs[flaskName])
+            } else if (Type(g_flask_active_flasks) != "Map") {
+                LogError("FlaskConfiguration", "g_flask_active_flasks is not a Map: " . Type(g_flask_active_flasks))
+            }
         }
     } else {
         StopFlaskTimer(flaskName)
@@ -193,8 +202,13 @@ ToggleFlask(flaskName, enabled := "") {
 UpdateFlaskConfig(flaskName, configUpdates) {
     global g_flask_configs
     
-    if (!g_flask_configs.Has(flaskName)) {
-        LogWarn("FlaskConfiguration", Format("Flask '{}' not found for update", flaskName))
+    if (Type(g_flask_configs) == "Map") {
+        if (!g_flask_configs.Has(flaskName)) {
+            LogWarn("FlaskConfiguration", Format("Flask '{}' not found for update", flaskName))
+            return false
+        }
+    } else {
+        LogError("FlaskConfiguration", "g_flask_configs is not a Map: " . Type(g_flask_configs))
         return false
     }
     
