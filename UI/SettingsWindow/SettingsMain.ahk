@@ -31,8 +31,15 @@ ShowSettingsWindow() {
         
         LogInfo("SettingsWindow", "Settings window opened")
         
-    } catch Error as e {
-        LogError("SettingsWindow", "Failed to show settings window: " . e.Message)
+    } catch as e {
+        ; 詳細なエラー情報をログに記録
+        errorDetails := Format("Error: {} | File: {} | Line: {} | Stack: {}", 
+            e.Message, 
+            e.HasProp("File") ? e.File : "Unknown",
+            e.HasProp("Line") ? e.Line : "Unknown",
+            e.HasProp("Stack") ? e.Stack : "No stack trace")
+        
+        LogError("SettingsWindow", "Failed to show settings window: " . errorDetails)
         ShowOverlay("設定ウィンドウの表示に失敗しました", 3000)
     }
 }
@@ -101,7 +108,7 @@ LoadCurrentSettings() {
         
         LogDebug("SettingsWindow", "Settings loaded successfully")
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to load settings: " . e.Message)
         ShowOverlay("設定の読み込みに失敗しました", 3000)
     }
@@ -144,7 +151,7 @@ SaveSettings(*) {
         ; ウィンドウを閉じる
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to save settings: " . e.Message)
         ShowOverlay("設定の保存に失敗しました", 3000)
     }
@@ -165,7 +172,7 @@ ResetSettings(*) {
             LoadCurrentSettings()
             ShowOverlay("設定をリセットしました", 2000)
             LogInfo("SettingsWindow", "Settings reset to defaults")
-        } catch Error as e {
+        } catch as e {
             LogError("SettingsWindow", "Failed to reset settings: " . e.Message)
             ShowOverlay("設定のリセットに失敗しました", 3000)
         }
@@ -182,21 +189,25 @@ CloseSettingsWindow() {
         }
         g_settings_open := false
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Error closing settings window: " . e.Message)
     }
 }
 
 ; --- イベントハンドラー ---
-SettingsWindow_Resize(GuiObj, MinMax, Width, Height) {
+SettingsWindow_Resize(*) {
     ; ウィンドウリサイズ時の処理（将来の拡張用）
 }
 
-SettingsWindow_Close(GuiObj) {
+SettingsWindow_Close(*) {
     CloseSettingsWindow()
 }
 
-Tab_Change(GuiCtrlObj, Info) {
+Tab_Change(*) {
     ; タブ変更時の処理（将来の拡張用）
-    LogDebug("SettingsWindow", "Tab changed to: " . Info)
+    global g_settings_tab
+    if (IsSet(g_settings_tab)) {
+        currentTab := g_settings_tab.Value
+        LogDebug("SettingsWindow", "Tab changed to: " . currentTab)
+    }
 }

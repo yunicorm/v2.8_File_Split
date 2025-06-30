@@ -21,7 +21,7 @@ CreateSkillTab() {
     g_settings_gui.Add("Text", "x410 y85", "優先度")
     
     ; Group 1 (Skill_1_1 ~ Skill_1_5)
-    g_settings_gui.Add("Text", "x50 y110", "Group 1", "Bold")
+    g_settings_gui.Add("Text", "x50 y110", "Group 1")
     
     ; Skill_1_1
     g_settings_gui.Add("CheckBox", "x40 y130 vSkill_1_1_Enabled")
@@ -64,7 +64,7 @@ CreateSkillTab() {
     g_settings_gui.Add("DropDownList", "x410 y227 w60 vSkill_1_5_Priority", ["1", "2", "3", "4", "5"])
     
     ; Group 2 (Skill_2_1 ~ Skill_2_5)
-    g_settings_gui.Add("Text", "x50 y260", "Group 2", "Bold")
+    g_settings_gui.Add("Text", "x50 y260", "Group 2")
     
     ; Skill_2_1
     g_settings_gui.Add("CheckBox", "x40 y280 vSkill_2_1_Enabled")
@@ -200,7 +200,7 @@ LoadSkillSettings() {
         g_settings_gui["Wine_Interval"].Text := ConfigManager.Get("Wine", "WineInterval", "1000")
         g_settings_gui["Wine_DynamicTiming"].Checked := ConfigManager.Get("Wine", "DynamicTiming", true)
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillTab", "Failed to load skill settings: " . e.Message)
     }
 }
@@ -288,7 +288,7 @@ SaveSkillSettings() {
         ConfigManager.Set("Wine", "WineInterval", g_settings_gui["Wine_Interval"].Text)
         ConfigManager.Set("Wine", "DynamicTiming", g_settings_gui["Wine_DynamicTiming"].Checked)
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillTab", "Failed to save skill settings: " . e.Message)
         throw e
     }
@@ -302,7 +302,7 @@ UpdateSkillManagerConfig() {
         
         ; Group 1 スキルの設定を読み込み (Skill_1_1 ~ Skill_1_5)
         Loop 5 {
-            skillNum := A_Index
+    skillNum := A_Index
             skillId := "Skill_1_" . skillNum
             enabled := ConfigManager.Get("Skill", skillId . "_Enabled", false)
             
@@ -321,7 +321,7 @@ UpdateSkillManagerConfig() {
         
         ; Group 2 スキルの設定を読み込み (Skill_2_1 ~ Skill_2_5)
         Loop 5 {
-            skillNum := A_Index
+    skillNum := A_Index
             skillId := "Skill_2_" . skillNum
             enabled := ConfigManager.Get("Skill", skillId . "_Enabled", false)
             
@@ -352,7 +352,7 @@ UpdateSkillManagerConfig() {
             LogInfo("SkillTab", "Legacy SkillAutomation updated")
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillTab", "Failed to update SkillManager config: " . e.Message)
     }
 }

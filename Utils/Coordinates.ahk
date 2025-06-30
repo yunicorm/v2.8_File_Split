@@ -172,9 +172,9 @@ CreateGrid(x, y, width, height, rows, cols) {
     cellHeight := height / rows
     
     Loop rows {
-        row := A_Index - 1
+    row := A_Index - 1
         Loop cols {
-            col := A_Index - 1
+    col := A_Index - 1
             grid.Push({
                 row: row,
                 col: col,

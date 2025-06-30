@@ -31,7 +31,7 @@ ShowSettingsWindow() {
         
         LogInfo("SettingsWindow", "Settings window opened")
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to show settings window: " . e.Message)
         ShowOverlay("設定ウィンドウの表示に失敗しました", 3000)
     }
@@ -175,7 +175,7 @@ CreateSkillTab() {
     g_settings_gui.Add("Text", "x410 y85", "優先度")
     
     ; Group 1 (Skill_1_1 ~ Skill_1_5)
-    g_settings_gui.Add("Text", "x50 y110", "Group 1", "Bold")
+    g_settings_gui.Add("Text", "x50 y110", "Group 1")
     
     ; Skill_1_1
     g_settings_gui.Add("CheckBox", "x40 y130 vSkill_1_1_Enabled")
@@ -218,7 +218,7 @@ CreateSkillTab() {
     g_settings_gui.Add("DropDownList", "x410 y227 w60 vSkill_1_5_Priority", ["1", "2", "3", "4", "5"])
     
     ; Group 2 (Skill_2_1 ~ Skill_2_5)
-    g_settings_gui.Add("Text", "x50 y260", "Group 2", "Bold")
+    g_settings_gui.Add("Text", "x50 y260", "Group 2")
     
     ; Skill_2_1
     g_settings_gui.Add("CheckBox", "x40 y280 vSkill_2_1_Enabled")
@@ -544,7 +544,7 @@ LoadCurrentSettings() {
         
         LogDebug("SettingsWindow", "Settings loaded successfully")
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to load settings: " . e.Message)
         ShowOverlay("設定の読み込みに失敗しました", 3000)
     }
@@ -609,7 +609,7 @@ ValidateFlaskSettings(errors) {
     global g_settings_gui
     
     Loop 5 {
-        flaskNum := A_Index
+    flaskNum := A_Index
         if (g_settings_gui["Flask" . flaskNum . "_Enabled"].Checked) {
             key := Trim(g_settings_gui["Flask" . flaskNum . "_Key"].Text)
             if (key = "") {
@@ -961,7 +961,7 @@ SaveSettings(*) {
         ; ウィンドウを閉じる
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to save settings: " . e.Message)
         ShowOverlay("設定の保存に失敗しました", 3000)
     }
@@ -982,7 +982,7 @@ ResetSettings(*) {
             LoadCurrentSettings()
             ShowOverlay("設定をリセットしました", 2000)
             LogInfo("SettingsWindow", "Settings reset to defaults")
-        } catch Error as e {
+        } catch as e {
             LogError("SettingsWindow", "Failed to reset settings: " . e.Message)
             ShowOverlay("設定のリセットに失敗しました", 3000)
         }
@@ -999,7 +999,7 @@ CloseSettingsWindow() {
         }
         g_settings_open := false
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Error closing settings window: " . e.Message)
     }
 }
@@ -1061,7 +1061,7 @@ UpdateFlaskManagerConfig() {
         
         ; 各フラスコの設定を読み込み
         Loop 5 {
-            flaskNum := A_Index
+    flaskNum := A_Index
             enabled := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Enabled", false)
             
             if (enabled) {
@@ -1084,7 +1084,7 @@ UpdateFlaskManagerConfig() {
             LogWarn("SettingsWindow", "ConfigureFlasks function not available")
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to update FlaskManager config: " . e.Message)
     }
 }
@@ -1097,7 +1097,7 @@ UpdateSkillManagerConfig() {
         
         ; Group 1 スキルの設定を読み込み (Skill_1_1 ~ Skill_1_5)
         Loop 5 {
-            skillNum := A_Index
+    skillNum := A_Index
             skillId := "Skill_1_" . skillNum
             enabled := ConfigManager.Get("Skill", skillId . "_Enabled", false)
             
@@ -1116,7 +1116,7 @@ UpdateSkillManagerConfig() {
         
         ; Group 2 スキルの設定を読み込み (Skill_2_1 ~ Skill_2_5)
         Loop 5 {
-            skillNum := A_Index
+    skillNum := A_Index
             skillId := "Skill_2_" . skillNum
             enabled := ConfigManager.Get("Skill", skillId . "_Enabled", false)
             
@@ -1147,7 +1147,7 @@ UpdateSkillManagerConfig() {
             LogInfo("SettingsWindow", "Legacy SkillAutomation updated")
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to update SkillManager config: " . e.Message)
     }
 }
@@ -1169,7 +1169,7 @@ DetectResolution(*) {
         ShowOverlay(Format("解像度検出: {}x{}", width, height), 2000)
         LogInfo("SettingsWindow", Format("Resolution detected: {}x{}", width, height))
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to detect resolution: " . e.Message)
         ShowOverlay("解像度の検出に失敗しました", 2000)
     }
@@ -1184,7 +1184,7 @@ OpenLogFolder(*) {
         }
         Run(logPath)
         LogInfo("SettingsWindow", "Opened log folder: " . logPath)
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to open log folder: " . e.Message)
         ShowOverlay("ログフォルダを開けませんでした", 2000)
     }
@@ -1208,7 +1208,7 @@ ClearLogs(*) {
                 ShowOverlay("ログをクリアしました", 2000)
                 LogInfo("SettingsWindow", "Logs cleared")
             }
-        } catch Error as e {
+        } catch as e {
             LogError("SettingsWindow", "Failed to clear logs: " . e.Message)
             ShowOverlay("ログのクリアに失敗しました", 2000)
         }
@@ -1234,7 +1234,7 @@ GetManaPosition(*) {
         ShowOverlay(Format("マナ座標取得: X={}, Y={}", mouseX, mouseY), 3000)
         LogInfo("SettingsWindow", Format("Mana position captured: X={}, Y={}", mouseX, mouseY))
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to get mana position: " . e.Message)
         ShowOverlay("座標の取得に失敗しました", 2000)
     }
@@ -1256,7 +1256,7 @@ BrowseClientLog(*) {
             LogInfo("SettingsWindow", "Client.txt path selected: " . selectedFile)
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("SettingsWindow", "Failed to browse for Client.txt: " . e.Message)
     }
 }

@@ -12,39 +12,42 @@ GroupAdd("TargetWindows", "ahk_exe PathOfExileSteam.exe")
 GroupAdd("TargetWindows", "ahk_exe streaming_client.exe")
 
 ; === ユーティリティのインクルード（最初に読み込む） ===
-#Include "Utils\Logger.ahk"
-#Include "Utils\ConfigManager.ahk"
-#Include "Utils\ColorDetection.ahk"
-#Include "Utils\Coordinates.ahk"
-#Include "Utils\HotkeyValidator.ahk"
+#Include "Utils/ConfigManager.ahk"
+#Include "Utils/Logger.ahk"
+#Include "Utils/ColorDetection.ahk"
+#Include "Utils/Coordinates.ahk"
+#Include "Utils/HotkeyValidator.ahk"
+#Include "Utils/Validators.ahk"
 
 ; === UIのインクルード（ユーティリティの後） ===
-#Include "UI\Overlay.ahk"
-#Include "UI\StatusDisplay.ahk"
-#Include "UI\DebugDisplay.ahk"
-#Include "UI\SettingsWindow.ahk"
+#Include "UI/Overlay.ahk"
+#Include "UI/StatusDisplay.ahk"
+#Include "UI/DebugDisplay.ahk"
+#Include "UI/SettingsWindow.ahk"
 
 ; === 設定のインクルード ===
 #Include "Config.ahk"
 
 ; === コア機能のインクルード ===
-#Include "Core\TimerManager.ahk"
-#Include "Core\WindowManager.ahk"
+#Include "Core/TimerManager.ahk"
+#Include "Core/WindowManager.ahk"
 
 ; === 機能モジュールのインクルード ===
-#Include "Features\ManaMonitor.ahk"
-#Include "Features\TinctureManager.ahk"
-#Include "Features\FlaskManager.ahk"
-#Include "Features\SkillAutomation.ahk"
-#Include "Features\LoadingScreen.ahk"
-#Include "Features\ClientLogMonitor.ahk"
+#Include "Utils/FindText.ahk"
+#Include "Features/VisualDetection.ahk"
+#Include "Features/ManaMonitor.ahk"
+#Include "Features/TinctureManager.ahk"
+#Include "Features/FlaskManager.ahk"
+#Include "Features/SkillAutomation.ahk"
+#Include "Features/LoadingScreen.ahk"
+#Include "Features/ClientLogMonitor.ahk"
 
 ; === マクロコントローラーのインクルード ===
-#Include "Core\MacroController.ahk"
+#Include "Core/MacroController.ahk"
 
 ; === ホットキーのインクルード（最後に読み込む） ===
-#Include "Hotkeys\MainHotkeys.ahk"
-#Include "Hotkeys\DebugHotkeys.ahk"
+#Include "Hotkeys/MainHotkeys.ahk"
+#Include "Hotkeys/DebugHotkeys.ahk"
 
 ; === グローバル変数の追加初期化 ===
 global g_auto_start_enabled := false
@@ -99,6 +102,9 @@ try {
         ExitApp()
     }
     
+    ; Logger設定適用（ConfigManager初期化後）
+    ApplyLoggerConfig()
+    
     ; 設定の検証
     if (ConfigManager.HasMethod("ValidateConfig")) {
         ConfigManager.ValidateConfig()
@@ -132,7 +138,7 @@ try {
         g_auto_start_timer := SetTimer(TryAutoStart, -autoStartDelay)
     }
     
-} catch Error as e {
+} catch as e {
     errorMsg := Format("初期化エラー: {}`nFile: {}`nLine: {}", 
         e.Message, e.HasProp("File") ? e.File : "Unknown", e.HasProp("Line") ? e.Line : "Unknown")
     
@@ -173,7 +179,7 @@ TryAutoStart() {
             LogInfo("Main", "Macro auto-started after window became active")
             g_auto_start_enabled := false
             g_auto_start_attempts := 0
-        } catch Error as e {
+        } catch as e {
             LogError("Main", "Failed to auto-start macro: " . e.Message)
             ; エラーの場合は再試行
             SetTimer(TryAutoStart, -1000)
@@ -206,7 +212,7 @@ ExitHandler(reason, exitCode) {
         Sleep(100)
         
         LogInfo("Main", "Shutdown completed successfully")
-    } catch Error as e {
+    } catch as e {
         ; 終了処理中のエラーは無視
     }
     
@@ -277,7 +283,7 @@ StartMacro() {
         ShowOverlay("マクロ開始", 2000)
         LogInfo("Main", "Macro started successfully")
         
-    } catch Error as e {
+    } catch as e {
         ; 開始に失敗した場合は状態をリセット
         g_macro_active := false
         StopAllTimers()
@@ -309,7 +315,7 @@ StopMacro() {
         ShowOverlay("マクロ停止", 2000)
         LogInfo("Main", "Macro stopped successfully")
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("マクロ停止エラー: " . e.Message, 3000)
         LogError("Main", "Error while stopping macro: " . e.Message)
     }
@@ -343,7 +349,7 @@ ResetMacro() {
         
         LogInfo("Main", "Macro reset completed")
         
-    } catch Error as e {
+    } catch as e {
         ShowOverlay("マクロリセットエラー: " . e.Message, 3000)
         LogError("Main", "Failed to reset macro: " . e.Message)
         

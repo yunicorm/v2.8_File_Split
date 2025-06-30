@@ -72,7 +72,7 @@ StartManagedTimer(timerName, callback, period, priority := TimerPriority.NORMAL)
         
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("TimerManager", Format("Failed to start timer '{}': {}", timerName, e.Message))
         return false
     }
@@ -126,7 +126,7 @@ ExecuteTimerCallback(timerName, callback) {
             LogWarn("TimerManager", Format("Timer '{}' took {}ms to execute", timerName, executionTime))
         }
         
-    } catch Error as e {
+    } catch as e {
         g_timer_errors[timerName]++
         LogError("TimerManager", Format("Error in timer '{}' (errors: {}): {}", 
             timerName, g_timer_errors[timerName], e.Message))
@@ -205,7 +205,7 @@ StopManagedTimer(timerName) {
         LogDebug("TimerManager", Format("Timer '{}' stopped", timerName))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("TimerManager", Format("Failed to stop timer '{}': {}", timerName, e.Message))
         return false
     }
@@ -228,9 +228,9 @@ StopAllTimers() {
     
     ; 優先度でソート（降順）
     Loop sortedTimers.Length - 1 {
-        i := A_Index
+    i := A_Index
         Loop sortedTimers.Length - i {
-            j := A_Index + i
+    j := A_Index + i
             if (sortedTimers[i].priority < sortedTimers[j].priority) {
                 temp := sortedTimers[i]
                 sortedTimers[i] := sortedTimers[j]
@@ -328,9 +328,9 @@ ShowTimerDebugInfoDetailed() {
     
     ; 優先度でソート
     Loop activeTimers.Length - 1 {
-        i := A_Index
+    i := A_Index
         Loop activeTimers.Length - i {
-            j := A_Index + i
+    j := A_Index + i
             if (activeTimers[i].priority > activeTimers[j].priority) {
                 temp := activeTimers[i]
                 activeTimers[i] := activeTimers[j]

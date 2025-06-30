@@ -128,7 +128,7 @@ StartSkillTimer(skill, config) {
         LogDebug("SkillAutomation", Format("Started timer for skill '{}' with {}ms initial delay", 
             skill, initialDelay))
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillAutomation", Format("Failed to start skill timer '{}': {}", 
             skill, e.Message))
     }
@@ -169,7 +169,7 @@ ExecuteSkill(skill, config) {
         LogDebug("SkillAutomation", Format("Skill '{}' executed, next in {}ms", 
             skill, nextDelay))
         
-    } catch Error as e {
+    } catch as e {
         g_skill_stats[skill].errors++
         LogError("SkillAutomation", Format("Failed to execute skill '{}': {}", 
             skill, e.Message))
@@ -235,7 +235,7 @@ ExecuteWineOfProphet() {
         LogDebug("SkillAutomation", Format("Wine used at stage {} ({}s elapsed), next in {}ms", 
             stageInfo.stage, Round(elapsedTime/1000), nextDelay))
         
-    } catch Error as e {
+    } catch as e {
         g_skill_stats["4"].errors++
         LogError("SkillAutomation", "Failed to use Wine of Prophet: " . e.Message)
         
@@ -475,7 +475,7 @@ InitializeNewSkillSystem() {
             g_skill_configs.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillAutomation", "Failed to initialize new skill system: " . e.Message)
         return false
     }
@@ -541,7 +541,7 @@ ConfigureSkills(skillConfig) {
             skillConfig.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillAutomation", "Failed to configure skills: " . e.Message)
         return false
     }
@@ -573,7 +573,7 @@ StartNewSkillAutomation() {
             g_skill_configs.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillAutomation", "Failed to start new skill automation: " . e.Message)
         return false
     }

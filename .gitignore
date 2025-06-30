@@ -1,0 +1,20 @@
+# Logs
+logs/
+*.log
+*.txt
+*.tmp
+
+# Config backups
+*.bak
+*.backup
+
+# Temporary files
+temp/
+tmp/
+
+# Windows specific
+Thumbs.db
+Desktop.ini
+
+# AutoHotkey compiled executables
+*.exe

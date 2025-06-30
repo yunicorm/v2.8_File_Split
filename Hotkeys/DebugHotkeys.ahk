@@ -6,11 +6,17 @@
 #HotIf WinActive("ahk_group TargetWindows")
 
 ; ===================================================================
-; F11: マナ状態デバッグ表示
+; F11: 視覚的検出テスト (v2.9.4)
 ; ===================================================================
 F11:: {
-    ShowManaDebug()
-    LogInfo("DebugHotkeys", "F11 pressed - Mana debug displayed")
+    ; Visual Detection Test (v2.9.4)
+    if (IsVisualDetectionEnabled()) {
+        TestAllFlaskDetection()
+        LogInfo("DebugHotkeys", "F11 pressed - Visual detection test")
+    } else {
+        ShowManaDebug()  ; 従来の機能を維持
+        LogInfo("DebugHotkeys", "F11 pressed - Mana debug displayed")
+    }
 }
 
 ; ===================================================================
@@ -52,28 +58,11 @@ F10:: {
 }
 
 ; ===================================================================
-; F9: エリア検出デバッグ
+; F9: フラスコ座標設定モード
 ; ===================================================================
 F9:: {
-    global g_client_log_path, g_last_area_name
-    
-    ; Client.txt監視が有効な場合
-    if (ConfigManager.Get("ClientLog", "Enabled", true)) {
-        ; 最後のエリアエントリーを表示
-        ShowLastAreaEntry()
-        
-        debugInfo := []
-        debugInfo.Push("=== エリア検出デバッグ ===")
-        debugInfo.Push("ログパス: " . g_client_log_path)
-        debugInfo.Push("最後のエリア: " . g_last_area_name)
-        debugInfo.Push("ファイルサイズ: " . g_last_file_size)
-        
-        ShowMultiLineOverlay(debugInfo, 5000)
-    } else {
-        ShowOverlay("Client.txt監視が無効です", 2000)
-    }
-    
-    LogInfo("DebugHotkeys", "F9 pressed - Area detection debug")
+    StartFlaskPositionCapture()
+    LogInfo("DebugHotkeys", "F9 pressed - Flask position capture mode")
 }
 
 ; ===================================================================

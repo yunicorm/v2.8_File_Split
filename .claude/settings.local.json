@@ -5,7 +5,23 @@
       "Bash(grep:*)",
       "Bash(find:*)",
       "Bash(echo)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(cat:*)",
+      "Bash(sed:*)",
+      "Bash(/mnt/c/Program\\ Files/AutoHotkey/AutoHotkey.exe:*)",
+      "Bash(for i in {1..5})",
+      "Bash(do cp logs/macro_20250628_152035.old logs/macro_2025062$i_test.old)",
+      "Bash(done)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(touch:*)",
+      "Bash(rm:*)",
+      "Bash(python3:*)",
+      "Bash(cp:*)",
+      "Bash(git tag:*)",
+      "Bash(AutoHotkey:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }

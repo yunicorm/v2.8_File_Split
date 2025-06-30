@@ -25,7 +25,7 @@ try {
     ; スキル設定をテスト
     TestSkillConfiguration()
     
-} catch Error as e {
+} catch as e {
     MsgBox("テストエラー: " . e.Message, "エラー", "OK Icon!")
     LogError("SkillTest", "Test failed: " . e.Message)
 }

@@ -30,7 +30,7 @@ CheckManaRadialOptimized() {
         g_last_full_check_time := currentTime
         return CheckManaRadialDetailed()
         
-    } catch Error as e {
+    } catch as e {
         global g_mana_check_errors
         g_mana_check_errors++
         LogError("ManaMonitor", Format("Optimized mana check failed (errors: {}): {}", 
@@ -65,7 +65,7 @@ CheckManaQuick() {
         ; 3点中2点以上で青が検出されればマナありと判定
         return blueFound >= 2
         
-    } catch Error as e {
+    } catch as e {
         LogDebug("ManaMonitor", "Quick check failed: " . e.Message)
         return g_last_mana_state
     }
@@ -97,7 +97,7 @@ CheckManaRadialDetailed() {
         bottomY := g_mana_center_y + (g_mana_radius * ratio)
         
         Loop pointsPerLine {
-            xOffset := ((A_Index - 1) - (pointsPerLine - 1) / 2) * g_mana_radius * 0.4 / (pointsPerLine - 1)
+    xOffset := ((A_Index - 1) - (pointsPerLine - 1) / 2) * g_mana_radius * 0.4 / (pointsPerLine - 1)
             checkBatch.Push({
                 x: g_mana_center_x + xOffset,
                 y: bottomY,
@@ -114,7 +114,7 @@ CheckManaRadialDetailed() {
                 totalBlueFound++
             }
             totalPoints++
-        } catch Error as e {
+        } catch as e {
             LogDebug("ManaMonitor", Format("Pixel check failed at {},{}: {}", 
                 point.x, point.y, e.Message))
         }
@@ -236,7 +236,7 @@ MonitorMana() {
         
         g_last_mana_state := currentMana
         
-    } catch Error as e {
+    } catch as e {
         LogError("ManaMonitor", "Monitor cycle failed: " . e.Message)
         
         ; エラーが続く場合は監視間隔を延長

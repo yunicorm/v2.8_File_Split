@@ -3,6 +3,7 @@
 ; 共通ユーティリティ・ヘルパー関数・テスト機能
 ; ===================================================================
 
+
 ; --- ヘルパー関数: 配列を文字列に変換 ---
 Array2String(arr) {
     result := ""
@@ -45,7 +46,7 @@ ManualStopAllSkills() {
         LogInfo("SkillHelpers", Format("Manually stopped {} skill timers", stoppedCount))
         return stoppedCount
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillHelpers", "Failed to stop all skills: " . e.Message)
         return -1
     }
@@ -62,11 +63,11 @@ ValidateSkillConfig(skill, config) {
     
     ; 間隔設定のチェック（動的でない場合）
     if (!config.HasOwnProp("isDynamic") || !config.isDynamic) {
-        if (!config.HasOwnProp("minInterval") || !IsInteger(config.minInterval) || config.minInterval <= 0) {
+        if (!config.HasOwnProp("minInterval") || !IsValidInteger(config.minInterval) || config.minInterval <= 0) {
             errors.Push("minInterval must be a positive integer")
         }
         
-        if (!config.HasOwnProp("maxInterval") || !IsInteger(config.maxInterval) || config.maxInterval <= 0) {
+        if (!config.HasOwnProp("maxInterval") || !IsValidInteger(config.maxInterval) || config.maxInterval <= 0) {
             errors.Push("maxInterval must be a positive integer")
         }
         
@@ -79,7 +80,7 @@ ValidateSkillConfig(skill, config) {
     
     ; 優先度のチェック
     if (config.HasOwnProp("priority")) {
-        if (!IsInteger(config.priority) || config.priority < 1 || config.priority > 5) {
+        if (!IsValidInteger(config.priority) || config.priority < 1 || config.priority > 5) {
             errors.Push("priority must be an integer between 1 and 5")
         }
     }
@@ -97,7 +98,7 @@ SanitizeSkillConfig(config) {
     
     ; 基本プロパティをコピー
     for prop, value in config.OwnProps() {
-        sanitized.%prop% := value
+        sanitized[prop] := value
     }
     
     ; デフォルト値を設定
@@ -182,15 +183,6 @@ DumpSkillConfigurations() {
     return dump
 }
 
-; --- 整数チェックヘルパー ---
-IsInteger(value) {
-    try {
-        Integer(value)
-        return true
-    } catch {
-        return false
-    }
-}
 
 ; --- スキル名の正規化 ---
 NormalizeSkillName(skillName) {
@@ -231,7 +223,7 @@ BenchmarkSkillExecution(skill, iterations := 10) {
                 successCount++
             }
             Sleep(50)  ; 短い間隔で実行
-        } catch Error as e {
+        } catch as e {
             LogWarn("SkillHelpers", Format("Benchmark iteration {} failed: {}", A_Index, e.Message))
         }
     }

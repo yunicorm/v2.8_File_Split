@@ -212,7 +212,8 @@ GetDetailedSkillReport() {
     
     ; 優先度別詳細
     report.Push("=== Skills by Priority ===")
-    for priority := 1; priority <= 5; priority++ {
+    Loop 5 {
+    priority := A_Index
         skills := perfStats.skillsByPriority[priority]
         if (skills.Length > 0) {
             report.Push(Format("Priority {}: {} skills", priority, skills.Length))

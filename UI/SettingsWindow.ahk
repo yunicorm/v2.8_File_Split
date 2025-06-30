@@ -3,8 +3,8 @@
 ; 分割されたSettingsWindowモジュールの統合インクルード
 ; ===================================================================
 
-#Include UI/SettingsWindow/SettingsMain.ahk
-#Include UI/SettingsWindow/FlaskTab.ahk
-#Include UI/SettingsWindow/SkillTab.ahk
-#Include UI/SettingsWindow/GeneralTab.ahk
-#Include UI/SettingsWindow/SettingsValidation.ahk
+#Include "SettingsWindow/SettingsMain.ahk"
+#Include "SettingsWindow/FlaskTab.ahk"
+#Include "SettingsWindow/SkillTab.ahk"
+#Include "SettingsWindow/GeneralTab.ahk"
+#Include "SettingsWindow/SettingsValidation.ahk"

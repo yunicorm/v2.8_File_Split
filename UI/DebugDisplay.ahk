@@ -68,7 +68,7 @@ ShowManaDebug(*) {
         
         LogInfo("DebugDisplay", "Mana debug info displayed")
         
-    } catch Error as e {
+    } catch as e {
         LogError("DebugDisplay", "Failed to show mana debug: " . e.Message)
         ShowOverlay("マナデバッグ表示エラー", 2000)
     } finally {
@@ -94,7 +94,7 @@ GetManaDetectionDetails() {
         lineColors := []
         
         Loop 5 {
-            xOffset := (A_Index - 3) * g_mana_radius * 0.2
+    xOffset := (A_Index - 3) * g_mana_radius * 0.2
             checkX := g_mana_center_x + xOffset
             checkY := bottomY
             
@@ -119,7 +119,7 @@ GetManaDetectionDetails() {
                     isBlue: isBlue
                 })
                 
-            } catch Error as e {
+            } catch as e {
                 LogDebug("DebugDisplay", Format("Failed to check point at {},{}: {}", 
                     checkX, checkY, e.Message))
                 lineColors.Push({
@@ -204,7 +204,7 @@ ShowImprovedDetectionPoints() {
             
             ; 各ラインの5つの検出ポイント
             Loop 5 {
-                xOffset := (A_Index - 3) * g_mana_radius * 0.2
+    xOffset := (A_Index - 3) * g_mana_radius * 0.2
                 checkX := g_mana_center_x + xOffset
                 checkY := lineY
                 
@@ -231,7 +231,7 @@ ShowImprovedDetectionPoints() {
         )
         debugGuis.Push({gui: infoGui, type: "info"})
         
-    } catch Error as e {
+    } catch as e {
         LogError("DebugDisplay", "Failed to show detection points: " . e.Message)
     }
 }

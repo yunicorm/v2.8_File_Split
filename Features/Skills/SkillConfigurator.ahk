@@ -109,7 +109,7 @@ InitializeNewSkillSystem() {
             g_skill_configs.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillConfigurator", "Failed to initialize new skill system: " . e.Message)
         return false
     }
@@ -175,7 +175,7 @@ ConfigureSkills(skillConfig) {
             skillConfig.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillConfigurator", "Failed to configure skills: " . e.Message)
         return false
     }

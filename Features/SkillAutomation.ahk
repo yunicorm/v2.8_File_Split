@@ -3,8 +3,8 @@
 ; 分割されたSkillAutomationモジュールの統合インクルード
 ; ===================================================================
 
-#Include Features/Skills/SkillController.ahk
-#Include Features/Skills/SkillConfigurator.ahk
-#Include Features/Skills/WineManager.ahk
-#Include Features/Skills/SkillStatistics.ahk
-#Include Features/Skills/SkillHelpers.ahk
+#Include "Skills/SkillController.ahk"
+#Include "Skills/SkillConfigurator.ahk"
+#Include "Skills/WineManager.ahk"
+#Include "Skills/SkillStatistics.ahk"
+#Include "Skills/SkillHelpers.ahk"

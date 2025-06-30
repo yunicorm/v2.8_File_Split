@@ -59,7 +59,7 @@ CheckLoadingScreenGGG() {
                 if (IsDarkColor(color, darkThreshold)) {
                     darkCount++
                 }
-            } catch Error as e {
+            } catch as e {
                 LogDebug("LoadingScreen", Format("Failed to check point {}: {}", 
                     point.name, e.Message))
                 darkCount++  ; エラー時は暗いとみなす
@@ -79,7 +79,7 @@ CheckLoadingScreenGGG() {
             HandleLoadingScreenExit()
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("LoadingScreen", "Detection cycle failed: " . e.Message)
     }
 }
@@ -97,7 +97,7 @@ HandleLoadingScreenEnter() {
         try {
             ToggleMacro()  ; マクロをオフにする
             LogInfo("LoadingScreen", "Loading screen detected - macro paused")
-        } catch Error as e {
+        } catch as e {
             LogError("LoadingScreen", "Failed to pause macro: " . e.Message)
         }
     }
@@ -142,7 +142,7 @@ CheckUIElementsVisible() {
         ; どちらかのオーブが見える明度なら、UIは表示されている
         return (manaB > 30 || healthB > 30)
         
-    } catch Error as e {
+    } catch as e {
         LogError("LoadingScreen", "UI visibility check failed: " . e.Message)
         return false  ; エラー時はUIが見えないとみなす
     }
@@ -181,7 +181,7 @@ WaitForUserInput() {
                 return
             }
         }
-    } catch Error as e {
+    } catch as e {
         LogError("LoadingScreen", "Input detection failed: " . e.Message)
     }
 }
@@ -209,7 +209,7 @@ StartMacroAfterInput() {
             ToggleMacro()
             g_was_macro_active_before_loading := false
             LogInfo("LoadingScreen", "Macro restarted after user input")
-        } catch Error as e {
+        } catch as e {
             LogError("LoadingScreen", "Failed to restart macro: " . e.Message)
             ShowOverlay("マクロ開始エラー", 2000)
         }

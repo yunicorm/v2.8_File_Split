@@ -28,7 +28,7 @@ CheckWindowStatusLegacy() {
                 ; Hide失敗は無視
             }
         }
-    } catch Error as e {
+    } catch as e {
         LogError("WindowManager", "Error in CheckWindowStatus: " . e.Message)
     }
 }
@@ -50,7 +50,7 @@ ShowStatusWindow() {
         
         statusGui.Show("x" . statusX . " y" . statusY . " w" . statusWidth . " h" . statusHeight . " NoActivate NA")
         
-    } catch Error as e {
+    } catch as e {
         LogError("WindowManager", "Failed to show status window: " . e.Message)
     }
 }
@@ -70,7 +70,7 @@ CheckTinctureCooldownDisplay() {
                 g_status_update_needed := true
             }
         }
-    } catch Error as e {
+    } catch as e {
         LogError("WindowManager", "Tincture cooldown display error: " . e.Message)
     }
 }
@@ -79,7 +79,7 @@ CheckTinctureCooldownDisplay() {
 IsTargetWindowActive() {
     try {
         return WinActive("ahk_group TargetWindows")
-    } catch Error as e {
+    } catch as e {
         LogError("WindowManager", "Window check failed: " . e.Message)
         return false
     }
@@ -101,7 +101,7 @@ GetTargetWindowInfo() {
                 hwnd: WinGetID("A")
             }
         }
-    } catch Error as e {
+    } catch as e {
         LogError("WindowManager", "Failed to get window info: " . e.Message)
     }
     
@@ -121,7 +121,7 @@ GetWindowCoordinates() {
     try {
         WinGetPos(&x, &y, &w, &h, "A")
         return {x: x, y: y, width: w, height: h}
-    } catch Error as e {
+    } catch as e {
         LogError("WindowManager", "Failed to get window coordinates: " . e.Message)
         return {x: 0, y: 0, width: 0, height: 0}
     }
@@ -174,7 +174,7 @@ GetMonitorInfo() {
             height: bottom - top
         }
         
-    } catch Error as e {
+    } catch as e {
         LogError("WindowManager", "Failed to get monitor info: " . e.Message)
         
         ; エラー時のデフォルト値

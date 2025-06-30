@@ -64,7 +64,7 @@ StartClientLogMonitoring() {
         
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("ClientLogMonitor", "Failed to start monitoring: " . e.Message)
         CloseLogFile()
         return false
@@ -152,7 +152,7 @@ CheckClientLog() {
         ; エラーカウントをリセット
         g_monitor_errors := 0
         
-    } catch Error as e {
+    } catch as e {
         g_monitor_errors++
         LogError("ClientLogMonitor", Format("Log check failed (errors: {}): {}", 
             g_monitor_errors, e.Message))
@@ -195,7 +195,7 @@ ReadNewLogEntries(startPos, endPos) {
         
         return newData
         
-    } catch Error as e {
+    } catch as e {
         LogError("ClientLogMonitor", "Failed to read log entries: " . e.Message)
         return ""
     }
@@ -451,7 +451,7 @@ ReopenClientLogFile() {
             g_monitor_errors := 0
             LogInfo("ClientLogMonitor", "Log file reopened successfully")
         }
-    } catch Error as e {
+    } catch as e {
         LogError("ClientLogMonitor", "Failed to reopen log file: " . e.Message)
     }
 }

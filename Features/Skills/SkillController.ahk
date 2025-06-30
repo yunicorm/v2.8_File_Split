@@ -53,7 +53,7 @@ StartNewSkillAutomation() {
             g_skill_configs.Count))
         return true
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillAutomation", "Failed to start new skill automation: " . e.Message)
         return false
     }
@@ -98,7 +98,7 @@ StartSkillTimer(skill, config) {
         LogDebug("SkillController", Format("Started timer for skill '{}' with {}ms initial delay", 
             skill, initialDelay))
         
-    } catch Error as e {
+    } catch as e {
         LogError("SkillController", Format("Failed to start skill timer '{}': {}", 
             skill, e.Message))
     }
@@ -139,7 +139,7 @@ ExecuteSkill(skill, config) {
         LogDebug("SkillController", Format("Skill '{}' executed, next in {}ms", 
             skill, nextDelay))
         
-    } catch Error as e {
+    } catch as e {
         g_skill_stats[skill].errors++
         LogError("SkillController", Format("Failed to execute skill '{}': {}", 
             skill, e.Message))

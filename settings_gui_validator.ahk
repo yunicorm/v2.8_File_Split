@@ -22,7 +22,7 @@ try {
     ValidateGUIImplementation()
     ShowValidationResults()
     
-} catch Error as e {
+} catch as e {
     MsgBox("検証エラー: " . e.Message, "エラー", "OK Icon!")
 }
 
@@ -81,7 +81,7 @@ CheckConfigStructure() {
         ; 重要な設定値確認
         CheckCriticalSettings()
         
-    } catch Error as e {
+    } catch as e {
         AddError("❌ Config.ini読み込みエラー: " . e.Message)
     }
 }
@@ -90,13 +90,13 @@ CheckConfigStructure() {
 CheckCriticalSettings() {
     ; フラスコ設定
     Loop 5 {
-        flaskNum := A_Index
+    flaskNum := A_Index
         enabled := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Enabled", "false")
         key := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Key", "")
         minVal := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Min", "0")
         maxVal := ConfigManager.Get("Flask", "Flask" . flaskNum . "_Max", "0")
         
-        if (key != "" && IsInteger(minVal) && IsInteger(maxVal)) {
+        if (key != "" && IsValidInteger(minVal) && IsValidInteger(maxVal)) {
             AddResult("✅ Flask" . flaskNum . " 設定正常")
         } else {
             AddError("❌ Flask" . flaskNum . " 設定に問題: Key=" . key . ", Min=" . minVal . ", Max=" . maxVal)
@@ -120,7 +120,7 @@ CheckCriticalSettings() {
     centerY := ConfigManager.Get("Mana", "CenterY", "0")
     radius := ConfigManager.Get("Mana", "Radius", "0")
     
-    if (IsInteger(centerX) && IsInteger(centerY) && IsInteger(radius)) {
+    if (IsValidInteger(centerX) && IsValidInteger(centerY) && IsValidInteger(radius)) {
         AddResult("✅ マナ設定正常: " . centerX . "," . centerY . " 半径:" . radius)
     } else {
         AddError("❌ マナ設定に問題: X=" . centerX . ", Y=" . centerY . ", R=" . radius)
@@ -162,7 +162,7 @@ CheckConfigValues() {
     
     for check in checks {
         value := ConfigManager.Get(check.section, check.key, "0")
-        if (IsInteger(value)) {
+        if (IsValidInteger(value)) {
             intValue := Integer(value)
             if (intValue >= check.min && intValue <= check.max) {
                 AddResult("✅ " . check.section . "." . check.key . " = " . value . " (範囲内)")
@@ -240,12 +240,3 @@ ShowValidationResults() {
     LogInfo("GUIValidator", "=== GUI Validation Completed ===")
 }
 
-; 整数チェック関数
-IsInteger(value) {
-    try {
-        Integer(value)
-        return true
-    } catch {
-        return false
-    }
-}

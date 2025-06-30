@@ -33,7 +33,7 @@ try {
     RunSplitTests()
     ShowTestResults()
     
-} catch Error as e {
+} catch as e {
     MsgBox("テストエラー: " . e.Message, "エラー", "OK Icon!")
     LogError("SettingsSplitTest", "Test failed: " . e.Message)
 }
@@ -98,7 +98,7 @@ TestBasicOperation() {
             return
         }
         
-    } catch Error as e {
+    } catch as e {
         FailTest("基本動作テストでエラー: " . e.Message)
     }
 }
@@ -141,7 +141,7 @@ TestSettingsLoad() {
             FailTest("Skill_1_1_Nameコントロールが見つかりません")
         }
         
-    } catch Error as e {
+    } catch as e {
         FailTest("設定読み込みテストでエラー: " . e.Message)
     }
 }
@@ -191,7 +191,7 @@ TestSettingsSave() {
         SaveSkillSettings()
         ConfigManager.Save()
         
-    } catch Error as e {
+    } catch as e {
         FailTest("設定保存テストでエラー: " . e.Message)
     }
 }
@@ -225,7 +225,7 @@ TestErrorHandling() {
             FailTest("ウィンドウを閉じることができませんでした")
         }
         
-    } catch Error as e {
+    } catch as e {
         FailTest("エラーハンドリングテストでエラー: " . e.Message)
     }
 }
@@ -265,7 +265,7 @@ TestValidation() {
         
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         FailTest("検証機能テストでエラー: " . e.Message)
     }
 }

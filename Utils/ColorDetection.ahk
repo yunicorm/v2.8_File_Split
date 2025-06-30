@@ -73,7 +73,7 @@ SafePixelGetColor(x, y, mode := "RGB") {
         
         return color
         
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", Format("Failed to get pixel at {},{}: {}", 
             x, y, e.Message))
         
@@ -115,7 +115,7 @@ GetColorBrightness(color) {
         ; 明度を計算（0-255の範囲）
         ; 人間の目の感度を考慮した重み付け
         return Round((r * 0.299 + g * 0.587 + b * 0.114))
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Brightness calculation failed: " . e.Message)
         return 0
     }
@@ -129,7 +129,7 @@ GetRGB(color) {
             g: (color >> 8) & 0xFF,
             b: color & 0xFF
         }
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "RGB extraction failed: " . e.Message)
         return {r: 0, g: 0, b: 0}
     }
@@ -185,7 +185,7 @@ CalculateColorSimilarity(color1, color2, method := "euclidean") {
             default:
                 return CalculateEuclideanSimilarity(color1, color2)
         }
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Similarity calculation failed: " . e.Message)
         return 0
     }
@@ -242,7 +242,7 @@ IsColorInRange(color, targetColor, tolerance := 10) {
             Abs(rgb.g - target.g) <= tolerance &&
             Abs(rgb.b - target.b) <= tolerance
         )
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Range check failed: " . e.Message)
         return false
     }
@@ -259,7 +259,7 @@ IsBlueColor(color, threshold := 40, dominance := 20) {
             rgb.b > rgb.r + dominance && 
             rgb.b > rgb.g + dominance
         )
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Blue color check failed: " . e.Message)
         return false
     }
@@ -282,7 +282,7 @@ IsGoldBrownColor(color) {
         
         return (isGoldHue && hasSaturation && hasBrightness) || rgbCheck
         
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Gold/brown color check failed: " . e.Message)
         return false
     }
@@ -298,7 +298,7 @@ IsDarkColor(color, threshold := 50) {
 ColorToHex(color) {
     try {
         return Format("0x{:06X}", color & 0xFFFFFF)
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Hex conversion failed: " . e.Message)
         return "0x000000"
     }
@@ -319,7 +319,7 @@ HexToColor(hexStr) {
         }
         
         return Integer("0x" . hexStr)
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Hex parsing failed: " . e.Message)
         return 0x000000
     }
@@ -371,7 +371,7 @@ AverageColors(colors, weights := "") {
         
         return (avgR << 16) | (avgG << 8) | avgB
         
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Color averaging failed: " . e.Message)
         return 0
     }
@@ -446,7 +446,7 @@ GetDominantColor(x, y, width, height, sampleRate := 5) {
         
         return dominantColor
         
-    } catch Error as e {
+    } catch as e {
         LogError("ColorDetection", "Dominant color detection failed: " . e.Message)
         return 0x000000
     }
@@ -464,7 +464,7 @@ FormatColorInfo(color) {
             rgb.r, rgb.g, rgb.b,
             hsv.h, hsv.s, hsv.v,
             brightness, hex)
-    } catch Error as e {
+    } catch as e {
         return "Color info unavailable: " . e.Message
     }
 }

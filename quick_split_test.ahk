@@ -41,7 +41,7 @@ try {
     MsgBox("✅ クイック確認完了`n`n全ての基本機能が正常に動作します。`n`n詳細なテストは手動で実行してください。", "成功", "OK Icon*")
     LogInfo("QuickTest", "✅ クイック確認完了 - 全て正常")
     
-} catch Error as e {
+} catch as e {
     errorMsg := "❌ クイック確認でエラーが発生:`n`n" . e.Message
     if (e.HasProp("Line")) {
         errorMsg .= "`n行番号: " . e.Line
@@ -141,7 +141,7 @@ TestWindowCreation() {
         CloseSettingsWindow()
         LogInfo("QuickTest", "✅ CloseSettingsWindow()実行成功")
         
-    } catch Error as e {
+    } catch as e {
         throw Error("ウィンドウ作成テストに失敗: " . e.Message)
     }
 }
@@ -186,7 +186,7 @@ TestSettingsLoad() {
         
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         throw Error("設定読み込み関数テストに失敗: " . e.Message)
     }
 }
@@ -216,7 +216,7 @@ TestValidationFunctions() {
         
         CloseSettingsWindow()
         
-    } catch Error as e {
+    } catch as e {
         throw Error("検証関数テストに失敗: " . e.Message)
     }
 }

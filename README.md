@@ -1,16 +1,22 @@
-# Path of Exile マクロ v2.9.2
+# Path of Exile マクロ v2.9.3
 
 ## 概要
 
 このマクロは、Path of Exileにおける特定のビルド（Wine of the Prophet使用）向けに最適化された自動化ツールです。マナ管理、スキル自動実行、フラスコ管理などを統合的に制御します。
 
-**v2.9.2の主な改善点**：
-- **完全なエラーハンドリング**: 全主要機能にtry-catch実装、堅牢性の大幅向上
-- **拡張フラスコ管理システム**: カスタムフラスコ設定、チャージ管理、条件付き使用対応
-- **Tincture管理の強化**: 詳細な統計情報、使用履歴、検証方法の拡張
-- **スキル自動化の改善**: タイミング管理強化、Wine of the Prophetのステージ管理改善
-- **パフォーマンス最適化**: 実行時間計測、タイマー優先度管理、メモリ効率化
-- **グラフィカル設定GUI**: 全設定を視覚的に管理できる新しいGUIシステム
+**✅ AutoHotkey v2 完全対応済み**
+
+**v2.9.3の主な改善点**：
+- **AutoHotkey v2 完全移行**: v1.1→v2構文変換完了、安定性向上
+- **大規模モジュール分割**: 保守性と拡張性を大幅向上
+  - SettingsWindow → 5ファイル分割（タブ別UI管理）
+  - SkillAutomation → 5ファイル分割（機能別責任分離）
+  - FlaskManager → 5ファイル分割（チャージ管理・条件判定強化）
+- **新機能の大幅追加**:
+  - 15種類の条件判定関数（健康状態、戦闘状態、デバフ検出）
+  - 強化された統計・分析機能（効率レポート、履歴管理）
+  - 3つの設定プリセット（basic/full_auto/combat）
+- **コードベース最適化**: 1,182行 → 5モジュールによる機能分離
 
 ## 主要機能と動作原理
 
@@ -164,6 +170,25 @@ ConfigureFlasks(flaskConfig)
 - **エラー管理**: エラー率が高いタイマーの自動停止
 - **一時停止/再開**: 個別タイマーの制御
 
+## 動作環境
+
+### 必要なソフトウェア
+- **AutoHotkey v2.0+** (v2.9.3で完全対応)
+- **Path of Exile** (Steam版 / Standalone版対応)
+- **Windows 10/11** (3440x1440推奨、他解像度も自動スケーリング)
+
+### ゲーム設定要件
+- **Always Show Mana Cost**: OFF必須
+- **UI Scale**: 100%推奨
+- **Client.txt**: ログ出力有効化
+
+### インストール方法
+1. AutoHotkey v2.0+をインストール
+2. リポジトリをクローンまたはダウンロード
+3. `Main.ahk`をダブルクリックで実行
+4. 初回起動時に`Config.ini`が自動生成
+5. `Ctrl+Shift+S`で設定ウィンドウを開いて調整
+
 ## 想定される動作フロー
 
 ### マップ開始時
@@ -204,20 +229,40 @@ PoE-Macro/
 ├── Features/                   # 機能別モジュール
 │   ├── ManaMonitor.ahk        # マナ監視システム
 │   ├── TinctureManager.ahk    # Tincture管理（統計機能付き）
-│   ├── FlaskManager.ahk       # フラスコ自動化（拡張版）
-│   ├── SkillAutomation.ahk    # スキル自動化（エラー処理強化）
+│   ├── FlaskManager.ahk       # フラスコ管理統合（→5ファイル分割）
+│   │   └── Flask/             # フラスコ管理モジュール（v2.9.3新規）
+│   │       ├── FlaskController.ahk     # 制御・タイマー管理（328行）
+│   │       ├── FlaskChargeManager.ahk  # チャージ管理・計算（269行）
+│   │       ├── FlaskConditions.ahk     # 条件判定・ヘルパー（266行）
+│   │       ├── FlaskConfiguration.ahk  # 設定管理・プリセット（468行）
+│   │       └── FlaskStatistics.ahk     # 統計・履歴管理（335行）
+│   ├── SkillAutomation.ahk    # スキル管理統合（→5ファイル分割）
+│   │   └── Skills/            # スキル管理モジュール（v2.9.3新規）
+│   │       ├── SkillController.ahk     # メイン制御・タイマー管理（255行）
+│   │       ├── SkillConfigurator.ahk   # 設定読み込み・初期化（181行）
+│   │       ├── WineManager.ahk         # Wine専用管理（191行）
+│   │       ├── SkillStatistics.ahk     # 統計・監視機能（302行）
+│   │       └── SkillHelpers.ahk        # ヘルパー・テスト機能（253行）
 │   ├── LoadingScreen.ahk      # ロード画面検出
 │   └── ClientLogMonitor.ahk   # ログベースエリア検出
 ├── UI/                         # UI関連
 │   ├── Overlay.ahk            # オーバーレイ表示
 │   ├── StatusDisplay.ahk      # ステータス表示
-│   └── DebugDisplay.ahk       # デバッグ表示
+│   ├── DebugDisplay.ahk       # デバッグ表示
+│   └── SettingsWindow.ahk     # 設定GUI統合（→5ファイル分割）
+│       └── SettingsWindow/    # 設定GUI モジュール（v2.9.3新規）
+│           ├── SettingsMain.ahk        # メインウィンドウ・制御（320行）
+│           ├── FlaskTab.ahk            # フラスコタブUI（280行）
+│           ├── SkillTab.ahk            # スキルタブUI（290行）
+│           ├── GeneralTab.ahk          # 一般タブUI（250行）
+│           └── SettingsValidation.ahk  # 設定検証・エラー処理（180行）
 ├── Utils/                      # ユーティリティ
 │   ├── ConfigManager.ahk      # 設定ファイル管理
 │   ├── HotkeyValidator.ahk    # ホットキー検証
 │   ├── ColorDetection.ahk     # 色検出関数
 │   ├── Coordinates.ahk        # 座標計算
-│   └── Logger.ahk             # ログ機能
+│   ├── Logger.ahk             # ログ機能
+│   └── PerformanceMonitor.ahk # パフォーマンス監視
 ├── Hotkeys/                    # ホットキー定義
 │   ├── MainHotkeys.ahk        # メインホットキー
 │   └── DebugHotkeys.ahk       # デバッグ用ホットキー
@@ -563,9 +608,37 @@ duration := EndPerfTimer("MyFunction", "ModuleName")
 ; durationには実行時間（ミリ秒）が返される
 ```
 
+### 詳細技術仕様
+
+より詳細な技術情報については、`/docs/technical-specs/` ディレクトリを参照してください：
+- 内部実装の詳細
+- データ構造の完全な仕様
+- エラーハンドリングパターン
+- その他の技術的詳細
+
+これらのドキュメントは、マクロの拡張や大規模な改修を行う開発者向けです。
+
 ## 更新履歴
 
-### v2.9.2（2024年最新）
+### v2.9.3（2024年最新）
+- **大規模モジュール分割によるリファクタリング**：
+  - SettingsWindow.ahk → 5ファイル分割（1,320行→タブ別UI管理）
+  - SkillAutomation.ahk → 5ファイル分割（1,182行→機能別責任分離）
+  - FlaskManager.ahk → 5ファイル分割（674行→チャージ管理・条件判定強化）
+- **新しいユーティリティモジュール**:
+  - Utils/Validators.ahk追加（共通検証関数を一元管理）
+  - 重複関数定義の解決（IsValidIntegerの統合）
+- **AutoHotkey v2構文への完全準拠**:
+  - C言語スタイルfor文の修正（Loop構文への変換）
+  - 関数名衝突の解決（IsInteger → IsValidInteger）
+  - オブジェクトリテラル構文の修正（引用符付きプロパティ名）
+  - インクルードパスの相対パス問題解決
+- **保守性・拡張性の大幅向上**：
+  - 各モジュール180-468行の管理しやすいサイズ
+  - 明確な責任分離による単体テスト可能
+  - 新機能追加が容易な構造
+
+### v2.9.2
 - **エラーハンドリング全面強化**：
   - 全主要関数にtry-catch実装
   - エラー時の自動リカバリー機能
