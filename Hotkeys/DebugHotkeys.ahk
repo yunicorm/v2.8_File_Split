@@ -245,30 +245,32 @@ ResetMacroState() {
 }
 
 ; ===================================================================
-; Alt+F10: 視覚検出を強制的に有効化
+; Alt+F10: 視覚検出を強制的に有効化して保存
 ; ===================================================================
 !F10:: {
     try {
-        ; Config.iniを更新
+        ; Config.iniに保存
         ConfigManager.Set("VisualDetection", "Enabled", true)
+        
+        ; ファイルに強制的に書き込み
+        ConfigManager.Save()
         
         ; 再初期化
         InitializeVisualDetection()
         
-        Sleep(500)  ; 初期化待ち
+        Sleep(500)
         
-        ; 状態確認
+        ; 診断情報表示
         if (IsVisualDetectionEnabled()) {
-            ShowOverlay("視覚検出を有効化しました", 2000)
-            LogInfo("DebugHotkeys", "Visual detection force enabled successfully")
+            ShowOverlay("視覚検出を有効化しました（保存済み）", 2000)
+            LogInfo("DebugHotkeys", "Visual detection enabled and saved")
         } else {
             ShowOverlay("有効化に失敗しました", 2000)
             LogError("DebugHotkeys", "Failed to enable visual detection")
         }
         
     } catch as e {
-        LogError("DebugHotkeys", "Force enable failed: " . e.Message)
-        ShowOverlay("エラー: " . e.Message, 3000)
+        LogError("DebugHotkeys", "Alt+F10 error: " . e.Message)
     }
 }
 

@@ -15,8 +15,8 @@ global g_visual_detection_state := Map(
 ; Flask overlay capture globals
 global g_flask_overlay_gui := ""
 global g_current_flask_index := 1
-global g_flask_rect_width := 60
-global g_flask_rect_height := 100
+global g_flask_rect_width := 80   ; 60→80（画像の幅に合わせて）
+global g_flask_rect_height := 120 ; 100→120（画像の高さに合わせて）
 
 ; 複数フラスコオーバーレイ管理
 global g_flask_overlay_guis := []
@@ -57,26 +57,36 @@ CanPerformDetection() {
 ; Initialize default visual detection configuration
 InitializeDefaultVisualDetectionConfig() {
     try {
-        LogInfo("VisualDetection", "Initializing default visual detection configuration")
+        LogInfo("VisualDetection", "Checking visual detection configuration")
         
-        ; Default configuration values for [VisualDetection] section
+        ; デフォルト値のマップ
         defaults := Map(
             "Enabled", "false",
             "DetectionMode", "Timer",
             "Flask1X", "0",
-            "Flask1Y", "0", 
+            "Flask1Y", "0",
+            "Flask1Width", "80",
+            "Flask1Height", "120",
             "Flask1ChargedPattern", "",
             "Flask2X", "0",
             "Flask2Y", "0",
+            "Flask2Width", "80",
+            "Flask2Height", "120",
             "Flask2ChargedPattern", "",
             "Flask3X", "0", 
             "Flask3Y", "0",
+            "Flask3Width", "80",
+            "Flask3Height", "120",
             "Flask3ChargedPattern", "",
             "Flask4X", "0",
-            "Flask4Y", "0", 
+            "Flask4Y", "0",
+            "Flask4Width", "80",
+            "Flask4Height", "120",
             "Flask4ChargedPattern", "",
             "Flask5X", "0",
             "Flask5Y", "0",
+            "Flask5Width", "80",
+            "Flask5Height", "120",
             "Flask5ChargedPattern", "",
             "DetectionTimeout", "1000",
             "SearchAreaSize", "25",
@@ -92,19 +102,23 @@ InitializeDefaultVisualDetectionConfig() {
             "Flask5Name", "Unique Flask"
         )
         
-        ; Set defaults if section doesn't exist
+        ; 既存の値がない場合のみ設定
         for key, value in defaults {
             if (!ConfigManager.HasKey("VisualDetection", key)) {
                 ConfigManager.Set("VisualDetection", key, value)
                 LogDebug("VisualDetection", "Set default " . key . " = " . value)
+            } else {
+                ; 既存の値を保持
+                existingValue := ConfigManager.Get("VisualDetection", key, "")
+                LogDebug("VisualDetection", "Keeping existing " . key . " = " . existingValue)
             }
         }
         
-        LogInfo("VisualDetection", "Default configuration initialized successfully")
+        LogInfo("VisualDetection", "Configuration check completed successfully")
         return true
         
     } catch as e {
-        LogError("VisualDetection", "Failed to initialize default config: " . e.Message)
+        LogError("VisualDetection", "Failed to check config: " . e.Message)
         return false
     }
 }
@@ -174,25 +188,24 @@ DetectFlaskCharge(flaskNumber) {
         ; Update last detection time
         g_visual_detection_state["last_detection_time"] := A_TickCount
         
-        ; Get flask position from config
-        xPos := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "X", 0)
-        yPos := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "Y", 0)
+        ; Get flask position and dimensions from config
+        centerX := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "X", 0)
+        centerY := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "Y", 0)
+        width := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "Width", 80)
+        height := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "Height", 120)
         
-        if (xPos == 0 || yPos == 0) {
+        if (centerX == 0 || centerY == 0) {
             LogError("VisualDetection", "Flask" . flaskNumber . " position not configured")
             return -1
         }
         
-        ; Get search area size from config
-        searchSize := ConfigManager.Get("VisualDetection", "SearchAreaSize", 25)
+        ; Calculate charge detection area (upper 1/3 of flask)
+        searchArea := CalculateChargeDetectionArea(centerX, centerY, width, height)
         
-        ; Define search area around flask position
-        searchArea := Map(
-            "left", xPos - searchSize,
-            "top", yPos - searchSize,
-            "right", xPos + searchSize,
-            "bottom", yPos + searchSize
-        )
+        if (searchArea.Count == 0) {
+            LogError("VisualDetection", "Failed to calculate search area for Flask" . flaskNumber)
+            return -1
+        }
         
         ; Check if flask has charges
         result := DetectFlaskChargeInternal(searchArea, flaskNumber)
@@ -201,7 +214,9 @@ DetectFlaskCharge(flaskNumber) {
         g_visual_detection_state["detection_results"][flaskNumber] := Map(
             "result", result,
             "timestamp", A_TickCount,
-            "position", Map("x", xPos, "y", yPos)
+            "position", Map("x", centerX, "y", centerY),
+            "dimensions", Map("width", width, "height", height),
+            "search_area", searchArea
         )
         
         LogDebug("VisualDetection", "Flask" . flaskNumber . " charge detection result: " . result)
@@ -210,6 +225,56 @@ DetectFlaskCharge(flaskNumber) {
     } catch as e {
         LogError("VisualDetection", "Flask charge detection failed for Flask" . flaskNumber . ": " . e.Message)
         return -1
+    }
+}
+
+; Calculate charge detection area (upper 60% of flask - liquid part)
+CalculateChargeDetectionArea(centerX, centerY, width, height) {
+    try {
+        halfWidth := width // 2
+        halfHeight := height // 2
+        
+        ; チャージ検出エリア（液体部分：上部60%、枠を除外）
+        chargeArea := Map(
+            "left", centerX - halfWidth + 5,    ; 枠を除外
+            "top", centerY - halfHeight + 5,     
+            "right", centerX + halfWidth - 5,
+            "bottom", centerY - height // 6    ; 上部60%まで
+        )
+        
+        LogDebug("VisualDetection", Format("Charge area calculated (liquid 60%): {},{} to {},{}", 
+            chargeArea["left"], chargeArea["top"], chargeArea["right"], chargeArea["bottom"]))
+        
+        return chargeArea
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to calculate charge detection area: " . e.Message)
+        return Map()
+    }
+}
+
+; Calculate progress bar detection area (lower 20% of flask - bar part)
+CalculateProgressDetectionArea(centerX, centerY, width, height) {
+    try {
+        halfWidth := width // 2
+        halfHeight := height // 2
+        
+        ; プログレスバー検出エリア（下部20%、装飾部分を除外）
+        progressArea := Map(
+            "left", centerX - halfWidth + 5,
+            "top", centerY + height // 3,          ; 下部1/3から開始
+            "right", centerX + halfWidth - 5,
+            "bottom", centerY + halfHeight - 5     ; 下端から少し上
+        )
+        
+        LogDebug("VisualDetection", Format("Progress area calculated (bar 20%): {},{} to {},{}", 
+            progressArea["left"], progressArea["top"], progressArea["right"], progressArea["bottom"]))
+        
+        return progressArea
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to calculate progress detection area: " . e.Message)
+        return Map()
     }
 }
 
@@ -581,19 +646,26 @@ SaveFlaskPosition() {
     centerX := x + w // 2
     centerY := y + h // 2
     
+    ; 中心座標を保存
     ConfigManager.Set("VisualDetection", 
         "Flask" . g_current_flask_index . "X", centerX)
     ConfigManager.Set("VisualDetection", 
         "Flask" . g_current_flask_index . "Y", centerY)
     
-    ShowOverlay(Format("Flask{} 保存", g_current_flask_index), 1500)
+    ; 幅と高さを保存
+    ConfigManager.Set("VisualDetection", 
+        "Flask" . g_current_flask_index . "Width", w)
+    ConfigManager.Set("VisualDetection", 
+        "Flask" . g_current_flask_index . "Height", h)
+    
+    ShowOverlay(Format("Flask{} 位置・サイズ保存", g_current_flask_index), 1500)
 }
 
 ; 全フラスコ位置一括保存
 SaveAllFlaskPositions() {
     global g_flask_overlay_guis
     
-    LogDebug("VisualDetection", "Starting to save all flask positions")
+    LogDebug("VisualDetection", "Starting to save all flask positions with dimensions")
     
     if (g_flask_overlay_guis.Length != 5) {
         LogError("VisualDetection", Format("Invalid overlay count: {} (expected 5)", g_flask_overlay_guis.Length))
@@ -609,10 +681,15 @@ SaveAllFlaskPositions() {
             centerX := x + w // 2
             centerY := y + h // 2
             
+            ; 中心座標を保存
             ConfigManager.Set("VisualDetection", "Flask" . A_Index . "X", centerX)
             ConfigManager.Set("VisualDetection", "Flask" . A_Index . "Y", centerY)
             
-            LogDebug("VisualDetection", Format("Flask{} saved at center: {},{}", A_Index, centerX, centerY))
+            ; 幅と高さを保存
+            ConfigManager.Set("VisualDetection", "Flask" . A_Index . "Width", w)
+            ConfigManager.Set("VisualDetection", "Flask" . A_Index . "Height", h)
+            
+            LogDebug("VisualDetection", Format("Flask{} saved: center={},{}, size={}x{}", A_Index, centerX, centerY, w, h))
             successCount++
         } else {
             LogError("VisualDetection", Format("Flask{} overlay is invalid", A_Index))
@@ -620,8 +697,8 @@ SaveAllFlaskPositions() {
     }
     
     if (successCount == 5) {
-        ShowOverlay("全フラスコ位置を保存しました", 2000)
-        LogInfo("VisualDetection", "All flask positions saved successfully")
+        ShowOverlay("全フラスコ位置・サイズを保存しました", 2000)
+        LogInfo("VisualDetection", "All flask positions and dimensions saved successfully")
     } else {
         ShowOverlay(Format("警告: {}/5 フラスコのみ保存", successCount), 2000)
         LogWarn("VisualDetection", Format("Only {}/5 flask positions saved", successCount))
@@ -660,10 +737,30 @@ CaptureFlaskPosition(flaskNumber) {
 
 ; 終了
 EndOverlayCapture(*) {
-    global g_flask_overlay_gui
-    if (g_flask_overlay_gui) {
-        g_flask_overlay_gui.Destroy()
+    global g_flask_overlay_gui, g_flask_overlay_guis
+    
+    ; 単一オーバーレイを閉じる（旧方式）
+    if (g_flask_overlay_gui && g_flask_overlay_gui != "") {
+        try {
+            g_flask_overlay_gui.Destroy()
+        } catch {
+            ; 既に閉じられている場合は無視
+        }
         g_flask_overlay_gui := ""
+    }
+    
+    ; 複数オーバーレイを閉じる（新方式）
+    if (g_flask_overlay_guis.Length > 0) {
+        for gui in g_flask_overlay_guis {
+            if (gui) {
+                try {
+                    gui.Destroy()
+                } catch {
+                    ; 既に閉じられている場合は無視
+                }
+            }
+        }
+        g_flask_overlay_guis := []  ; 配列をクリア
     }
     
     ; ホットキー無効化
@@ -672,8 +769,8 @@ EndOverlayCapture(*) {
         try Hotkey(key, "Off")
     }
     
-    ShowOverlay("設定完了", 1500)
-    LogInfo("VisualDetection", "Flask overlay capture ended")
+    ShowOverlay("座標設定モード終了", 1500)
+    LogInfo("VisualDetection", "Overlay capture mode ended")
 }
 
 ; Test visual detection for all flasks
@@ -882,9 +979,11 @@ StartSingleFlaskCapture(flaskNumber) {
         
         g_pattern_capture_state["current_flask"] := flaskNumber
         
-        ; フラスコ位置を取得
+        ; フラスコ位置と寸法を取得
         flaskX := ConfigManager.Get("VisualDetection", Format("Flask{}X", flaskNumber), 0)
         flaskY := ConfigManager.Get("VisualDetection", Format("Flask{}Y", flaskNumber), 0)
+        flaskWidth := ConfigManager.Get("VisualDetection", Format("Flask{}Width", flaskNumber), 80)
+        flaskHeight := ConfigManager.Get("VisualDetection", Format("Flask{}Height", flaskNumber), 120)
         
         if (flaskX == 0 || flaskY == 0) {
             ShowOverlay(Format("Flask{} の座標が未設定です`nF9で座標設定を行ってください", flaskNumber), 3000)
@@ -893,7 +992,7 @@ StartSingleFlaskCapture(flaskNumber) {
         }
         
         ; FindTextのGUIを起動してキャプチャ準備
-        LaunchFindTextCapture(flaskX, flaskY, flaskNumber)
+        LaunchFindTextCapture(flaskX, flaskY, flaskWidth, flaskHeight, flaskNumber)
         
         ; 操作ガイドを更新
         UpdateCaptureInstructions(flaskNumber)
@@ -908,9 +1007,10 @@ StartSingleFlaskCapture(flaskNumber) {
 }
 
 ; FindTextキャプチャの起動
-LaunchFindTextCapture(x, y, flaskNumber) {
+LaunchFindTextCapture(centerX, centerY, width, height, flaskNumber) {
     try {
-        LogDebug("VisualDetection", Format("Launching FindText capture at {},{} for Flask{}", x, y, flaskNumber))
+        LogDebug("VisualDetection", Format("Launching FindText capture for Flask{} at center {},{}, size {}x{}", 
+            flaskNumber, centerX, centerY, width, height))
         
         ; FindTextインスタンスを取得
         ft := FindText()
@@ -928,16 +1028,18 @@ LaunchFindTextCapture(x, y, flaskNumber) {
         captureGui := ft.Gui("Show")
         g_pattern_capture_state["capture_gui"] := captureGui
         
-        ; キャプチャ範囲をフラスコ位置周辺に設定
-        searchSize := ConfigManager.Get("VisualDetection", "SearchAreaSize", 25)
-        leftX := x - searchSize
-        topY := y - searchSize
-        rightX := x + searchSize
-        bottomY := y + searchSize
+        ; チャージ検出エリアを計算（上部1/3）
+        chargeArea := CalculateChargeDetectionArea(centerX, centerY, width, height)
         
-        ShowOverlay(Format("Flask{} パターンキャプチャ準備完了`nFindTextでキャプチャしてください", flaskNumber), 3000)
-        LogInfo("VisualDetection", Format("FindText GUI launched for Flask{} at area {},{} to {},{}", 
-            flaskNumber, leftX, topY, rightX, bottomY))
+        if (chargeArea.Count > 0) {
+            ShowOverlay(Format("Flask{} パターンキャプチャ準備完了`n検出エリア: 上部1/3 ({},{} to {},{})`nFindTextでキャプチャしてください", 
+                flaskNumber, chargeArea["left"], chargeArea["top"], chargeArea["right"], chargeArea["bottom"]), 4000)
+            
+            LogInfo("VisualDetection", Format("FindText GUI launched for Flask{} charge area: {},{} to {},{}", 
+                flaskNumber, chargeArea["left"], chargeArea["top"], chargeArea["right"], chargeArea["bottom"]))
+        } else {
+            ShowOverlay(Format("Flask{} パターンキャプチャ準備完了`nFindTextでキャプチャしてください", flaskNumber), 3000)
+        }
         
     } catch as e {
         LogError("VisualDetection", Format("Failed to launch FindText capture: {}", e.Message))
