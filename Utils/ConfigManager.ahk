@@ -219,7 +219,7 @@ class ConfigManager {
         ; 型チェック
         ruleType := ""
         if (Type(rule) == "Map" && rule.Has("type")) {
-            ruleType := rule.type
+            ruleType := rule["type"]
         } else if (Type(rule) == "Object" && rule.HasOwnProp("type")) {
             ruleType := rule.type
         }
@@ -243,10 +243,10 @@ class ConfigManager {
         if (IsNumber(value)) {
             numValue := Number(value)
             if (Type(rule) == "Map") {
-                if (rule.Has("min") && numValue < rule.min) {
+                if (rule.Has("min") && numValue < rule["min"]) {
                     return false
                 }
-                if (rule.Has("max") && numValue > rule.max) {
+                if (rule.Has("max") && numValue > rule["max"]) {
                     return false
                 }
             } else if (Type(rule) == "Object") {
@@ -339,7 +339,7 @@ class ConfigManager {
                             sectionRules := this.validationRules[section]
                             if (Type(sectionRules) == "Map" && sectionRules.Has(key)) {
                                 rule := sectionRules[key]
-                                if (Type(rule) == "Map" && rule.Has("type") && rule.type == "boolean") {
+                                if (Type(rule) == "Map" && rule.Has("type") && rule["type"] == "boolean") {
                                     isBoolean := true
                                 } else if (Type(rule) == "Object" && rule.HasOwnProp("type") && rule.type == "boolean") {
                                     isBoolean := true
