@@ -244,6 +244,85 @@ ResetMacroState() {
     RunPerformanceTest()
 }
 
+; ===================================================================
+; Alt+F10: 視覚検出を強制的に有効化
+; ===================================================================
+!F10:: {
+    try {
+        ; Config.iniを更新
+        ConfigManager.Set("VisualDetection", "Enabled", true)
+        
+        ; 再初期化
+        InitializeVisualDetection()
+        
+        Sleep(500)  ; 初期化待ち
+        
+        ; 状態確認
+        if (IsVisualDetectionEnabled()) {
+            ShowOverlay("視覚検出を有効化しました", 2000)
+            LogInfo("DebugHotkeys", "Visual detection force enabled successfully")
+        } else {
+            ShowOverlay("有効化に失敗しました", 2000)
+            LogError("DebugHotkeys", "Failed to enable visual detection")
+        }
+        
+    } catch as e {
+        LogError("DebugHotkeys", "Force enable failed: " . e.Message)
+        ShowOverlay("エラー: " . e.Message, 3000)
+    }
+}
+
+; ===================================================================
+; Alt+Shift+F10: 視覚検出の診断情報表示
+; ===================================================================
++!F10:: {
+    try {
+        ; Config.iniの状態
+        configEnabled := ConfigManager.Get("VisualDetection", "Enabled", false)
+        
+        ; グローバル変数の状態
+        stateEnabled := g_visual_detection_state.Has("enabled") ? g_visual_detection_state["enabled"] : "Not Set"
+        findtextInstance := g_visual_detection_state.Has("findtext_instance") ? 
+            (g_visual_detection_state["findtext_instance"] != "" ? "Initialized" : "Empty") : "Not Set"
+        
+        ; FindText.ahkの存在確認
+        findTextPath := A_ScriptDir . "\Utils\FindText.ahk"
+        findTextExists := FileExist(findTextPath) ? "Found" : "Not Found"
+        
+        ; 診断情報を表示
+        diagnostics := [
+            "=== Visual Detection Diagnostics ===",
+            "",
+            "Config.ini Enabled: " . (configEnabled ? "True" : "False"),
+            "State Enabled: " . stateEnabled,
+            "FindText Instance: " . findtextInstance,
+            "FindText.ahk: " . findTextExists,
+            "Path: " . findTextPath,
+            "",
+            "IsVisualDetectionEnabled(): " . (IsVisualDetectionEnabled() ? "True" : "False")
+        ]
+        
+        ShowMultiLineOverlay(diagnostics, 5000)
+        
+        ; ログにも出力
+        for line in diagnostics {
+            LogInfo("DebugHotkeys", line)
+        }
+        
+        ; FindText.ahkが見つからない場合は再初期化を試みる
+        if (findTextExists == "Found" && !IsVisualDetectionEnabled()) {
+            ShowOverlay("視覚検出を再初期化します...", 2000)
+            Sleep(2000)
+            InitializeVisualDetection()
+            ShowOverlay("再初期化完了", 2000)
+        }
+        
+    } catch as e {
+        LogError("DebugHotkeys", "Diagnostics failed: " . e.Message)
+        ShowOverlay("診断に失敗: " . e.Message, 3000)
+    }
+}
+
 ; --- パフォーマンステスト関数 ---
 RunPerformanceTest() {
     ShowOverlay("パフォーマンステスト開始...", 1000)

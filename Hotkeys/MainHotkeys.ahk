@@ -14,6 +14,7 @@ global HOTKEY_COOLDOWNS := Map(
     "F12", 1000,          ; 1秒
     "ShiftF12", 500,      ; 0.5秒
     "CtrlF12", 2000,      ; 2秒（緊急停止は長めに）
+    "ShiftCtrlF12", 1500, ; 1.5秒（リセット機能）
     "AltF12", 1000,       ; 1秒
     "Pause", 500          ; 0.5秒
 )
@@ -22,7 +23,7 @@ global HOTKEY_COOLDOWNS := Map(
 #HotIf WinActive("ahk_group TargetWindows")
 
 ; ===================================================================
-; F12: マクロのリセット・再始動（改善版）
+; F12: マクロのトグル（改善版）
 ; ===================================================================
 F12:: {
     if (!CheckHotkeyCooldown("F12")) {
@@ -47,15 +48,56 @@ F12:: {
             return
         }
         
-        ; マクロのリセット・再始動処理
-        LogInfo("MainHotkeys", "F12 pressed - Resetting macro")
-        ResetMacro()
+        ; マクロのトグル処理
+        global g_macro_active
+        
+        if (g_macro_active) {
+            LogInfo("MainHotkeys", "F12 pressed - Stopping macro")
+            ManualStopMacro()
+            ShowOverlay("マクロ停止", 1500)
+        } else {
+            LogInfo("MainHotkeys", "F12 pressed - Starting macro")
+            StartMacro()
+            ShowOverlay("マクロ開始", 1500)
+        }
         
     } catch as e {
         ShowOverlay("エラー: " . e.Message, 2000)
         LogErrorWithStack("MainHotkeys", "Error in F12 handler", e)
     } finally {
         EndHotkeyProcessing("F12")
+    }
+}
+
+; ===================================================================
+; Shift+Ctrl+F12: マクロのリセット・再始動（旧F12機能）
+; ===================================================================
++^F12:: {
+    if (!CheckHotkeyCooldown("ShiftCtrlF12")) {
+        return
+    }
+    
+    if (!BeginHotkeyProcessing("ShiftCtrlF12")) {
+        ShowOverlay("処理中... 少し待ってください", 500)
+        return
+    }
+    
+    try {
+        ; キーがまだ押されている場合は離されるまで待つ
+        startTime := A_TickCount
+        while ((GetKeyState("Shift", "P") || GetKeyState("Ctrl", "P") || GetKeyState("F12", "P")) && A_TickCount - startTime < 2000) {
+            Sleep(10)
+        }
+        
+        ; マクロのリセット・再始動処理
+        LogInfo("MainHotkeys", "Shift+Ctrl+F12 pressed - Resetting macro")
+        ResetMacro()
+        
+    } catch as e {
+        ShowOverlay("エラー: " . e.Message, 2000)
+        LogErrorWithStack("MainHotkeys", "Error in Shift+Ctrl+F12 handler", e)
+    } finally {
+        EndHotkeyProcessing("ShiftCtrlF12")
     }
 }
 
@@ -252,7 +294,7 @@ F1:: {
     try {
         helpText := []
         helpText.Push("=== クイックヘルプ ===")
-        helpText.Push("F12: マクロ リセット")
+        helpText.Push("F12: マクロ トグル（開始/停止）")
         helpText.Push("Shift+F12: 手動停止/開始")
         helpText.Push("Ctrl+F12: 緊急停止")
         helpText.Push("現在の状態: " . (g_macro_active ? "動作中" : "停止中"))
@@ -384,9 +426,10 @@ CheckHotkeyCooldown(hotkeyName, showWarning := true) {
 GetHotkeyList() {
     hotkeyList := []
     hotkeyList.Push("=== メインホットキー ===")
-    hotkeyList.Push("F12: マクロのリセット・再始動")
+    hotkeyList.Push("F12: マクロのトグル（開始/停止）")
     hotkeyList.Push("Shift+F12: マクロの手動停止/開始")
     hotkeyList.Push("Ctrl+F12: 緊急停止（自動開始も無効）")
+    hotkeyList.Push("Shift+Ctrl+F12: マクロのリセット・再始動")
     hotkeyList.Push("Alt+F12: 設定リロード")
     hotkeyList.Push("Pause: 一時停止/再開")
     hotkeyList.Push("  +Shift: フラスコのみ一時停止")
