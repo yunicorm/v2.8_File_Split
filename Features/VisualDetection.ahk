@@ -730,3 +730,595 @@ TestAllFlaskDetection() {
         return false
     }
 }
+
+; ===================================================================
+; フラスコパターンキャプチャ機能 (v2.9.4)
+; ===================================================================
+
+; パターンキャプチャモード状態管理
+global g_pattern_capture_state := Map(
+    "active", false,
+    "current_flask", 1,
+    "capture_gui", "",
+    "instruction_gui", ""
+)
+
+; フラスコパターンキャプチャ開始
+StartFlaskPatternCapture() {
+    try {
+        LogInfo("VisualDetection", "Starting flask pattern capture mode")
+        
+        ; 既にアクティブな場合は終了
+        if (g_pattern_capture_state["active"]) {
+            StopFlaskPatternCapture()
+            return
+        }
+        
+        ; FindText.ahkの存在確認
+        if (!CheckFindTextFile()) {
+            ShowOverlay("FindText.ahkが見つかりません", 3000)
+            LogError("VisualDetection", "Cannot start pattern capture: FindText.ahk not found")
+            return
+        }
+        
+        ; キャプチャモード開始
+        g_pattern_capture_state["active"] := true
+        g_pattern_capture_state["current_flask"] := 1
+        
+        ; 操作ガイドを表示
+        ShowPatternCaptureInstructions()
+        
+        ; Flask1から開始
+        StartSingleFlaskCapture(1)
+        
+        LogInfo("VisualDetection", "Pattern capture mode started successfully")
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to start pattern capture: " . e.Message)
+        ShowOverlay("パターンキャプチャ開始に失敗", 2000)
+    }
+}
+
+; パターンキャプチャモード終了
+StopFlaskPatternCapture() {
+    try {
+        LogInfo("VisualDetection", "Stopping flask pattern capture mode")
+        
+        g_pattern_capture_state["active"] := false
+        
+        ; ガイドGUIを閉じる
+        if (g_pattern_capture_state["instruction_gui"]) {
+            try {
+                g_pattern_capture_state["instruction_gui"].Close()
+            } catch {
+                ; GUI が既に閉じられている場合は無視
+            }
+            g_pattern_capture_state["instruction_gui"] := ""
+        }
+        
+        ; キャプチャGUIを閉じる
+        if (g_pattern_capture_state["capture_gui"]) {
+            try {
+                g_pattern_capture_state["capture_gui"].Close()
+            } catch {
+                ; GUI が既に閉じられている場合は無視
+            }
+            g_pattern_capture_state["capture_gui"] := ""
+        }
+        
+        ShowOverlay("パターンキャプチャモード終了", 2000)
+        LogInfo("VisualDetection", "Pattern capture mode stopped")
+        
+    } catch as e {
+        LogError("VisualDetection", "Error stopping pattern capture: " . e.Message)
+    }
+}
+
+; 操作ガイド表示
+ShowPatternCaptureInstructions() {
+    try {
+        ; 既存のガイドGUIを閉じる
+        if (g_pattern_capture_state["instruction_gui"]) {
+            try {
+                g_pattern_capture_state["instruction_gui"].Close()
+            } catch {
+                ; GUI が既に閉じられている場合は無視
+            }
+        }
+        
+        ; 新しいガイドGUIを作成
+        instructionGui := Gui("+AlwaysOnTop +ToolWindow", "フラスコパターンキャプチャ - 操作ガイド")
+        instructionGui.BackColor := "0x1E1E1E"
+        instructionGui.MarginX := 15
+        instructionGui.MarginY := 15
+        
+        ; タイトル
+        instructionGui.SetFont("s14 Bold", "Segoe UI")
+        instructionGui.Add("Text", "cWhite w400 Center", "フラスコパターンキャプチャモード")
+        
+        ; 説明テキスト
+        instructionGui.SetFont("s10", "Segoe UI")
+        instructionGui.Add("Text", "cWhite w400 xm y+10", 
+            "各フラスコのチャージ状態パターンをキャプチャします。`n" .
+            "チャージありの状態でキャプチャしてください。")
+        
+        ; 操作方法
+        instructionGui.SetFont("s10 Bold", "Segoe UI")
+        instructionGui.Add("Text", "cYellow w400 xm y+15", "操作方法:")
+        
+        instructionGui.SetFont("s9", "Segoe UI")
+        instructions := [
+            "• 数字キー 1-5: 対象フラスコを選択",
+            "• Enter: 選択したフラスコのパターンをキャプチャ",
+            "• Space: 全フラスコのパターンを順次キャプチャ",
+            "• F10: キャプチャモード終了",
+            "• Escape: キャプチャモード終了"
+        ]
+        
+        for instruction in instructions {
+            instructionGui.Add("Text", "cWhite w400 xm y+3", instruction)
+        }
+        
+        ; 現在の状態
+        instructionGui.SetFont("s10 Bold", "Segoe UI")
+        instructionGui.Add("Text", "cLime w400 xm y+15", 
+            Format("現在: Flask{} のパターンキャプチャ待機中", g_pattern_capture_state["current_flask"]))
+        
+        ; GUIを表示（右上に配置）
+        instructionGui.Show("x" . (A_ScreenWidth - 450) . " y50 w430 h280")
+        g_pattern_capture_state["instruction_gui"] := instructionGui
+        
+        LogDebug("VisualDetection", "Pattern capture instructions displayed")
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to show capture instructions: " . e.Message)
+    }
+}
+
+; 単一フラスコのキャプチャ開始
+StartSingleFlaskCapture(flaskNumber) {
+    try {
+        LogInfo("VisualDetection", Format("Starting capture for Flask{}", flaskNumber))
+        
+        g_pattern_capture_state["current_flask"] := flaskNumber
+        
+        ; フラスコ位置を取得
+        flaskX := ConfigManager.Get("VisualDetection", Format("Flask{}X", flaskNumber), 0)
+        flaskY := ConfigManager.Get("VisualDetection", Format("Flask{}Y", flaskNumber), 0)
+        
+        if (flaskX == 0 || flaskY == 0) {
+            ShowOverlay(Format("Flask{} の座標が未設定です`nF9で座標設定を行ってください", flaskNumber), 3000)
+            LogWarn("VisualDetection", Format("Flask{} coordinates not set", flaskNumber))
+            return false
+        }
+        
+        ; FindTextのGUIを起動してキャプチャ準備
+        LaunchFindTextCapture(flaskX, flaskY, flaskNumber)
+        
+        ; 操作ガイドを更新
+        UpdateCaptureInstructions(flaskNumber)
+        
+        return true
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to start Flask{} capture: {}", flaskNumber, e.Message))
+        ShowOverlay(Format("Flask{} キャプチャ開始に失敗", flaskNumber), 2000)
+        return false
+    }
+}
+
+; FindTextキャプチャの起動
+LaunchFindTextCapture(x, y, flaskNumber) {
+    try {
+        LogDebug("VisualDetection", Format("Launching FindText capture at {},{} for Flask{}", x, y, flaskNumber))
+        
+        ; FindTextインスタンスを取得
+        ft := FindText()
+        
+        ; 既存のキャプチャGUIを閉じる
+        if (g_pattern_capture_state["capture_gui"]) {
+            try {
+                g_pattern_capture_state["capture_gui"].Close()
+            } catch {
+                ; GUI が既に閉じられている場合は無視
+            }
+        }
+        
+        ; FindTextのGUIを表示
+        captureGui := ft.Gui("Show")
+        g_pattern_capture_state["capture_gui"] := captureGui
+        
+        ; キャプチャ範囲をフラスコ位置周辺に設定
+        searchSize := ConfigManager.Get("VisualDetection", "SearchAreaSize", 25)
+        leftX := x - searchSize
+        topY := y - searchSize
+        rightX := x + searchSize
+        bottomY := y + searchSize
+        
+        ShowOverlay(Format("Flask{} パターンキャプチャ準備完了`nFindTextでキャプチャしてください", flaskNumber), 3000)
+        LogInfo("VisualDetection", Format("FindText GUI launched for Flask{} at area {},{} to {},{}", 
+            flaskNumber, leftX, topY, rightX, bottomY))
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to launch FindText capture: {}", e.Message))
+        ShowOverlay("FindTextキャプチャ起動に失敗", 2000)
+    }
+}
+
+; キャプチャ指示の更新
+UpdateCaptureInstructions(flaskNumber) {
+    try {
+        if (!g_pattern_capture_state["instruction_gui"]) {
+            return
+        }
+        
+        ; 指示GUIのタイトルを更新
+        g_pattern_capture_state["instruction_gui"].Title := 
+            Format("フラスコパターンキャプチャ - Flask{}", flaskNumber)
+        
+        LogDebug("VisualDetection", Format("Updated capture instructions for Flask{}", flaskNumber))
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to update capture instructions: {}", e.Message))
+    }
+}
+
+; フラスコパターンをConfig.iniに保存
+SaveFlaskPattern(flaskNumber, patternText) {
+    try {
+        LogInfo("VisualDetection", Format("Saving pattern for Flask{}", flaskNumber))
+        
+        if (!patternText || patternText == "") {
+            LogWarn("VisualDetection", Format("Empty pattern provided for Flask{}", flaskNumber))
+            ShowOverlay(Format("Flask{} パターンが空です", flaskNumber), 2000)
+            return false
+        }
+        
+        ; Config.iniに保存
+        configKey := Format("Flask{}ChargedPattern", flaskNumber)
+        ConfigManager.Set("VisualDetection", configKey, patternText)
+        
+        ; フラスコ名も更新
+        flaskName := ConfigManager.Get("VisualDetection", Format("Flask{}Name", flaskNumber), Format("Flask {}", flaskNumber))
+        
+        ShowOverlay(Format("{} パターン保存完了", flaskName), 2000)
+        LogInfo("VisualDetection", Format("Pattern saved for Flask{}: {} characters", flaskNumber, StrLen(patternText)))
+        
+        return true
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to save Flask{} pattern: {}", flaskNumber, e.Message))
+        ShowOverlay(Format("Flask{} パターン保存に失敗", flaskNumber), 2000)
+        return false
+    }
+}
+
+; 個別フラスコパターンキャプチャ（外部呼び出し用）
+CaptureFlaskPattern(flaskNumber) {
+    try {
+        LogInfo("VisualDetection", Format("Manual capture request for Flask{}", flaskNumber))
+        
+        if (flaskNumber < 1 || flaskNumber > 5) {
+            LogError("VisualDetection", Format("Invalid flask number: {}", flaskNumber))
+            ShowOverlay("無効なフラスコ番号です (1-5)", 2000)
+            return false
+        }
+        
+        ; パターンキャプチャモードが無効な場合は開始
+        if (!g_pattern_capture_state["active"]) {
+            StartFlaskPatternCapture()
+            Sleep(500)  ; GUI表示待ち
+        }
+        
+        ; 指定フラスコのキャプチャ開始
+        return StartSingleFlaskCapture(flaskNumber)
+        
+    } catch as e {
+        LogError("VisualDetection", Format("CaptureFlaskPattern failed for Flask{}: {}", flaskNumber, e.Message))
+        ShowOverlay(Format("Flask{} キャプチャに失敗", flaskNumber), 2000)
+        return false
+    }
+}
+
+; 全フラスコパターンの順次キャプチャ
+CaptureAllFlaskPatterns() {
+    try {
+        LogInfo("VisualDetection", "Starting sequential capture of all flask patterns")
+        
+        ; パターンキャプチャモードを開始
+        if (!g_pattern_capture_state["active"]) {
+            StartFlaskPatternCapture()
+            Sleep(500)  ; GUI表示待ち
+        }
+        
+        ShowOverlay("全フラスコパターンキャプチャ開始`n各フラスコでEnterキーを押してください", 3000)
+        
+        ; Flask1から順次キャプチャ
+        for flaskNum in [1, 2, 3, 4, 5] {
+            if (!StartSingleFlaskCapture(flaskNum)) {
+                LogWarn("VisualDetection", Format("Failed to start capture for Flask{}, continuing...", flaskNum))
+                continue
+            }
+            
+            ; 次のフラスコまで少し待機
+            Sleep(1000)
+        }
+        
+        LogInfo("VisualDetection", "All flask pattern capture sequence initiated")
+        return true
+        
+    } catch as e {
+        LogError("VisualDetection", Format("CaptureAllFlaskPatterns failed: {}", e.Message))
+        ShowOverlay("全フラスコキャプチャに失敗", 2000)
+        return false
+    }
+}
+
+; ===================================================================
+; 視覚検出テストモード管理 (v2.9.4)
+; ===================================================================
+
+; テストモード状態管理
+global g_visual_test_mode := Map(
+    "enabled", false,
+    "continuous_test", false,
+    "test_interval", 2000,  ; 2秒間隔
+    "last_test_time", 0,
+    "test_timer", ""
+)
+
+; 視覚検出テストモードの切り替え
+ToggleVisualDetectionTestMode() {
+    try {
+        LogInfo("VisualDetection", "Toggling visual detection test mode")
+        
+        currentMode := g_visual_test_mode["enabled"]
+        
+        if (currentMode) {
+            ; テストモードを無効化
+            StopVisualDetectionTestMode()
+        } else {
+            ; テストモードを有効化
+            StartVisualDetectionTestMode()
+        }
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to toggle test mode: {}", e.Message))
+        ShowOverlay("テストモード切り替えに失敗", 2000)
+    }
+}
+
+; 視覚検出テストモード開始
+StartVisualDetectionTestMode() {
+    try {
+        LogInfo("VisualDetection", "Starting visual detection test mode")
+        
+        ; 既にアクティブな場合は停止
+        if (g_visual_test_mode["enabled"]) {
+            StopVisualDetectionTestMode()
+        }
+        
+        ; テストモード有効化
+        g_visual_test_mode["enabled"] := true
+        g_visual_test_mode["continuous_test"] := true
+        g_visual_test_mode["last_test_time"] := A_TickCount
+        
+        ; 連続テストタイマー開始
+        testInterval := g_visual_test_mode["test_interval"]
+        g_visual_test_mode["test_timer"] := SetTimer(PerformContinuousFlaskTest, testInterval)
+        
+        ShowOverlay("視覚検出テストモード開始`n" . 
+                   Format("{}ms間隔で連続テスト実行中", testInterval), 3000)
+        
+        ; 初回テスト実行
+        PerformContinuousFlaskTest()
+        
+        LogInfo("VisualDetection", Format("Test mode started with {}ms interval", testInterval))
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to start test mode: {}", e.Message))
+        ShowOverlay("テストモード開始に失敗", 2000)
+    }
+}
+
+; 視覚検出テストモード停止
+StopVisualDetectionTestMode() {
+    try {
+        LogInfo("VisualDetection", "Stopping visual detection test mode")
+        
+        ; テストモード無効化
+        g_visual_test_mode["enabled"] := false
+        g_visual_test_mode["continuous_test"] := false
+        
+        ; タイマー停止
+        if (g_visual_test_mode["test_timer"]) {
+            SetTimer(g_visual_test_mode["test_timer"], 0)  ; タイマー停止
+            g_visual_test_mode["test_timer"] := ""
+        }
+        
+        ShowOverlay("視覚検出テストモード停止", 2000)
+        LogInfo("VisualDetection", "Test mode stopped successfully")
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to stop test mode: {}", e.Message))
+        ShowOverlay("テストモード停止に失敗", 2000)
+    }
+}
+
+; 連続フラスコテスト実行
+PerformContinuousFlaskTest() {
+    try {
+        ; テストモードが無効な場合は停止
+        if (!g_visual_test_mode["enabled"] || !g_visual_test_mode["continuous_test"]) {
+            return
+        }
+        
+        LogDebug("VisualDetection", "Performing continuous flask test")
+        
+        ; 全フラスコの検出テスト
+        results := []
+        successCount := 0
+        
+        Loop 5 {
+            flaskNumber := A_Index
+            
+            ; フラスコ位置確認
+            flaskX := ConfigManager.Get("VisualDetection", Format("Flask{}X", flaskNumber), 0)
+            flaskY := ConfigManager.Get("VisualDetection", Format("Flask{}Y", flaskNumber), 0)
+            pattern := ConfigManager.Get("VisualDetection", Format("Flask{}ChargedPattern", flaskNumber), "")
+            
+            if (flaskX == 0 || flaskY == 0 || pattern == "") {
+                results.Push(Format("Flask{}: 未設定", flaskNumber))
+                continue
+            }
+            
+            ; 検出実行
+            chargeStatus := DetectFlaskCharge(flaskNumber)
+            switch chargeStatus {
+                case 1:
+                    results.Push(Format("Flask{}: ✓ チャージあり", flaskNumber))
+                    successCount++
+                case 0:
+                    results.Push(Format("Flask{}: ○ 空", flaskNumber))
+                    successCount++
+                case -1:
+                    results.Push(Format("Flask{}: ✗ 検出失敗", flaskNumber))
+            }
+        }
+        
+        ; 結果をオーバーレイで表示
+        currentTime := FormatTime(A_Now, "HH:mm:ss")
+        results.InsertAt(1, Format("=== 視覚検出テスト [{}] ===", currentTime))
+        results.Push("")
+        results.Push(Format("検出成功: {}/5 フラスコ", successCount))
+        
+        ShowMultiLineOverlay(results, 1500)
+        
+        ; 統計更新
+        g_visual_test_mode["last_test_time"] := A_TickCount
+        
+        LogDebug("VisualDetection", Format("Continuous test completed: {}/5 successful", successCount))
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Continuous flask test failed: {}", e.Message))
+        ; テストモード継続のためエラー時も停止しない
+    }
+}
+
+; テストモード状態取得
+IsVisualDetectionTestModeActive() {
+    return g_visual_test_mode.Has("enabled") && g_visual_test_mode["enabled"]
+}
+
+; ===================================================================
+; フラスコパターン管理 (v2.9.4)
+; ===================================================================
+
+; 全フラスコパターンクリア
+ClearAllFlaskPatterns() {
+    try {
+        LogInfo("VisualDetection", "Clearing all flask patterns")
+        
+        clearedCount := 0
+        
+        ; 各フラスコのパターンをクリア
+        Loop 5 {
+            flaskNumber := A_Index
+            patternKey := Format("Flask{}ChargedPattern", flaskNumber)
+            
+            ; 現在のパターンを確認
+            currentPattern := ConfigManager.Get("VisualDetection", patternKey, "")
+            
+            if (currentPattern != "") {
+                ; パターンをクリア
+                ConfigManager.Set("VisualDetection", patternKey, "")
+                clearedCount++
+                
+                LogDebug("VisualDetection", Format("Cleared pattern for Flask{}", flaskNumber))
+            }
+        }
+        
+        ; 結果をログに記録
+        LogInfo("VisualDetection", Format("Cleared {} flask patterns", clearedCount))
+        
+        ; 成功メッセージ
+        if (clearedCount > 0) {
+            ShowOverlay(Format("{}個のフラスコパターンをクリアしました", clearedCount), 2500)
+        } else {
+            ShowOverlay("クリアするパターンがありませんでした", 2000)
+        }
+        
+        return clearedCount
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to clear flask patterns: {}", e.Message))
+        ShowOverlay("パターンクリアに失敗", 2000)
+        return 0
+    }
+}
+
+; 特定フラスコのパターンクリア
+ClearFlaskPattern(flaskNumber) {
+    try {
+        LogInfo("VisualDetection", Format("Clearing pattern for Flask{}", flaskNumber))
+        
+        if (flaskNumber < 1 || flaskNumber > 5) {
+            LogError("VisualDetection", Format("Invalid flask number: {}", flaskNumber))
+            return false
+        }
+        
+        patternKey := Format("Flask{}ChargedPattern", flaskNumber)
+        currentPattern := ConfigManager.Get("VisualDetection", patternKey, "")
+        
+        if (currentPattern == "") {
+            ShowOverlay(Format("Flask{} のパターンは既に空です", flaskNumber), 2000)
+            return true
+        }
+        
+        ; パターンをクリア
+        ConfigManager.Set("VisualDetection", patternKey, "")
+        
+        ; フラスコ名を取得して表示
+        flaskName := ConfigManager.Get("VisualDetection", Format("Flask{}Name", flaskNumber), Format("Flask {}", flaskNumber))
+        ShowOverlay(Format("{} のパターンをクリアしました", flaskName), 2000)
+        
+        LogInfo("VisualDetection", Format("Flask{} pattern cleared successfully", flaskNumber))
+        return true
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to clear Flask{} pattern: {}", flaskNumber, e.Message))
+        ShowOverlay(Format("Flask{} パターンクリアに失敗", flaskNumber), 2000)
+        return false
+    }
+}
+
+; パターン統計情報取得
+GetFlaskPatternStats() {
+    try {
+        stats := Map(
+            "total_patterns", 0,
+            "configured_flasks", [],
+            "empty_flasks", [],
+            "pattern_lengths", Map()
+        )
+        
+        Loop 5 {
+            flaskNumber := A_Index
+            pattern := ConfigManager.Get("VisualDetection", Format("Flask{}ChargedPattern", flaskNumber), "")
+            
+            if (pattern != "") {
+                stats["total_patterns"]++
+                stats["configured_flasks"].Push(flaskNumber)
+                stats["pattern_lengths"][flaskNumber] := StrLen(pattern)
+            } else {
+                stats["empty_flasks"].Push(flaskNumber)
+            }
+        }
+        
+        return stats
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to get pattern stats: {}", e.Message))
+        return Map()
+    }
+}

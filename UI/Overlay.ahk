@@ -112,41 +112,55 @@ DestroyGui(guiObj) {
 
 ; --- 複数行オーバーレイ ---
 ShowMultiLineOverlay(lines, duration := 3000) {
-    if (!IsObject(lines) || lines.Length == 0) {
-        return
-    }
-    
-    ; 複数行のテキストを結合
-    message := ""
-    for line in lines {
-        message .= line . "`n"
-    }
-    message := RTrim(message, "`n")
-    
-    ; オーバーレイGUIの作成
-    multiGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20 +Owner")
-    multiGui.BackColor := "000000"
-    multiGui.SetFont("s20 cWhite", "Arial")
-    multiGui.Add("Text", "Center", message)
-    
-    ; サイズと位置を計算
-    maxLineLength := 0
-    for line in lines {
-        if (StrLen(line) > maxLineLength) {
-            maxLineLength := StrLen(line)
+    try {
+        if (!IsObject(lines) || lines.Length == 0) {
+            LogWarn("Overlay", "ShowMultiLineOverlay called with empty or invalid lines")
+            return false
         }
+        
+        ; 複数行のテキストを結合
+        message := ""
+        for line in lines {
+            message .= line . "`n"
+        }
+        message := RTrim(message, "`n")
+        
+        ; オーバーレイGUIの作成
+        multiGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20 +Owner")
+        multiGui.BackColor := "0x1E1E1E"  ; 暗いグレー背景
+        multiGui.SetFont("s18 cWhite", "Consolas")  ; 等幅フォント使用
+        
+        ; テキストエリアを作成（左寄せで等幅表示）
+        textControl := multiGui.Add("Text", "Left x10 y10", message)
+        
+        ; サイズと位置を計算
+        maxLineLength := 0
+        for line in lines {
+            if (StrLen(line) > maxLineLength) {
+                maxLineLength := StrLen(line)
+            }
+        }
+        
+        ; 等幅フォントのサイズ調整
+        textWidth := maxLineLength * 11 + 40  ; Consolasフォント用調整
+        textHeight := lines.Length * 22 + 30  ; 行間調整
+        
+        ; 画面右側に固定表示（右端から50px内側）
+        overlayX := 3440 - textWidth - 50
+        overlayY := 100  ; 上端から100px下
+        
+        multiGui.Show("x" . overlayX . " y" . overlayY . " w" . textWidth . " h" . textHeight . " NoActivate NA")
+        WinSetTransparent(230, multiGui)  ; 少し濃い目の透明度
+        
+        SetTimer(() => DestroyGui(multiGui), -duration)
+        
+        LogDebug("Overlay", Format("Multi-line overlay displayed: {} lines, {}ms duration", lines.Length, duration))
+        return true
+        
+    } catch as e {
+        LogError("Overlay", Format("Failed to show multi-line overlay: {}", e.Message))
+        return false
     }
-    
-    textWidth := maxLineLength * 16 + 40
-    textHeight := lines.Length * 30 + 20
-    
-    overlayX := (3440 / 2) - (textWidth / 2)
-    overlayY := (1440 / 2) - (textHeight / 2) - 100
-    
-    multiGui.Show("x" . overlayX . " y" . overlayY . " w" . textWidth . " h" . textHeight . " NoActivate NA")
-    WinSetTransparent(200, multiGui)
-    
-    SetTimer(() => DestroyGui(multiGui), -duration)
 }
 
 ; --- プログレスバーオーバーレイ（将来の拡張用） ---

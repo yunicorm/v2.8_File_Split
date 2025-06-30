@@ -20,40 +20,78 @@ F11:: {
 }
 
 ; ===================================================================
-; F10: エリア検出方式の切り替え
+; F10: フラスコパターンキャプチャモード (v2.9.4)
 ; ===================================================================
 F10:: {
-    global g_loading_check_enabled, g_macro_active
-    
-    ; 現在の設定を取得
-    clientLogEnabled := ConfigManager.Get("ClientLog", "Enabled", true)
-    
-    if (clientLogEnabled) {
-        ; Client.txt監視を無効化して、旧方式に切り替え
-        ConfigManager.Set("ClientLog", "Enabled", false)
-        ConfigManager.Set("LoadingScreen", "Enabled", true)
-        g_loading_check_enabled := true
-        
-        if (g_macro_active) {
-            StopClientLogMonitoring()
-            StartLoadingScreenDetection()
-        }
-        
-        ShowOverlay("エリア検出: ピクセル検出方式", 2000)
-        LogInfo("DebugHotkeys", "Switched to pixel-based loading detection")
+    ; Visual Detection Pattern Capture Mode (v2.9.4)
+    if (IsVisualDetectionEnabled()) {
+        StartFlaskPatternCapture()
+        LogInfo("DebugHotkeys", "F10 pressed - Pattern capture mode started")
     } else {
-        ; 旧方式を無効化して、Client.txt監視に切り替え
-        ConfigManager.Set("ClientLog", "Enabled", true)
-        ConfigManager.Set("LoadingScreen", "Enabled", false)
-        g_loading_check_enabled := false
+        ; エリア検出方式の切り替え（従来機能の代替）
+        global g_loading_check_enabled, g_macro_active
         
-        if (g_macro_active) {
-            StopLoadingScreenDetection()
-            StartClientLogMonitoring()
+        ; 現在の設定を取得
+        clientLogEnabled := ConfigManager.Get("ClientLog", "Enabled", true)
+        
+        if (clientLogEnabled) {
+            ; Client.txt監視を無効化して、旧方式に切り替え
+            ConfigManager.Set("ClientLog", "Enabled", false)
+            ConfigManager.Set("LoadingScreen", "Enabled", true)
+            g_loading_check_enabled := true
+            
+            if (g_macro_active) {
+                StopClientLogMonitoring()
+                StartLoadingScreenDetection()
+            }
+            
+            ShowOverlay("エリア検出: ピクセル検出方式", 2000)
+            LogInfo("DebugHotkeys", "Switched to pixel-based loading detection")
+        } else {
+            ; 旧方式を無効化して、Client.txt監視に切り替え
+            ConfigManager.Set("ClientLog", "Enabled", true)
+            ConfigManager.Set("LoadingScreen", "Enabled", false)
+            g_loading_check_enabled := false
+            
+            if (g_macro_active) {
+                StopLoadingScreenDetection()
+                StartClientLogMonitoring()
+            }
+            
+            ShowOverlay("エリア検出: Client.txtログ監視", 2000)
+            LogInfo("DebugHotkeys", "Switched to log-based area detection")
         }
-        
-        ShowOverlay("エリア検出: Client.txtログ監視", 2000)
-        LogInfo("DebugHotkeys", "Switched to log-based area detection")
+    }
+}
+
+; ===================================================================
+; Shift+F10: 視覚検出テストモード切り替え
+; ===================================================================
++F10:: {
+    if (!IsVisualDetectionEnabled()) {
+        ShowOverlay("視覚検出が無効です。設定で有効にしてください", 3000)
+        LogWarn("DebugHotkeys", "Visual detection test mode requested but visual detection is disabled")
+        return
+    }
+
+    ; テストモード切り替え
+    ToggleVisualDetectionTestMode()
+    LogInfo("DebugHotkeys", "Shift+F10 pressed - Visual detection test mode toggled")
+}
+
+; ===================================================================
+; Ctrl+F10: 全フラスコパターンクリア
+; ===================================================================
+^F10:: {
+    result := MsgBox("全てのフラスコパターンをクリアしますか？`n`nこの操作は取り消せません。", 
+                     "パターンクリア確認", "YesNo Icon!")
+
+    if (result == "Yes") {
+        ClearAllFlaskPatterns()
+        ShowOverlay("全フラスコパターンをクリアしました", 2000)
+        LogInfo("DebugHotkeys", "Ctrl+F10 pressed - All flask patterns cleared")
+    } else {
+        LogInfo("DebugHotkeys", "Ctrl+F10 pressed - Pattern clear cancelled")
     }
 }
 
@@ -247,3 +285,49 @@ RunPerformanceTest() {
 }
 
 ; 注意: Ctrl+Alt+Shift+F12 はMainHotkeys.ahkで定義されています
+
+; ===================================================================
+; パターンキャプチャモード専用ホットキー (v2.9.4)
+; ===================================================================
+
+#HotIf (g_pattern_capture_state.Has("active") && g_pattern_capture_state["active"])
+
+; 数字キー 1-5: フラスコ選択
+1:: {
+    CaptureFlaskPattern(1)
+    LogInfo("DebugHotkeys", "Pattern capture: Flask 1 selected")
+}
+
+2:: {
+    CaptureFlaskPattern(2)
+    LogInfo("DebugHotkeys", "Pattern capture: Flask 2 selected")
+}
+
+3:: {
+    CaptureFlaskPattern(3)
+    LogInfo("DebugHotkeys", "Pattern capture: Flask 3 selected")
+}
+
+4:: {
+    CaptureFlaskPattern(4)
+    LogInfo("DebugHotkeys", "Pattern capture: Flask 4 selected")
+}
+
+5:: {
+    CaptureFlaskPattern(5)
+    LogInfo("DebugHotkeys", "Pattern capture: Flask 5 selected")
+}
+
+; Space: 全フラスコ順次キャプチャ
+Space:: {
+    CaptureAllFlaskPatterns()
+    LogInfo("DebugHotkeys", "Pattern capture: All flasks sequential capture started")
+}
+
+; Escape: キャプチャモード終了
+Escape:: {
+    StopFlaskPatternCapture()
+    LogInfo("DebugHotkeys", "Pattern capture: Mode stopped via Escape")
+}
+
+#HotIf  ; パターンキャプチャモードコンテキスト終了

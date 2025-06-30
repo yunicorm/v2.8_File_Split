@@ -411,6 +411,28 @@ ShowFullDebugInfo() {
     debugInfo.Push(Format("フラスコループ: {}", 
         g_flask_timer_active ? "ON" : "OFF"))
     
+    ; === Visual Detection ===
+    if (IsVisualDetectionEnabled()) {
+        debugInfo.Push("`n[Visual Detection]")
+        debugInfo.Push("Mode: " . GetDetectionMode())
+        debugInfo.Push("Test Mode: " . (IsVisualDetectionTestModeActive() ? "Active" : "Inactive"))
+        
+        ; パターン統計
+        stats := GetFlaskPatternStats()
+        if (stats.Has("total_patterns")) {
+            debugInfo.Push("Patterns: " . stats["total_patterns"] . "/5")
+            
+            ; 設定済みフラスコ
+            if (stats["configured_flasks"].Length > 0) {
+                configuredText := "Configured: Flask "
+                for i, num in stats["configured_flasks"] {
+                    configuredText .= num . (i < stats["configured_flasks"].Length ? ", " : "")
+                }
+                debugInfo.Push(configuredText)
+            }
+        }
+    }
+    
     ; エリア検出状態
     if (ConfigManager.Get("ClientLog", "Enabled", true)) {
         global g_last_area_name
