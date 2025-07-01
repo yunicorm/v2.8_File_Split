@@ -35,130 +35,117 @@
 
 ### Tincture特殊検出
 
-#### 検出要素
-1. **オレンジ枠検出**
-   - フラスコスロット枠の発光状態
-   - アクティブ/非アクティブの判定
+#### 検出要素（シンプル化）
+1. **装備スロット枠の色**
+   - オレンジ色発光 = アクティブ状態
+   - 通常色 = 非アクティブ状態
 
-2. **マナバーン追跡**
-   - 0.5秒ごとのスタック蓄積
-   - マナ枯渇タイミング予測
+2. **プログレスバー検出**
+   - プログレスバーあり = クールダウン中
+   - プログレスバーなし = 使用可能またはアクティブ
 
-#### 状態遷移
+#### 状態判定ロジック
+| スロット枠 | プログレスバー | 状態 | アクション |
+|-----------|--------------|------|------------|
+| オレンジ色 | - | アクティブ | 待機（効果中） |
+| 通常色 | あり | クールダウン | 待機 |
+| 通常色 | なし | 使用可能 | Tincture使用 |
+
+#### 実装の利点
+- マナバーンスタック追跡が不要
+- 2つの視覚要素のみで完結
+- 処理が高速かつシンプル
+- エラーが発生しにくい
+
+### Claude Codeへの修正された指示例
+
 ```
-待機 → オレンジ枠検出 → アクティブ
-アクティブ → マナ枯渇 → クールダウン
-クールダウン → プログレスバー消失 → 待機
+Path of Exileマクロで、視覚検出システムを実装します。
+docs/flask-visual-detection-plan-v295.mdを確認してください。
+
+重要な実装順序：
+1. Tincture（最も簡単）: スロット枠の色とプログレスバー
+2. Wine of the Prophet（中程度）: 2段階検出が必要
+3. 通常フラスコ（やや複雑）: 液体レベル検出
+
+Wine of the Prophetの重要な注意：
+- 緑枠は他のバフにも存在する可能性あり
+- カード型デザインの確認が必須
+- 2段階検出：緑枠→カードデザイン
+
+実装詳細：
+- 緑枠RGB: R(0-100), G(150-255), B(0-100)
+- カード判定：縦長の縦横比、複雑な色パターン
+- 誤検出防止が重要
+
+Phase 1から開始してください。
 ```
-
-### Wine of the Prophet連携
-
-#### バフ管理システム
-1. **バフエリアオーバーレイ**
-   - 画面上部のバフアイコン表示領域を定義
-   - 複数のバフパターンを登録
-
-2. **動的制御**
-   - 高優先度バフ：20秒間維持
-   - 低優先度バフ：即座に更新可能
-   - バフなし：チャージがあれば使用
 
 ## 実装フェーズ
 
-### Phase 1: 基盤構築（2-3日）
+### Phase 1: 基盤構築（1.5日）
 
 #### 1.1 デュアルオーバーレイUI
-```ahk
-; Features/VisualDetection.ahk に追加
-CreateDualOverlays(flaskNum) {
-    ; フラスコ本体用オーバーレイ
-    CreateFlaskBodyOverlay(flaskNum)
-    ; プログレスバー用オーバーレイ
-    CreateProgressBarOverlay(flaskNum)
-}
+- フラスコ本体用とプログレスバー用の2つのオーバーレイ
+- F9キーでの座標設定拡張
+- 保存/読み込み機能
 
-SaveDualOverlayPositions(flaskNum) {
-    ; 両オーバーレイの座標を保存
-}
-```
+#### 1.2 基本インフラ
+- 設定管理の拡張
+- デバッグ表示機能
+- エラーハンドリング
 
-#### 1.2 色検出基盤
-```ahk
-; Features/ColorDetection.ahk（新規）
-DetectFlaskLiquidLevel(flaskNum) {
-    ; 複数ポイントサンプリング
-    ; 色の割合計算
-    ; 0-100%でチャージレベル返却
-}
+### Phase 2: 色検出基盤（1日）
 
-DetectProgressBarPresence(flaskNum) {
-    ; クリーム色検出
-    ; true/false返却
-}
+#### 2.1 基本色検出
+- PixelGetColorの実装
+- 色範囲判定関数
+- 設定可能な閾値
 
-DetectTinctureOrangeGlow(slotNum) {
-    ; オレンジ色の発光検出
-}
-```
+#### 2.2 Tincture検出
+- オレンジ枠検出
+- プログレスバー検出
+- 状態管理（READY/ACTIVE/COOLDOWN）
 
-### Phase 2: 状態管理（2-3日）
+### Phase 3: Wine of the Prophet実装（0.5-1日）
 
-#### 2.1 統合状態判定
-```ahk
-; Features/FlaskStateManager.ahk（新規）
-GetFlaskState(flaskNum) {
-    chargeLevel := DetectFlaskLiquidLevel(flaskNum)
-    hasProgress := DetectProgressBarPresence(flaskNum)
-    
-    ; 状態判定ロジック
-    return DetermineFlaskState(chargeLevel, hasProgress)
-}
-```
-
-#### 2.2 Tincture状態管理
-```ahk
-GetTinctureState() {
-    hasOrangeGlow := DetectTinctureOrangeGlow(3)
-    hasProgress := DetectProgressBarPresence(3)
-    
-    ; 状態判定
-    if (hasOrangeGlow)
-        return "ACTIVE"
-    else if (hasProgress)
-        return "COOLDOWN"
-    else
-        return "READY"
-}
-```
-
-### Phase 3: バフシステム（3-4日）
-
-#### 3.1 バフエリア検出
+#### 3.1 カードバフ検出実装（パターンマッチング版）
 ```ahk
 ; Features/BuffDetection.ahk（新規）
-CreateBuffAreaOverlay() {
-    ; 画面上部のバフエリア定義
+InitializeCardPatterns() {
+    ; 40種類のカードパターンを登録
+    ; 各カードの中央部分のパターンを保存
+    global CARD_PATTERNS := Map()
+    ; パターンは事前に収集が必要
 }
 
-DetectBuffIcon(buffPattern) {
-    ; バフアイコンの存在確認
-}
-```
-
-#### 3.2 Wine of the Prophet統合
-```ahk
-ManageWineOfProphet() {
-    if (HasDivinationBuff()) {
-        buffPriority := GetBuffPriority(currentBuff)
-        if (buffPriority == "LOW" && HasCharges())
-            UseWineOfProphet()
-    } else if (HasCharges()) {
-        UseWineOfProphet()
+DetectDivinationCard() {
+    ; Step 1: 緑枠を持つバフを検出
+    greenFramedBuffs := FindGreenFramedBuffs()
+    
+    ; Step 2: 各バフをカードパターンと照合
+    for buff in greenFramedBuffs {
+        for cardName, pattern in CARD_PATTERNS {
+            if (MatchesPattern(buff, pattern)) {
+                return {
+                    found: true,
+                    name: cardName,
+                    x: buff.x,
+                    y: buff.y
+                }
+            }
+        }
     }
+    return {found: false}
 }
 ```
 
-### Phase 4: 最適化とテスト（2-3日）
+#### 3.2 実装の複雑さ
+- 事前のパターン収集が必須
+- オーラとの区別が必要
+- 処理時間がやや増加
+
+### Phase 4: 最適化とテスト（1日）
 
 #### 4.1 パフォーマンス最適化
 - 検出頻度の動的調整
@@ -198,16 +185,38 @@ FlaskBodyHeight=80
 ProgressBarHeight=20
 Spacing=5
 
+[TinctureDetection]
+SlotBorderThreshold=30    ; オレンジ色検出の閾値
+CheckInterval=100         ; 状態確認間隔(ms)
+DebugOverlay=false       ; デバッグ用オーバーレイ表示
+
 [BuffDetection]
 BuffAreaX=640
 BuffAreaY=50
-BuffAreaWidth=300
+BuffAreaWidth=500        ; 広めに設定（動的配置対応）
 BuffAreaHeight=80
+ScanInterval=100         ; スキャン間隔（ms）
+BlackThreshold=30        ; 黒判定の閾値（RGB各値がこれ以下）
+
+[WineOfProphet]
+ImplementationMode=Full   ; Full実装が可能に
+PatternCount=40          ; 40種類すべて準備完了
+PatternFolder=./patterns/cards/ ; パターン保存場所
+UseAllPatterns=true      ; すべてのパターンを使用
+GreenFrameRMin=0         ; 緑枠の色範囲
+GreenFrameRMax=100
+GreenFrameGMin=150
+GreenFrameGMax=255
+GreenFrameBMin=0
+GreenFrameBMax=100
+DebugMode=false
+StatisticsEnabled=true
+OptimizeSearch=true      ; 高速検索を有効化
 ```
 
 ### 色定義
 ```ahk
-; 色閾値定義
+; フラスコ液体色の定義
 FLASK_COLORS := Map(
     "Life", {r: 200, g: 50, b: 50, threshold: 40},
     "Mana", {r: 50, g: 50, b: 200, threshold: 40},
@@ -215,11 +224,41 @@ FLASK_COLORS := Map(
     "Unique", {r: 150, g: 50, b: 200, threshold: 40}
 )
 
-PROGRESS_BAR_COLOR := {r: 255, g: 248, b: 220}  ; クリーム色
-TINCTURE_GLOW_COLOR := {r: 255, g: 165, b: 0}   ; オレンジ色
+; UI要素の色定義
+PROGRESS_BAR_COLOR := {r: 255, g: 248, b: 220}     ; クリーム色
+TINCTURE_ACTIVE_COLOR := {r: 255, g: 140, b: 0}    ; オレンジ色（枠の発光）
+SLOT_BORDER_NORMAL := {r: 100, g: 100, b: 100}     ; 通常時の枠色
+
+; Divination Cardバフの構造要素（参考）
+CARD_STRUCTURE := {
+    outer_border: {r: 139, g: 90, b: 43},          ; 茶色の外枠
+    black_bg: {r_max: 30, g_max: 30, b_max: 30},  ; 黒い背景
+    green_frame: {                                  ; 緑の装飾枠
+        r_min: 0,   r_max: 100,
+        g_min: 150, g_max: 255,
+        b_min: 0,   b_max: 100
+    }
+    ; 内部デザインはパターンマッチングで判定
+}
 ```
 
 ## 実装上の注意事項
+
+### Tincture検出の簡略化メリット
+1. **マナバーンスタック追跡が不要**
+   - バフエリアの数値読み取り不要
+   - OCR処理を回避
+   - 処理速度の大幅向上
+
+2. **2要素のみで完全な状態判定**
+   - スロット枠の色（オレンジ/通常）
+   - プログレスバーの有無
+   - エラー率の低減
+
+3. **実装の単純性**
+   - 色検出関数2つのみ
+   - 複雑な状態遷移管理が不要
+   - デバッグが容易
 
 ### パフォーマンス
 1. **色検出の高速性**
@@ -258,8 +297,36 @@ TINCTURE_GLOW_COLOR := {r: 255, g: 165, b: 0}   ; オレンジ色
 
 ### 単体テスト
 - 各色検出関数の精度
+- 緑枠検出の信頼性
 - 状態判定の正確性
 - エッジケースの処理
+
+### Wine of the Prophet専用テスト
+1. **パターンマッチングテスト**
+   - 40種類すべての検出精度
+   - オーラとの判別確認
+   - 検出速度の測定
+
+2. **実環境テスト**
+   - 複数バフ混在時の動作
+   - 動的配置への対応
+   - エッジケースの処理
+
+3. **パフォーマンステスト**
+   - 40パターンの検索速度
+   - CPU使用率の確認
+   - 最適化の効果測定
+
+### Tincture専用テスト
+1. **状態遷移テスト**
+   - READY → ACTIVE（オレンジ枠検出）
+   - ACTIVE → COOLDOWN（オレンジ枠消失＋プログレスバー出現）
+   - COOLDOWN → READY（プログレスバー消失）
+
+2. **エッジケーステスト**
+   - 画面の明るさ変化
+   - スキルエフェクトの干渉
+   - 解像度変更時の動作
 
 ### 統合テスト
 - フラスコループの安定性
@@ -281,22 +348,141 @@ TINCTURE_GLOW_COLOR := {r: 255, g: 165, b: 0}   ; オレンジ色
 
 ## リスク管理
 
-### 技術的リスク
-- ゲームアップデートによる色変更
+### 技術的リスク（大幅に軽減）
+- ゲームアップデートによる色/デザイン変更
+- バフアイコンの動的配置（スキャンで対応）
 - 解像度/設定の多様性
 - パフォーマンス問題
 
 ### 対策
-- 色範囲の柔軟な設定
-- プリセットシステム
-- 段階的ロールアウト
+- 色範囲の柔軟な設定（Config.ini）
+- 動的スキャンによる位置非依存
+- パターンの定期的な確認
+- 最適化による高速化
+- フォールバック機能
+
+### リスク軽減の成功要因
+1. **データ収集完了**
+   - 最大のリスクだったデータ収集が完了
+   - 高品質なパターンで精度向上
+   - 実装の見通しが明確
+
+2. **技術的な明確性**
+   - FindTextの実績ある手法
+   - オーラとの判別方法確立
+   - 実装パスが確定
+
+## 実装の利点と注意点
+
+### 2段階検出の利点
+
+1. **高い精度**
+   - 緑枠だけでは誤検出の可能性
+   - カードデザイン確認で精度向上
+   - 他のバフとの明確な区別
+
+2. **実装の柔軟性**
+   - 簡易モード：緑枠＋基本形状
+   - 詳細モード：より厳密な判定
+   - 段階的な精度向上が可能
+
+3. **40種類の個別登録は依然不要**
+   - カードの共通特徴で判定
+   - 新しいカードにも対応可能
+   - メンテナンスが容易
+
+### 実装優先順位（最終版）
+
+1. **Tincture検出**（最優先）
+   - スロット枠とプログレスバーのみ
+   - 最も簡単で確実
+
+2. **Wine of the Prophet**（高優先）
+   - 2段階検出で実装
+   - やや複雑だが実現可能
+
+3. **通常フラスコ**（中優先）
+   - 液体レベルの検出
+   - 実装難度は中程度
+
+### 推定実装時間（パターン準備済み版）
+- **Phase 1（基盤）**: 1.5日
+- **Phase 2（色検出＋Tincture）**: 1日
+- **Phase 3（Wine）**: 1-1.5日（パターン準備済み）
+- **Phase 4（最適化）**: 1日
+- **合計**: 4.5-5日（大幅短縮）
+
+### 実装の難易度（最新版）
+- **Tincture**: ⭐⭐☆☆☆（簡単）
+- **Wine of the Prophet**: ⭐⭐⭐☆☆（中程度）
+- **通常フラスコ**: ⭐⭐⭐☆☆（中程度）
+
+### 成功要因
+- 40種類のパターン収集完了
+- 高品質なトリミング（緑枠＋1px）
+- FindTextでの高精度検出が可能
 
 ## まとめ
 
-本実装により、現在のタイマーベースシステムから、より正確で柔軟な視覚ベースシステムへの移行が実現します。デュアルオーバーレイと色検出の組み合わせにより、高精度かつ高速な状態判定が可能となります。
+本実装により、現在のタイマーベースシステムから、より正確で柔軟な視覚ベースシステムへの移行が実現します。
 
----
+### 主な改善点
+1. **デュアルオーバーレイ**: フラスコ本体とプログレスバーの独立検出
+2. **色検出の採用**: 高速かつ堅牢な状態判定
+3. **Tinctureの簡略化**: 2要素のみでの完全な状態管理
+4. **Wine of the Prophet**: 黒背景＋緑枠による簡潔な実装
 
-最終更新: 2025-01-30
-バージョン: 2.9.5計画案
-次期リリース予定: v2.9.5-alpha（Phase 1完了後）
+### 決定的な発見
+1. **Divination Cardバフの構造**
+   - 茶色外枠→黒背景→緑正方形枠→カードデザイン
+   - 黒背景＋緑枠の組み合わせが特徴的
+   - この2要素だけで確実に判定可能
+
+2. **実装の劇的な簡略化**
+   - 40種類の個別パターン不要
+   - 複雑な形状認識不要
+   - 色の組み合わせだけで判定
+
+### 実装の容易さ（更新版）
+- **最も簡単**: Tincture（1日）
+- **簡単**: Wine of the Prophet（0.5-1日）
+- **やや複雑**: 通常フラスコ（2日）
+- **全体**: 4.5-6日で完成可能
+
+## 実装成功への道筋
+
+### 準備完了状態
+
+1. **データ収集完了**
+   - 40種類のカードパターン（✓）
+   - 高品質トリミング（✓）
+   - 実装準備万全（✓）
+
+2. **技術的明確性**
+   - FindTextによる実装方針確定
+   - オーラとの判別方法確立
+   - 各機能の実装手順明確
+
+3. **リスク最小化**
+   - 最大の障壁（データ収集）クリア
+   - 段階的実装で確実に進行
+   - フォールバック戦略あり
+
+### 実装の確実性
+
+| 機能 | データ準備 | 実装難易度 | 成功確率 |
+|------|-----------|------------|----------|
+| Tincture | 不要 | ⭐⭐☆☆☆ | 95%+ |
+| Wine | 完了 | ⭐⭐⭐☆☆ | 95%+ |
+| フラスコ | 不要 | ⭐⭐⭐☆☆ | 85%+ |
+
+### 次のステップ
+1. パターンファイルの整理・命名
+2. FindTextパターン生成
+3. Phase 1から順次実装
+4. 各フェーズでテストと調整
+
+### 予想される成果
+- **完全自動化**：3つのシステムすべてVisual化
+- **高精度**：誤検出・誤動作の最小化
+- **保守性**：将来の更新にも対応可能
