@@ -13,6 +13,11 @@ F11:: {
     wineDetectionEnabledStr := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", "false")
     wineDetectionEnabled := (wineDetectionEnabledStr == "true" || wineDetectionEnabledStr == "1" || wineDetectionEnabledStr == 1)
     
+    ; デバッグ情報を追加
+    LogDebug("DebugHotkeys", "Visual Detection Enabled: " . IsVisualDetectionEnabled())
+    LogDebug("DebugHotkeys", "Wine Detection Enabled String: " . wineDetectionEnabledStr)
+    LogDebug("DebugHotkeys", "Wine Detection Enabled Bool: " . wineDetectionEnabled)
+    
     if (wineDetectionEnabled) {
         TestWineChargeDetection()
         LogInfo("DebugHotkeys", "F11 pressed - Wine charge detection test")

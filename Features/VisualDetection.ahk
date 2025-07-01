@@ -123,6 +123,7 @@ InitializeDefaultVisualDetectionConfig() {
                 LogDebug("VisualDetection", "Set default " . key . " = " . value)
             } else {
                 ; 既存の値を保持（空文字列や0も有効な設定値として扱う）
+                ; 特に、trueに設定された値をfalseで上書きしない
                 LogDebug("VisualDetection", "Keeping existing " . key . " = " . existingValue)
             }
         }
@@ -156,6 +157,10 @@ InitializeVisualDetection() {
         g_visual_detection_state["enabled"] := (enabledStr == "true" || enabledStr == "1" || enabledStr == 1)
         g_visual_detection_state["detection_mode"] := ConfigManager.Get("VisualDetection", "DetectionMode", "Timer")
         g_visual_detection_state["detection_interval"] := ConfigManager.Get("VisualDetection", "DetectionInterval", 100)
+        
+        ; デバッグ情報を追加
+        LogDebug("VisualDetection", "Enabled String from Config: " . enabledStr)
+        LogDebug("VisualDetection", "g_visual_detection_state enabled: " . g_visual_detection_state["enabled"])
         
         ; Initialize FindText instance if enabled
         if (g_visual_detection_state["enabled"]) {
