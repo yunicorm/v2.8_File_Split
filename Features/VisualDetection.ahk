@@ -114,12 +114,15 @@ InitializeDefaultVisualDetectionConfig() {
         
         ; 既存の値がない場合のみ設定
         for key, value in defaults {
-            if (!ConfigManager.HasKey("VisualDetection", key)) {
+            ; ConfigManager.Get()でデフォルト値チェック用の特別な値を使用
+            existingValue := ConfigManager.Get("VisualDetection", key, "___DEFAULT___")
+            
+            if (existingValue == "___DEFAULT___") {
+                ; 設定が存在しない場合のみデフォルト値を設定
                 ConfigManager.Set("VisualDetection", key, value)
                 LogDebug("VisualDetection", "Set default " . key . " = " . value)
             } else {
-                ; 既存の値を保持
-                existingValue := ConfigManager.Get("VisualDetection", key, "")
+                ; 既存の値を保持（空文字列や0も有効な設定値として扱う）
                 LogDebug("VisualDetection", "Keeping existing " . key . " = " . existingValue)
             }
         }
@@ -149,7 +152,8 @@ InitializeVisualDetection() {
         InitializeDefaultVisualDetectionConfig()
         
         ; Get configuration
-        g_visual_detection_state["enabled"] := ConfigManager.Get("VisualDetection", "Enabled", false)
+        enabledStr := ConfigManager.Get("VisualDetection", "Enabled", "false")
+        g_visual_detection_state["enabled"] := (enabledStr == "true" || enabledStr == "1" || enabledStr == 1)
         g_visual_detection_state["detection_mode"] := ConfigManager.Get("VisualDetection", "DetectionMode", "Timer")
         g_visual_detection_state["detection_interval"] := ConfigManager.Get("VisualDetection", "DetectionInterval", 100)
         

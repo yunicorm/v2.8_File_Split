@@ -10,7 +10,8 @@
 ; ===================================================================
 F11:: {
     ; Wine Charge Detection Test (v2.9.4)
-    wineDetectionEnabled := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", false)
+    wineDetectionEnabledStr := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", "false")
+    wineDetectionEnabled := (wineDetectionEnabledStr == "true" || wineDetectionEnabledStr == "1" || wineDetectionEnabledStr == 1)
     
     if (wineDetectionEnabled) {
         TestWineChargeDetection()

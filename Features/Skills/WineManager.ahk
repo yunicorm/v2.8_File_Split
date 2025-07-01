@@ -30,7 +30,8 @@ ExecuteWineOfProphet() {
     
     try {
         ; 高精度チャージ検出が有効な場合はチェック
-        useVisualDetection := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", false)
+        useVisualDetectionStr := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", "false")
+        useVisualDetection := (useVisualDetectionStr == "true" || useVisualDetectionStr == "1" || useVisualDetectionStr == 1)
         
         if (useVisualDetection) {
             ; チャージレベルを検出
@@ -154,7 +155,8 @@ GetWineStageStats() {
     }
     
     ; チャージ検出が有効な場合は追加情報
-    useVisualDetection := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", false)
+    useVisualDetectionStr := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", "false")
+    useVisualDetection := (useVisualDetectionStr == "true" || useVisualDetectionStr == "1" || useVisualDetectionStr == 1)
     if (useVisualDetection) {
         try {
             chargeInfo := DetectWineChargeLevel()
@@ -186,7 +188,8 @@ GetWineStageStats() {
 GetWineChargeInfo() {
     try {
         ; チャージ検出が有効かチェック
-        useVisualDetection := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", false)
+        useVisualDetectionStr := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", "false")
+        useVisualDetection := (useVisualDetectionStr == "true" || useVisualDetectionStr == "1" || useVisualDetectionStr == 1)
         
         if (!useVisualDetection) {
             return {
