@@ -13,8 +13,12 @@ StartFlaskAutomation() {
     global g_flask_timer_active, g_flask_automation_paused
     global g_flask_stats, g_flask_active_flasks
     
-    ; 設定を初期化
-    InitializeFlaskConfigs()
+    ; 設定をINIファイルから読み込み
+    if (!LoadFlaskConfigFromINI()) {
+        ; INI読み込み失敗時のみデフォルト設定を使用
+        InitializeFlaskConfigs()
+        LogWarn("FlaskManager", "Failed to load from INI, using default configs")
+    }
     
     ; 一時停止を解除
     g_flask_automation_paused := false
