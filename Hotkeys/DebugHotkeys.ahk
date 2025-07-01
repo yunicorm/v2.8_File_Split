@@ -6,27 +6,56 @@
 #HotIf WinActive("ahk_group TargetWindows")
 
 ; ===================================================================
-; F11: Wine検出テスト / マナデバッグ (v2.9.4)
+; F11: Wine検出テスト / マナデバッグ (v2.9.4拡張)
 ; ===================================================================
 F11:: {
+    LogInfo("DebugHotkeys", "F11 key pressed - Starting diagnosis")
+    
     ; Wine Charge Detection Test (v2.9.4)
     wineDetectionEnabledStr := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", "false")
     wineDetectionEnabled := (wineDetectionEnabledStr == "true" || wineDetectionEnabledStr == "1" || wineDetectionEnabledStr == 1)
     
-    ; デバッグ情報を追加
-    LogDebug("DebugHotkeys", "Visual Detection Enabled: " . IsVisualDetectionEnabled())
-    LogDebug("DebugHotkeys", "Wine Detection Enabled String: " . wineDetectionEnabledStr)
-    LogDebug("DebugHotkeys", "Wine Detection Enabled Bool: " . wineDetectionEnabled)
+    ; Visual Detection state
+    visualDetectionEnabled := IsVisualDetectionEnabled()
     
+    ; 詳細デバッグ情報を追加
+    LogInfo("DebugHotkeys", Format("F11 Debug Info:"))
+    LogInfo("DebugHotkeys", Format("  Visual Detection Enabled: {}", visualDetectionEnabled))
+    LogInfo("DebugHotkeys", Format("  Wine Detection Enabled String: '{}'", wineDetectionEnabledStr))
+    LogInfo("DebugHotkeys", Format("  Wine Detection Enabled Bool: {}", wineDetectionEnabled))
+    
+    ; 分岐ロジックを明確化
     if (wineDetectionEnabled) {
-        TestWineChargeDetection()
-        LogInfo("DebugHotkeys", "F11 pressed - Wine charge detection test")
-    } else if (IsVisualDetectionEnabled()) {
+        LogInfo("DebugHotkeys", "F11 - Executing Wine diagnosis mode (DiagnoseWineDetection)")
+        ; Wine診断モードを実行
+        DiagnoseWineDetection()
+        LogInfo("DebugHotkeys", "F11 pressed - Wine diagnosis mode completed")
+    } else if (visualDetectionEnabled) {
+        LogInfo("DebugHotkeys", "F11 - Executing Visual detection test (TestAllFlaskDetection)")
         TestAllFlaskDetection()
-        LogInfo("DebugHotkeys", "F11 pressed - Visual detection test")
+        LogInfo("DebugHotkeys", "F11 pressed - Visual detection test completed")
     } else {
+        LogInfo("DebugHotkeys", "F11 - Executing Mana debug (ShowManaDebug)")
         ShowManaDebug()  ; 従来の機能を維持
         LogInfo("DebugHotkeys", "F11 pressed - Mana debug displayed")
+    }
+    
+    LogInfo("DebugHotkeys", "F11 key processing completed")
+}
+
+; ===================================================================
+; Ctrl+F11: マウス位置の色情報取得 (v2.9.4新規)
+; ===================================================================
+^F11:: {
+    LogInfo("DebugHotkeys", "Ctrl+F11 key pressed - Starting mouse color capture")
+    try {
+        result := GetMousePositionColor()
+        LogInfo("DebugHotkeys", "Ctrl+F11 pressed - Mouse position color captured successfully")
+        LogInfo("DebugHotkeys", Format("Captured color info: X:{}, Y:{}, R:{}, G:{}, B:{}", 
+            result.x, result.y, result.r, result.g, result.b))
+    } catch as e {
+        LogError("DebugHotkeys", "Ctrl+F11 failed: " . e.Message)
+        ShowOverlay("Ctrl+F11 エラー: " . e.Message, 3000)
     }
 }
 

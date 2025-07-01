@@ -104,10 +104,10 @@ InitializeDefaultVisualDetectionConfig() {
             "WineChargeDetectionEnabled", "false",
             "WineMaxCharge", "140",
             "WineChargePerUse", "72",
-            "WineGoldR", "255",
-            "WineGoldG", "215",
-            "WineGoldB", "0",
-            "WineColorTolerance", "30",
+            "WineGoldR", "230",
+            "WineGoldG", "170",
+            "WineGoldB", "70",
+            "WineColorTolerance", "50",
             "WineSamplingRate", "3",
             "WineRecheckDelay", "5000"
         )
@@ -459,95 +459,143 @@ ResizeWithLog(dw, dh, key) {
     ResizeOverlay(dw, dh)
 }
 
-; フラスコ座標取得開始
+; 楕円形フラスコ座標取得開始
 StartFlaskPositionCapture() {
     global g_current_flask_index
     
-    ShowOverlay("矢印:移動 +/-:間隔 =/- :サイズ Space:保存", 3000)
+    ShowOverlay("楕円調整: ]/[ 幅 '/; 高さ =/- 全体 Shift:微調整 Space:保存", 5000)
     g_current_flask_index := 1
     CreateAllFlaskOverlays(1720, 1300)
     
     ; ホットキー設定
-    LogDebug("VisualDetection", "Setting up hotkeys for flask position capture")
+    LogDebug("VisualDetection", "Setting up hotkeys for elliptical flask position capture")
+    
+    ; 位置調整（既存）
     Hotkey("Up", (*) => MoveAllOverlays(0, -10), "On")
     Hotkey("Down", (*) => MoveAllOverlays(0, 10), "On")
     Hotkey("Left", (*) => MoveAllOverlays(-10, 0), "On")
     Hotkey("Right", (*) => MoveAllOverlays(10, 0), "On")
-    Hotkey("Space", (*) => SaveAllFlaskPositions(), "On")  ; 一括保存
-    Hotkey("Enter", (*) => SaveFlaskPosition(), "On")      ; 個別保存（念のため残す）
-    Hotkey("Tab", (*) => NextFlask(), "On")
-    Hotkey("Escape", (*) => EndOverlayCapture(), "On")
-    LogDebug("VisualDetection", "Movement and control hotkeys set")
+    LogDebug("VisualDetection", "Movement hotkeys set")
     
-    ; サイズ変更（一括操作版）
-    Hotkey("=", (*) => ResizeAllOverlays(5, 5), "On")      ; 全体拡大
-    LogDebug("VisualDetection", "Hotkey '=' set for all overlays resize +5,+5")
-    Hotkey("-", (*) => ResizeAllOverlays(-5, -5), "On")    ; 全体縮小
-    LogDebug("VisualDetection", "Hotkey '-' set for all overlays resize -5,-5")
-    Hotkey("]", (*) => ResizeAllOverlays(10, 0), "On")     ; 幅拡大
-    LogDebug("VisualDetection", "Hotkey ']' set for all overlays width +10")
-    Hotkey("[", (*) => ResizeAllOverlays(-10, 0), "On")    ; 幅縮小
-    LogDebug("VisualDetection", "Hotkey '[' set for all overlays width -10")
-    Hotkey("'", (*) => ResizeAllOverlays(0, 10), "On")     ; 高さ拡大
-    LogDebug("VisualDetection", "Hotkey ''' set for all overlays height +10")
-    Hotkey(";", (*) => ResizeAllOverlays(0, -10), "On")    ; 高さ縮小
-    LogDebug("VisualDetection", "Hotkey ';' set for all overlays height -10")
-    LogDebug("VisualDetection", "All resize hotkeys configured successfully")
+    ; 楕円サイズ調整（新規）
+    Hotkey("=", (*) => ResizeAllOverlaysWithFeedback(5, 5, "全体拡大"), "On")
+    Hotkey("-", (*) => ResizeAllOverlaysWithFeedback(-5, -5, "全体縮小"), "On")
+    Hotkey("]", (*) => ResizeAllOverlaysWithFeedback(10, 0, "幅拡大"), "On")
+    Hotkey("[", (*) => ResizeAllOverlaysWithFeedback(-10, 0, "幅縮小"), "On")
+    Hotkey("'", (*) => ResizeAllOverlaysWithFeedback(0, 10, "高さ拡大"), "On")
+    Hotkey(";", (*) => ResizeAllOverlaysWithFeedback(0, -10, "高さ縮小"), "On")
+    LogDebug("VisualDetection", "Ellipse resize hotkeys set")
+    
+    ; 微調整（Shift+キー）
+    Hotkey("+]", (*) => ResizeAllOverlaysWithFeedback(2, 0, "幅微調整+"), "On")
+    Hotkey("+[", (*) => ResizeAllOverlaysWithFeedback(-2, 0, "幅微調整-"), "On")
+    Hotkey("+'", (*) => ResizeAllOverlaysWithFeedback(0, 2, "高さ微調整+"), "On")
+    Hotkey("+;", (*) => ResizeAllOverlaysWithFeedback(0, -2, "高さ微調整-"), "On")
+    LogDebug("VisualDetection", "Fine adjustment hotkeys set")
     
     ; 間隔調整
     Hotkey("+", (*) => AdjustFlaskSpacing(2), "On")    ; 5→2に変更
     Hotkey("_", (*) => AdjustFlaskSpacing(-2), "On")   ; -5→-2に変更
     LogDebug("VisualDetection", "Flask spacing hotkeys set")
+    
+    ; 保存・制御
+    Hotkey("Space", (*) => SaveAllFlaskPositions(), "On")  ; 一括保存
+    Hotkey("Enter", (*) => SaveFlaskPosition(), "On")      ; 個別保存（念のため残す）
+    Hotkey("Tab", (*) => NextFlask(), "On")
+    Hotkey("Escape", (*) => EndOverlayCapture(), "On")
+    LogDebug("VisualDetection", "Control hotkeys set")
 }
 
-; オーバーレイ作成
+; 楕円形オーバーレイ作成
 CreateFlaskOverlay(x, y) {
     global g_flask_overlay_gui, g_flask_rect_width, g_flask_rect_height
     
     LogDebug("VisualDetection", Format("CreateFlaskOverlay called: x={}, y={}, size={}x{}", x, y, g_flask_rect_width, g_flask_rect_height))
     
-    if (g_flask_overlay_gui) {
+    if (g_flask_overlay_gui && g_flask_overlay_gui != "") {
         LogDebug("VisualDetection", "Destroying existing overlay GUI")
-        g_flask_overlay_gui.Destroy()
+        try {
+            g_flask_overlay_gui.Destroy()
+        } catch {
+            ; 既に削除されている場合は無視
+        }
     }
     
     g_flask_overlay_gui := Gui()
-    g_flask_overlay_gui.Opt("+AlwaysOnTop -Caption +ToolWindow")
+    g_flask_overlay_gui.Opt("+AlwaysOnTop -Caption +ToolWindow +E0x20")
     g_flask_overlay_gui.BackColor := "Red"
+    
+    ; 楕円形のリージョンを作成
+    hRgn := DllCall("CreateEllipticRgn", "int", 0, "int", 0, 
+                    "int", g_flask_rect_width, "int", g_flask_rect_height)
+    
+    ; GUIを表示してからリージョンを設定
     g_flask_overlay_gui.Show(Format("x{} y{} w{} h{} NA", 
-        x, y, g_flask_rect_width, g_flask_rect_height))
+        x - g_flask_rect_width // 2, 
+        y - g_flask_rect_height // 2, 
+        g_flask_rect_width, 
+        g_flask_rect_height))
+    
+    ; 楕円リージョンを適用
+    if (hRgn) {
+        DllCall("SetWindowRgn", "ptr", g_flask_overlay_gui.Hwnd, "ptr", hRgn, "int", true)
+    }
+    
     WinSetTransparent(100, g_flask_overlay_gui)
     
-    LogDebug("VisualDetection", Format("Flask overlay created successfully at {},{} with size {}x{}", x, y, g_flask_rect_width, g_flask_rect_height))
+    LogDebug("VisualDetection", Format("Elliptical flask overlay created at center {},{} with size {}x{}", x, y, g_flask_rect_width, g_flask_rect_height))
 }
 
-; 複数フラスコオーバーレイ一括作成
+; 複数楕円形フラスコオーバーレイ一括作成
 CreateAllFlaskOverlays(startX, startY) {
     global g_flask_overlay_guis, g_flask_rect_width, g_flask_rect_height, g_flask_spacing
     
-    LogDebug("VisualDetection", Format("Creating all flask overlays starting at {},{}", startX, startY))
+    LogDebug("VisualDetection", Format("Creating all elliptical flask overlays starting at {},{}", startX, startY))
     
     ; 既存のオーバーレイをクリア
     for existingGui in g_flask_overlay_guis {
         if (existingGui) {
-            existingGui.Destroy()
+            try {
+                existingGui.Destroy()
+            } catch {
+                ; 既に削除されている場合は無視
+            }
         }
     }
     g_flask_overlay_guis := []
     
     Loop 5 {
-        x := startX + (A_Index - 1) * (g_flask_rect_width + g_flask_spacing)
-        newGui := Gui()  ; 変数名を変更
-        newGui.Opt("+AlwaysOnTop -Caption +ToolWindow")
+        ; 中心座標で計算
+        centerX := startX + (A_Index - 1) * (g_flask_rect_width + g_flask_spacing)
+        centerY := startY
+        
+        newGui := Gui()
+        newGui.Opt("+AlwaysOnTop -Caption +ToolWindow +E0x20")
         newGui.BackColor := "Red"
-        newGui.Show(Format("x{} y{} w{} h{} NA", x, startY, g_flask_rect_width, g_flask_rect_height))
+        
+        ; 楕円形のリージョンを作成
+        hRgn := DllCall("CreateEllipticRgn", "int", 0, "int", 0, 
+                        "int", g_flask_rect_width, "int", g_flask_rect_height)
+        
+        ; GUIを表示（左上座標で表示）
+        newGui.Show(Format("x{} y{} w{} h{} NA", 
+            centerX - g_flask_rect_width // 2, 
+            centerY - g_flask_rect_height // 2, 
+            g_flask_rect_width, 
+            g_flask_rect_height))
+        
+        ; 楕円リージョンを適用
+        if (hRgn) {
+            DllCall("SetWindowRgn", "ptr", newGui.Hwnd, "ptr", hRgn, "int", true)
+        }
+        
         WinSetTransparent(100, newGui)
         g_flask_overlay_guis.Push(newGui)
         
-        LogDebug("VisualDetection", Format("Flask{} overlay created at {},{}", A_Index, x, startY))
+        LogDebug("VisualDetection", Format("Flask{} elliptical overlay created at center {},{}", A_Index, centerX, centerY))
     }
     
-    LogDebug("VisualDetection", "All flask overlays created successfully")
+    LogDebug("VisualDetection", "All elliptical flask overlays created successfully")
 }
 
 ; 移動
@@ -604,30 +652,44 @@ ResizeOverlay(dw, dh) {
     SetTimer(() => ToolTip(), -1000)
 }
 
-; 全オーバーレイ一括サイズ変更
-ResizeAllOverlays(dw, dh) {
+; 視覚フィードバック付き楕円リサイズ関数
+ResizeAllOverlaysWithFeedback(dw, dh, action) {
     global g_flask_overlay_guis, g_flask_rect_width, g_flask_rect_height
     
-    LogDebug("VisualDetection", Format("Resizing all overlays: dw={}, dh={}", dw, dh))
+    LogDebug("VisualDetection", Format("ResizeAllOverlaysWithFeedback: dw={}, dh={}, action={}", dw, dh, action))
     
-    ; サイズ更新（最小20ピクセル）
-    old_width := g_flask_rect_width
-    old_height := g_flask_rect_height
-    g_flask_rect_width := Max(20, g_flask_rect_width + dw)
-    g_flask_rect_height := Max(20, g_flask_rect_height + dh)
+    ; サイズ更新（最小40ピクセル）
+    oldWidth := g_flask_rect_width
+    oldHeight := g_flask_rect_height
+    g_flask_rect_width := Max(40, g_flask_rect_width + dw)
+    g_flask_rect_height := Max(40, g_flask_rect_height + dh)
     
-    LogDebug("VisualDetection", Format("Size changed: {}x{} -> {}x{}", old_width, old_height, g_flask_rect_width, g_flask_rect_height))
+    ; 楕円比率を計算
+    aspectRatio := Round(g_flask_rect_width / g_flask_rect_height, 2)
     
-    ; 最初のオーバーレイの位置を基準に再作成
+    ; 楕円情報を表示
+    ToolTip(Format("{}`n楕円: {}×{} (比率 {})", 
+                  action, g_flask_rect_width, g_flask_rect_height, aspectRatio))
+    SetTimer(() => ToolTip(), -2000)
+    
+    ; 全オーバーレイを再作成（中心座標基準）
     if (g_flask_overlay_guis.Length > 0 && g_flask_overlay_guis[1]) {
-        g_flask_overlay_guis[1].GetPos(&startX, &startY)
-        LogDebug("VisualDetection", Format("Recreating all overlays from position {},{}", startX, startY))
-        CreateAllFlaskOverlays(startX, startY)
+        ; 最初のオーバーレイの現在の中心座標を取得
+        g_flask_overlay_guis[1].GetPos(&currentX, &currentY, &currentW, &currentH)
+        centerX := currentX + currentW // 2
+        centerY := currentY + currentH // 2
         
-        ; サイズ表示
-        ToolTip(Format("All Flasks: {}x{}", g_flask_rect_width, g_flask_rect_height))
-        SetTimer(() => ToolTip(), -1000)
+        LogDebug("VisualDetection", Format("Recreating elliptical overlays from center {},{}", centerX, centerY))
+        CreateAllFlaskOverlays(centerX, centerY)
     }
+    
+    LogDebug("VisualDetection", Format("Ellipse resized: {}×{} -> {}×{} (ratio: {})", 
+             oldWidth, oldHeight, g_flask_rect_width, g_flask_rect_height, aspectRatio))
+}
+
+; 全オーバーレイ一括サイズ変更（互換性維持用）
+ResizeAllOverlays(dw, dh) {
+    ResizeAllOverlaysWithFeedback(dw, dh, "サイズ変更")
 }
 
 ; フラスコ間隔調整
@@ -782,9 +844,10 @@ EndOverlayCapture(*) {
         g_flask_overlay_guis := []  ; 配列をクリア
     }
     
-    ; ホットキー無効化
+    ; 楕円関連ホットキーを無効化
     for key in ["Up","Down","Left","Right","Space","Enter","Tab","Escape",
-               "=","-","]","[","'",";","+","_"] {
+               "=","-","]","[","'",";","+","_",
+               "+]","+[","+'","+;"] {
         try Hotkey(key, "Off")
     }
     
@@ -1371,68 +1434,82 @@ GetLiquidPercentage(flaskNumber) {
     }
 }
 
-; 液体検出エリアの計算（上部60%、より精密）
+; 楕円形液体検出エリアの計算（F9設定範囲をそのまま使用）
 CalculateLiquidDetectionArea(centerX, centerY, width, height) {
     try {
         halfWidth := width // 2
         halfHeight := height // 2
         
-        ; Wine用液体検出エリア（上部60%、枠を除外してより精密に）
+        ; F9で設定した楕円全体を検出エリアとする（簡素化）
         liquidArea := Map(
-            "left", centerX - halfWidth + 8,      ; 枠をより多く除外
-            "top", centerY - halfHeight + 8,       ; 上端の枠除外
-            "right", centerX + halfWidth - 8,     ; 右端の枠除外
-            "bottom", centerY - height // 5       ; 上部60%まで（1/5点まで）
+            "left", centerX - halfWidth,
+            "top", centerY - halfHeight,
+            "right", centerX + halfWidth,
+            "bottom", centerY + halfHeight,
+            "width", width,
+            "height", height
         )
         
-        ; エリアサイズ計算
-        liquidArea["width"] := liquidArea["right"] - liquidArea["left"]
-        liquidArea["height"] := liquidArea["bottom"] - liquidArea["top"]
-        
-        LogDebug("VisualDetection", Format("Liquid area calculated: {},{} to {},{} ({}x{})", 
-            liquidArea["left"], liquidArea["top"], liquidArea["right"], liquidArea["bottom"],
-            liquidArea["width"], liquidArea["height"]))
+        LogDebug("VisualDetection", Format("Ellipse detection area: {}×{} at center ({},{})", 
+            width, height, centerX, centerY))
         
         return liquidArea
         
     } catch as e {
-        LogError("VisualDetection", Format("Failed to calculate liquid detection area: {}", e.Message))
+        LogError("VisualDetection", Format("Failed to calculate ellipse detection area: {}", e.Message))
         return Map()
     }
 }
 
-; 液体エリアのピクセルスキャン
+; 楕円形液体エリアのピクセルスキャン
 ScanLiquidArea(liquidArea, flaskNumber) {
     try {
-        ; Wine of the Prophetの黄金色設定（設定可能）
-        goldColorR := ConfigManager.Get("VisualDetection", "WineGoldR", 255)
-        goldColorG := ConfigManager.Get("VisualDetection", "WineGoldG", 215)
-        goldColorB := ConfigManager.Get("VisualDetection", "WineGoldB", 0)
-        colorTolerance := ConfigManager.Get("VisualDetection", "WineColorTolerance", 30)
+        ; フラスコの中心座標と寸法を取得
+        centerX := ConfigManager.Get("VisualDetection", Format("Flask{}X", flaskNumber), 0)
+        centerY := ConfigManager.Get("VisualDetection", Format("Flask{}Y", flaskNumber), 0)
+        width := ConfigManager.Get("VisualDetection", Format("Flask{}Width", flaskNumber), 80)
+        height := ConfigManager.Get("VisualDetection", Format("Flask{}Height", flaskNumber), 120)
+        
+        if (centerX == 0 || centerY == 0) {
+            LogError("VisualDetection", Format("Flask{} position not configured for ellipse scanning", flaskNumber))
+            return 0.0
+        }
+        
+        ; Wine of the Prophetの液体色設定（設定可能）
+        ; 注意: 新しいIsWineLiquidColor関数では個別のRGB設定は使用されず、
+        ; 複数の色範囲を自動判定するため、これらの設定値は互換性のために保持
+        goldColorR := ConfigManager.Get("VisualDetection", "WineGoldR", 230)
+        goldColorG := ConfigManager.Get("VisualDetection", "WineGoldG", 170)
+        goldColorB := ConfigManager.Get("VisualDetection", "WineGoldB", 70)
+        colorTolerance := ConfigManager.Get("VisualDetection", "WineColorTolerance", 50)
         
         totalPixels := 0
         liquidPixels := 0
         samplingRate := ConfigManager.Get("VisualDetection", "WineSamplingRate", 3)  ; 3ピクセルおきにサンプリング
         
-        ; エリアをサンプリングしてスキャン
+        ; 楕円形エリア内のピクセルのみをスキャン
         loop liquidArea["height"] // samplingRate {
             y := liquidArea["top"] + (A_Index - 1) * samplingRate
             
             loop liquidArea["width"] // samplingRate {
                 x := liquidArea["left"] + (A_Index - 1) * samplingRate
-                totalPixels++
                 
-                ; ピクセル色を取得
-                pixelColor := PixelGetColor(x, y, "RGB")
-                
-                ; RGBに分解
-                r := (pixelColor >> 16) & 0xFF
-                g := (pixelColor >> 8) & 0xFF  
-                b := pixelColor & 0xFF
-                
-                ; 黄金色かどうか判定
-                if (IsGoldColor(r, g, b, goldColorR, goldColorG, goldColorB, colorTolerance)) {
-                    liquidPixels++
+                ; 楕円形内のピクセルのみをチェック
+                if (IsPointInEllipse(x, y, centerX, centerY, width, height)) {
+                    totalPixels++
+                    
+                    ; ピクセル色を取得
+                    pixelColor := PixelGetColor(x, y, "RGB")
+                    
+                    ; RGBに分解
+                    r := (pixelColor >> 16) & 0xFF
+                    g := (pixelColor >> 8) & 0xFF  
+                    b := pixelColor & 0xFF
+                    
+                    ; Wine液体色かどうか判定
+                    if (IsWineLiquidColor(r, g, b)) {
+                        liquidPixels++
+                    }
                 }
             }
         }
@@ -1440,7 +1517,7 @@ ScanLiquidArea(liquidArea, flaskNumber) {
         ; 液体割合を計算
         liquidPercentage := totalPixels > 0 ? (liquidPixels / totalPixels) : 0.0
         
-        LogDebug("VisualDetection", Format("Flask{} liquid scan: {}/{} pixels gold ({}%)", 
+        LogDebug("VisualDetection", Format("Flask{} elliptical liquid scan: {}/{} pixels detected as wine liquid ({}%)", 
             flaskNumber, liquidPixels, totalPixels, Round(liquidPercentage * 100, 1)))
         
         return liquidPercentage
@@ -1451,11 +1528,35 @@ ScanLiquidArea(liquidArea, flaskNumber) {
     }
 }
 
-; 黄金色判定ヘルパー
-IsGoldColor(r, g, b, targetR, targetG, targetB, tolerance) {
-    return (Abs(r - targetR) <= tolerance && 
-            Abs(g - targetG) <= tolerance && 
-            Abs(b - targetB) <= tolerance)
+; 楕円内座標判定ヘルパー
+IsPointInEllipse(px, py, centerX, centerY, width, height) {
+    ; 楕円の方程式: ((x-h)²/a²) + ((y-k)²/b²) <= 1
+    a := width / 2.0
+    b := height / 2.0
+    dx := px - centerX
+    dy := py - centerY
+    
+    return ((dx * dx) / (a * a) + (dy * dy) / (b * b)) <= 1
+}
+
+; Wine液体色判定ヘルパー（複数色範囲対応）
+IsWineLiquidColor(r, g, b) {
+    ; 明るいオレンジ色範囲
+    if (r >= 200 && r <= 255 && g >= 150 && g <= 200 && b >= 50 && b <= 100) {
+        return true
+    }
+    
+    ; 中間のオレンジ色範囲
+    if (r >= 180 && r <= 240 && g >= 120 && g <= 190 && b >= 40 && b <= 90) {
+        return true
+    }
+    
+    ; 暗い茶色範囲（エッジ部分）
+    if (r >= 30 && r <= 70 && g >= 20 && g <= 50 && b >= 15 && b <= 35) {
+        return true
+    }
+    
+    return false
 }
 
 ; Wine of the Prophet チャージレベル検出
@@ -1652,5 +1753,369 @@ GetFlaskPatternStats() {
     } catch as e {
         LogError("VisualDetection", Format("Failed to get pattern stats: {}", e.Message))
         return Map()
+    }
+}
+
+; ===================================================================
+; Wine of the Prophet 診断機能 (v2.9.4)
+; ===================================================================
+
+; マウス位置の色情報取得（Ctrl+F11）
+GetMousePositionColor() {
+    try {
+        LogDebug("VisualDetection", "GetMousePositionColor() called")
+        MouseGetPos(&x, &y)
+        
+        ; ピクセル色を取得
+        pixelColor := PixelGetColor(x, y, "RGB")
+        
+        ; RGBに分解
+        r := (pixelColor >> 16) & 0xFF
+        g := (pixelColor >> 8) & 0xFF  
+        b := pixelColor & 0xFF
+        
+        LogDebug("VisualDetection", Format("Color detected: X:{}, Y:{}, R:{}, G:{}, B:{}", x, y, r, g, b))
+        
+        ; 情報を配列として準備
+        displayInfo := [
+            "=== マウス位置の色情報 ===",
+            "",
+            Format("座標: {}, {}", x, y),
+            Format("RGB: R={}, G={}, B={}", r, g, b),
+            Format("Hex: #{:06X}", pixelColor),
+            "",
+            "wine_color_log.txt に記録されました"
+        ]
+        
+        ; デバッグログを追加
+        LogDebug("VisualDetection", "Preparing to show multi-line overlay")
+        LogDebug("VisualDetection", Format("Display info lines: {}", displayInfo.Length))
+        
+        ; マルチラインオーバーレイで表示（フォールバック付き）
+        try {
+            ShowMultiLineOverlay(displayInfo, 4000)
+            LogDebug("VisualDetection", "ShowMultiLineOverlay called successfully")
+        } catch as overlayError {
+            LogWarn("VisualDetection", "ShowMultiLineOverlay failed: " . overlayError.Message)
+            ; フォールバック
+            info := Format("X:{} Y:{} RGB({},{},{}) #{:06X}", x, y, r, g, b, pixelColor)
+            ShowOverlay(info, 3000)
+            LogDebug("VisualDetection", "Fallback ShowOverlay used")
+        }
+        
+        ; ログファイルに記録
+        logText := Format("[{}] Mouse Position Color - X:{}, Y:{}, R:{}, G:{}, B:{}, Hex:#{:06X}",
+            FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss"), x, y, r, g, b, pixelColor)
+        
+        try {
+            FileAppend(logText . "`n", A_ScriptDir . "\logs\wine_color_log.txt")
+            LogInfo("VisualDetection", "Mouse color info saved to wine_color_log.txt")
+        } catch {
+            LogWarn("VisualDetection", "Failed to save color info to log file")
+        }
+        
+        return {x: x, y: y, r: r, g: g, b: b, hex: pixelColor}
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to get mouse position color: " . e.Message)
+        try {
+            ShowMultiLineOverlay(["色情報取得に失敗", "", e.Message], 3000)
+        } catch {
+            ShowOverlay("色情報取得に失敗: " . e.Message, 3000)
+        }
+        return Map()
+    }
+}
+
+; Wine診断モード（F11拡張）
+DiagnoseWineDetection() {
+    try {
+        LogInfo("VisualDetection", "DiagnoseWineDetection() called - Starting Wine of the Prophet detection diagnosis")
+        
+        ; Flask4（Wine）の設定を取得
+        centerX := ConfigManager.Get("VisualDetection", "Flask4X", 626)
+        centerY := ConfigManager.Get("VisualDetection", "Flask4Y", 1402)
+        width := ConfigManager.Get("VisualDetection", "Flask4Width", 80)
+        height := ConfigManager.Get("VisualDetection", "Flask4Height", 120)
+        
+        LogDebug("VisualDetection", Format("Wine Flask settings: X:{}, Y:{}, W:{}, H:{}", centerX, centerY, width, height))
+        
+        ; 現在の色設定
+        goldR := ConfigManager.Get("VisualDetection", "WineGoldR", 255)
+        goldG := ConfigManager.Get("VisualDetection", "WineGoldG", 215)
+        goldB := ConfigManager.Get("VisualDetection", "WineGoldB", 0)
+        tolerance := ConfigManager.Get("VisualDetection", "WineColorTolerance", 30)
+        
+        LogDebug("VisualDetection", Format("Wine color settings: RGB({},{},{}), Tolerance:{}", goldR, goldG, goldB, tolerance))
+        
+        ; 検出エリアを表示
+        LogDebug("VisualDetection", "Showing detection area overlay")
+        ShowDetectionAreaOverlay(centerX, centerY, width, height)
+        
+        ; 色分布を分析
+        LogDebug("VisualDetection", "Analyzing color distribution")
+        colorDistribution := AnalyzeColorDistribution(centerX, centerY, width, height)
+        
+        ; 最適設定を提案
+        LogDebug("VisualDetection", "Suggesting optimal settings")
+        optimalSettings := SuggestOptimalSettings(colorDistribution, goldR, goldG, goldB)
+        
+        ; 診断結果を表示
+        LogDebug("VisualDetection", "Displaying diagnosis results")
+        DisplayDiagnosisResults(colorDistribution, optimalSettings, centerX, centerY, width, height, goldR, goldG, goldB, tolerance)
+        
+        LogInfo("VisualDetection", "Wine detection diagnosis completed successfully")
+        
+    } catch as e {
+        LogError("VisualDetection", "Wine diagnosis failed: " . e.Message)
+        try {
+            ShowMultiLineOverlay(["Wine診断に失敗", "", e.Message], 3000)
+        } catch {
+            ShowOverlay("Wine診断に失敗: " . e.Message, 2000)
+        }
+    }
+}
+
+; Wine診断オーバーレイ削除タイマー関数
+DestroyWineDiagnosisOverlay() {
+    global g_wine_diagnosis_overlay
+    if (IsSet(g_wine_diagnosis_overlay) && g_wine_diagnosis_overlay) {
+        try {
+            g_wine_diagnosis_overlay.Destroy()
+        } catch {
+            ; 既に削除されている場合は無視
+        }
+        g_wine_diagnosis_overlay := ""
+    }
+}
+
+; 検出エリアを視覚的に表示
+ShowDetectionAreaOverlay(centerX, centerY, width, height) {
+    try {
+        ; 既存のオーバーレイを削除
+        global g_wine_diagnosis_overlay
+        if (IsSet(g_wine_diagnosis_overlay) && g_wine_diagnosis_overlay) {
+            try {
+                g_wine_diagnosis_overlay.Destroy()
+            } catch {
+                ; 既に削除されている場合は無視
+            }
+        }
+        
+        ; 液体検出エリアを計算
+        liquidArea := CalculateLiquidDetectionArea(centerX, centerY, width, height)
+        
+        ; オーバーレイGUIを作成
+        g_wine_diagnosis_overlay := Gui()
+        g_wine_diagnosis_overlay.Opt("+AlwaysOnTop -Caption +ToolWindow +E0x20")
+        g_wine_diagnosis_overlay.BackColor := "Red"
+        g_wine_diagnosis_overlay.Show(Format("x{} y{} w{} h{} NA", 
+            liquidArea["left"], liquidArea["top"], 
+            liquidArea["width"], liquidArea["height"]))
+        WinSetTransparent(100, g_wine_diagnosis_overlay)
+        
+        ; 5秒後に自動削除
+        SetTimer(DestroyWineDiagnosisOverlay, -5000)
+        
+        LogDebug("VisualDetection", "Detection area overlay displayed")
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to show detection area overlay: " . e.Message)
+    }
+}
+
+; 色分布を分析
+AnalyzeColorDistribution(centerX, centerY, width, height) {
+    try {
+        liquidArea := CalculateLiquidDetectionArea(centerX, centerY, width, height)
+        colorMap := Map()
+        totalPixels := 0
+        
+        ; サンプリングレートを使用してピクセルをスキャン
+        samplingRate := ConfigManager.Get("VisualDetection", "WineSamplingRate", 3)
+        
+        Loop liquidArea["height"] // samplingRate {
+            y := liquidArea["top"] + (A_Index - 1) * samplingRate
+            
+            Loop liquidArea["width"] // samplingRate {
+                x := liquidArea["left"] + (A_Index - 1) * samplingRate
+                totalPixels++
+                
+                ; ピクセル色を取得
+                pixelColor := PixelGetColor(x, y, "RGB")
+                
+                ; RGBに分解
+                r := (pixelColor >> 16) & 0xFF
+                g := (pixelColor >> 8) & 0xFF  
+                b := pixelColor & 0xFF
+                
+                ; 色を文字列キーとして記録
+                colorKey := Format("{},{},{}", r, g, b)
+                if (!colorMap.Has(colorKey)) {
+                    colorMap[colorKey] := {count: 0, r: r, g: g, b: b}
+                }
+                colorMap[colorKey].count++
+            }
+        }
+        
+        ; 色を出現頻度でソート
+        sortedColors := []
+        for colorKey, colorData in colorMap {
+            percentage := (colorData.count / totalPixels) * 100
+            sortedColors.Push({
+                r: colorData.r,
+                g: colorData.g,
+                b: colorData.b,
+                count: colorData.count,
+                percentage: percentage
+            })
+        }
+        
+        ; 出現頻度で降順ソート
+        sortedColors := SortColorsByFrequency(sortedColors)
+        
+        return {
+            totalPixels: totalPixels,
+            uniqueColors: colorMap.Count,
+            topColors: sortedColors,
+            colorMap: colorMap
+        }
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to analyze color distribution: " . e.Message)
+        return Map()
+    }
+}
+
+; 色を頻度でソート（簡易バブルソート）
+SortColorsByFrequency(colors) {
+    n := colors.Length
+    Loop n - 1 {
+        Loop n - A_Index {
+            if (colors[A_Index].count < colors[A_Index + 1].count) {
+                temp := colors[A_Index]
+                colors[A_Index] := colors[A_Index + 1]
+                colors[A_Index + 1] := temp
+            }
+        }
+    }
+    return colors
+}
+
+; 最適設定を提案
+SuggestOptimalSettings(colorDistribution, currentR, currentG, currentB) {
+    try {
+        if (!colorDistribution.Has("topColors") || colorDistribution["topColors"].Length == 0) {
+            return Map()
+        }
+        
+        ; 黄金色に近い色を探す
+        goldenColors := []
+        for colorData in colorDistribution["topColors"] {
+            ; 黄色系の色（R高、G中〜高、B低）を探す
+            if (colorData.r > 200 && colorData.g > 150 && colorData.b < 100) {
+                goldenColors.Push(colorData)
+            }
+        }
+        
+        ; 最も出現頻度の高い黄金色を選択
+        if (goldenColors.Length > 0) {
+            optimalColor := goldenColors[1]
+            return {
+                r: optimalColor.r,
+                g: optimalColor.g,
+                b: optimalColor.b,
+                percentage: optimalColor.percentage,
+                tolerance: 25,  ; 推奨許容値
+                found: true
+            }
+        } else {
+            ; 黄金色が見つからない場合は最頻出色を返す
+            topColor := colorDistribution["topColors"][1]
+            return {
+                r: topColor.r,
+                g: topColor.g,
+                b: topColor.b,
+                percentage: topColor.percentage,
+                tolerance: 30,
+                found: false,
+                warning: "黄金色が検出されませんでした"
+            }
+        }
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to suggest optimal settings: " . e.Message)
+        return Map()
+    }
+}
+
+; 診断結果を表示
+DisplayDiagnosisResults(colorDist, optimal, x, y, w, h, curR, curG, curB, curTol) {
+    try {
+        lines := ["=== Wine of the Prophet 診断結果 ===", ""]
+        
+        ; 現在の設定
+        lines.Push("【現在の設定】")
+        lines.Push(Format("座標: ({}, {})  サイズ: {}x{}", x, y, w, h))
+        lines.Push(Format("色設定: RGB({}, {}, {})  許容値: {}", curR, curG, curB, curTol))
+        lines.Push("")
+        
+        ; 色分析結果
+        lines.Push("【色分布分析】")
+        lines.Push(Format("総ピクセル数: {}  ユニーク色数: {}", 
+            colorDist["totalPixels"], colorDist["uniqueColors"]))
+        lines.Push("")
+        
+        ; TOP5の色
+        lines.Push("【最頻出色TOP5】")
+        topCount := Min(5, colorDist["topColors"].Length)
+        Loop topCount {
+            color := colorDist["topColors"][A_Index]
+            lines.Push(Format("{}. RGB({}, {}, {}) - {:.1f}%", 
+                A_Index, color.r, color.g, color.b, color.percentage))
+        }
+        lines.Push("")
+        
+        ; 推奨設定
+        if (optimal.Count > 0) {
+            lines.Push("【推奨設定】")
+            if (optimal.Has("found") && optimal["found"]) {
+                lines.Push(Format("✓ 黄金色検出: RGB({}, {}, {})", optimal["r"], optimal["g"], optimal["b"]))
+                lines.Push(Format("  出現率: {:.1f}%", optimal["percentage"]))
+                lines.Push(Format("  推奨許容値: {}", optimal["tolerance"]))
+            } else if (optimal.Has("warning")) {
+                lines.Push("⚠ " . optimal["warning"])
+                lines.Push(Format("  最頻出色: RGB({}, {}, {})", optimal["r"], optimal["g"], optimal["b"]))
+            }
+            
+            ; 現在設定との差分
+            if (optimal.Has("r")) {
+                diffR := Abs(optimal["r"] - curR)
+                diffG := Abs(optimal["g"] - curG)
+                diffB := Abs(optimal["b"] - curB)
+                lines.Push("")
+                lines.Push(Format("現在設定との差分: R:{}, G:{}, B:{}", diffR, diffG, diffB))
+            }
+        }
+        
+        ; マルチラインオーバーレイで表示
+        ShowMultiLineOverlay(lines, 10000)
+        
+        ; ログファイルにも記録
+        logPath := A_ScriptDir . "\logs\wine_diagnosis_" . FormatTime(A_Now, "yyyyMMdd_HHmmss") . ".txt"
+        try {
+            logContent := ""
+            for line in lines {
+                logContent .= line . "`n"
+            }
+            FileAppend(logContent, logPath)
+            LogInfo("VisualDetection", "Diagnosis results saved to: " . logPath)
+        } catch {
+            LogWarn("VisualDetection", "Failed to save diagnosis results to file")
+        }
+        
+    } catch as e {
+        LogError("VisualDetection", "Failed to display diagnosis results: " . e.Message)
+        ShowOverlay("診断結果表示に失敗", 2000)
     }
 }
