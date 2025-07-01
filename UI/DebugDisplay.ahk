@@ -1,6 +1,6 @@
 ; ===================================================================
 ; デバッグ表示システム（修正版）
-; マナ状態、タイマー、その他デバッグ情報の表示
+; マナ状態、タイマー、Wine検出、その他デバッグ情報の表示
 ; ===================================================================
 
 ; --- グローバル変数 ---
@@ -453,6 +453,30 @@ ShowFullDebugInfo() {
     debugInfo.Push(Format("解像度: {}x{}", 
         ConfigManager.Get("Resolution", "ScreenWidth", 3440),
         ConfigManager.Get("Resolution", "ScreenHeight", 1440)))
+    
+    ; Wine of the Prophet チャージ情報
+    try {
+        wineChargeInfo := GetWineChargeInfo()
+        debugInfo.Push("")
+        debugInfo.Push("=== Wine of the Prophet ===")
+        
+        if (wineChargeInfo.enabled) {
+            if (wineChargeInfo.HasOwnProp("error")) {
+                debugInfo.Push("チャージ検出: エラー")
+                debugInfo.Push("エラー: " . wineChargeInfo.error)
+            } else {
+                debugInfo.Push(Format("チャージ: {:.1f}/{}", wineChargeInfo.charge, wineChargeInfo.maxCharge))
+                debugInfo.Push(Format("液体レベル: {}%", wineChargeInfo.percentage))
+                debugInfo.Push(Format("使用可能回数: {}", wineChargeInfo.usesRemaining))
+                debugInfo.Push(Format("状態: {}", wineChargeInfo.status))
+            }
+        } else {
+            debugInfo.Push("チャージ検出: 無効")
+        }
+    } catch as e {
+        debugInfo.Push("")
+        debugInfo.Push("Wine情報: 取得失敗 - " . e.Message)
+    }
     
     ShowMultiLineOverlay(debugInfo, 5000)
 }

@@ -17,7 +17,7 @@ InitializeWineSystem() {
     LogDebug("WineManager", "Wine system initialized")
 }
 
-; --- Wine of the Prophet実行（改善版） ---
+; --- Wine of the Prophet実行（改善版 + 高精度検出統合） ---
 ExecuteWineOfProphet() {
     global g_macro_active, g_macro_start_time, KEY_WINE_PROPHET
     global g_wine_stage_start_time, g_wine_current_stage
@@ -29,6 +29,28 @@ ExecuteWineOfProphet() {
     }
     
     try {
+        ; 高精度チャージ検出が有効な場合はチェック
+        useVisualDetection := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", false)
+        
+        if (useVisualDetection) {
+            ; チャージレベルを検出
+            chargeInfo := DetectWineChargeLevel()
+            
+            if (!chargeInfo.canUse) {
+                LogDebug("WineManager", Format("Wine charge insufficient: {:.1f}/{} ({}%), skipping use", 
+                    chargeInfo.charge, chargeInfo.maxCharge, chargeInfo.percentage))
+                
+                ; チャージ不足時は短い遅延で再チェック
+                config := g_skill_configs["Wine"]
+                recheckDelay := ConfigManager.Get("VisualDetection", "WineRecheckDelay", 5000)
+                ScheduleNextSkillExecution("Wine", config, recheckDelay)
+                return
+            } else {
+                LogInfo("WineManager", Format("Wine charge sufficient: {:.1f}/{} ({}%), {} uses remaining", 
+                    chargeInfo.charge, chargeInfo.maxCharge, chargeInfo.percentage, chargeInfo.usesRemaining))
+            }
+        }
+        
         ; 使用
         Send(KEY_WINE_PROPHET)
         UpdateSkillStats("4")  ; 統計は "4" キーとして記録
@@ -112,7 +134,7 @@ GetCurrentWineStage(elapsedTime) {
     return stages[5]
 }
 
-; --- Wineステージ統計の取得 ---
+; --- Wineステージ統計の取得（チャージ検出統合） ---
 GetWineStageStats() {
     global g_wine_current_stage, g_wine_stage_start_time, g_macro_start_time
     
@@ -120,7 +142,8 @@ GetWineStageStats() {
     stageElapsedTime := A_TickCount - g_wine_stage_start_time
     currentStageInfo := GetCurrentWineStage(elapsedTime)
     
-    return {
+    ; 基本統計
+    stats := {
         currentStage: g_wine_current_stage,
         totalElapsedTime: elapsedTime,
         stageElapsedTime: stageElapsedTime,
@@ -128,6 +151,72 @@ GetWineStageStats() {
         stageMaxDelay: currentStageInfo.maxDelay,
         stageAvgDelay: currentStageInfo.avgDelay,
         nextStageTime: currentStageInfo.maxTime - elapsedTime
+    }
+    
+    ; チャージ検出が有効な場合は追加情報
+    useVisualDetection := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", false)
+    if (useVisualDetection) {
+        try {
+            chargeInfo := DetectWineChargeLevel()
+            stats.chargeDetection := {
+                enabled: true,
+                currentCharge: chargeInfo.charge,
+                chargePercentage: chargeInfo.percentage,
+                canUse: chargeInfo.canUse,
+                usesRemaining: chargeInfo.usesRemaining,
+                lastDetectionTime: chargeInfo.detectionTime
+            }
+        } catch as e {
+            stats.chargeDetection := {
+                enabled: true,
+                error: e.Message,
+                lastDetectionTime: A_TickCount
+            }
+        }
+    } else {
+        stats.chargeDetection := {
+            enabled: false
+        }
+    }
+    
+    return stats
+}
+
+; --- Wineチャージ情報の簡易取得 ---
+GetWineChargeInfo() {
+    try {
+        ; チャージ検出が有効かチェック
+        useVisualDetection := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", false)
+        
+        if (!useVisualDetection) {
+            return {
+                enabled: false,
+                message: "チャージ検出が無効です"
+            }
+        }
+        
+        ; チャージ情報を取得
+        chargeInfo := DetectWineChargeLevel()
+        
+        return {
+            enabled: true,
+            charge: chargeInfo.charge,
+            percentage: chargeInfo.percentage,
+            canUse: chargeInfo.canUse,
+            usesRemaining: chargeInfo.usesRemaining,
+            maxCharge: chargeInfo.maxCharge,
+            chargePerUse: chargeInfo.chargePerUse,
+            detectionTime: chargeInfo.detectionTime,
+            status: chargeInfo.canUse ? "使用可能" : "チャージ不足"
+        }
+        
+    } catch as e {
+        LogError("WineManager", Format("GetWineChargeInfo failed: {}", e.Message))
+        return {
+            enabled: true,
+            error: e.Message,
+            status: "検出エラー"
+        }
     }
 }
 

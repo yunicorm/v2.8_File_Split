@@ -6,11 +6,16 @@
 #HotIf WinActive("ahk_group TargetWindows")
 
 ; ===================================================================
-; F11: 視覚的検出テスト (v2.9.4)
+; F11: Wine検出テスト / マナデバッグ (v2.9.4)
 ; ===================================================================
 F11:: {
-    ; Visual Detection Test (v2.9.4)
-    if (IsVisualDetectionEnabled()) {
+    ; Wine Charge Detection Test (v2.9.4)
+    wineDetectionEnabled := ConfigManager.Get("VisualDetection", "WineChargeDetectionEnabled", false)
+    
+    if (wineDetectionEnabled) {
+        TestWineChargeDetection()
+        LogInfo("DebugHotkeys", "F11 pressed - Wine charge detection test")
+    } else if (IsVisualDetectionEnabled()) {
         TestAllFlaskDetection()
         LogInfo("DebugHotkeys", "F11 pressed - Visual detection test")
     } else {

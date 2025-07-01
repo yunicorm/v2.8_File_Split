@@ -98,8 +98,18 @@ InitializeDefaultVisualDetectionConfig() {
             "Flask1Name", "Life Flask",
             "Flask2Name", "Mana Flask",
             "Flask3Name", "Utility Flask 1",
-            "Flask4Name", "Utility Flask 2",
-            "Flask5Name", "Unique Flask"
+            "Flask4Name", "Wine of the Prophet",
+            "Flask5Name", "Unique Flask",
+            ; Wine of the Prophet 高精度検出設定
+            "WineChargeDetectionEnabled", "false",
+            "WineMaxCharge", "140",
+            "WineChargePerUse", "72",
+            "WineGoldR", "255",
+            "WineGoldG", "215",
+            "WineGoldB", "0",
+            "WineColorTolerance", "30",
+            "WineSamplingRate", "3",
+            "WineRecheckDelay", "5000"
         )
         
         ; 既存の値がない場合のみ設定
@@ -1310,6 +1320,217 @@ PerformContinuousFlaskTest() {
 ; テストモード状態取得
 IsVisualDetectionTestModeActive() {
     return g_visual_test_mode.Has("enabled") && g_visual_test_mode["enabled"]
+}
+
+; ===================================================================
+; Wine of the Prophet 高精度チャージ検出 (v2.9.4)
+; ===================================================================
+
+; Wine of the Prophet用液体レベル検出
+GetLiquidPercentage(flaskNumber) {
+    try {
+        LogDebug("VisualDetection", Format("Starting liquid percentage detection for Flask{}", flaskNumber))
+        
+        ; フラスコ位置と寸法を取得
+        centerX := ConfigManager.Get("VisualDetection", Format("Flask{}X", flaskNumber), 0)
+        centerY := ConfigManager.Get("VisualDetection", Format("Flask{}Y", flaskNumber), 0)
+        width := ConfigManager.Get("VisualDetection", Format("Flask{}Width", flaskNumber), 80)
+        height := ConfigManager.Get("VisualDetection", Format("Flask{}Height", flaskNumber), 120)
+        
+        if (centerX == 0 || centerY == 0) {
+            LogError("VisualDetection", Format("Flask{} position not configured", flaskNumber))
+            return 0.0
+        }
+        
+        ; 液体エリア計算（上部60%）
+        liquidArea := CalculateLiquidDetectionArea(centerX, centerY, width, height)
+        
+        if (liquidArea.Count == 0) {
+            LogError("VisualDetection", "Failed to calculate liquid detection area")
+            return 0.0
+        }
+        
+        ; ピクセルスキャンで液体レベルを検出
+        liquidPercentage := ScanLiquidArea(liquidArea, flaskNumber)
+        
+        LogDebug("VisualDetection", Format("Flask{} liquid percentage: {}%", flaskNumber, Round(liquidPercentage * 100, 1)))
+        return liquidPercentage
+        
+    } catch as e {
+        LogError("VisualDetection", Format("GetLiquidPercentage failed for Flask{}: {}", flaskNumber, e.Message))
+        return 0.0
+    }
+}
+
+; 液体検出エリアの計算（上部60%、より精密）
+CalculateLiquidDetectionArea(centerX, centerY, width, height) {
+    try {
+        halfWidth := width // 2
+        halfHeight := height // 2
+        
+        ; Wine用液体検出エリア（上部60%、枠を除外してより精密に）
+        liquidArea := Map(
+            "left", centerX - halfWidth + 8,      ; 枠をより多く除外
+            "top", centerY - halfHeight + 8,       ; 上端の枠除外
+            "right", centerX + halfWidth - 8,     ; 右端の枠除外
+            "bottom", centerY - height // 5       ; 上部60%まで（1/5点まで）
+        )
+        
+        ; エリアサイズ計算
+        liquidArea["width"] := liquidArea["right"] - liquidArea["left"]
+        liquidArea["height"] := liquidArea["bottom"] - liquidArea["top"]
+        
+        LogDebug("VisualDetection", Format("Liquid area calculated: {},{} to {},{} ({}x{})", 
+            liquidArea["left"], liquidArea["top"], liquidArea["right"], liquidArea["bottom"],
+            liquidArea["width"], liquidArea["height"]))
+        
+        return liquidArea
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to calculate liquid detection area: {}", e.Message))
+        return Map()
+    }
+}
+
+; 液体エリアのピクセルスキャン
+ScanLiquidArea(liquidArea, flaskNumber) {
+    try {
+        ; Wine of the Prophetの黄金色設定（設定可能）
+        goldColorR := ConfigManager.Get("VisualDetection", "WineGoldR", 255)
+        goldColorG := ConfigManager.Get("VisualDetection", "WineGoldG", 215)
+        goldColorB := ConfigManager.Get("VisualDetection", "WineGoldB", 0)
+        colorTolerance := ConfigManager.Get("VisualDetection", "WineColorTolerance", 30)
+        
+        totalPixels := 0
+        liquidPixels := 0
+        samplingRate := ConfigManager.Get("VisualDetection", "WineSamplingRate", 3)  ; 3ピクセルおきにサンプリング
+        
+        ; エリアをサンプリングしてスキャン
+        loop liquidArea["height"] // samplingRate {
+            y := liquidArea["top"] + (A_Index - 1) * samplingRate
+            
+            loop liquidArea["width"] // samplingRate {
+                x := liquidArea["left"] + (A_Index - 1) * samplingRate
+                totalPixels++
+                
+                ; ピクセル色を取得
+                pixelColor := PixelGetColor(x, y, "RGB")
+                
+                ; RGBに分解
+                r := (pixelColor >> 16) & 0xFF
+                g := (pixelColor >> 8) & 0xFF  
+                b := pixelColor & 0xFF
+                
+                ; 黄金色かどうか判定
+                if (IsGoldColor(r, g, b, goldColorR, goldColorG, goldColorB, colorTolerance)) {
+                    liquidPixels++
+                }
+            }
+        }
+        
+        ; 液体割合を計算
+        liquidPercentage := totalPixels > 0 ? (liquidPixels / totalPixels) : 0.0
+        
+        LogDebug("VisualDetection", Format("Flask{} liquid scan: {}/{} pixels gold ({}%)", 
+            flaskNumber, liquidPixels, totalPixels, Round(liquidPercentage * 100, 1)))
+        
+        return liquidPercentage
+        
+    } catch as e {
+        LogError("VisualDetection", Format("ScanLiquidArea failed: {}", e.Message))
+        return 0.0
+    }
+}
+
+; 黄金色判定ヘルパー
+IsGoldColor(r, g, b, targetR, targetG, targetB, tolerance) {
+    return (Abs(r - targetR) <= tolerance && 
+            Abs(g - targetG) <= tolerance && 
+            Abs(b - targetB) <= tolerance)
+}
+
+; Wine of the Prophet チャージレベル検出
+DetectWineChargeLevel() {
+    try {
+        LogDebug("VisualDetection", "Starting Wine of the Prophet charge level detection")
+        
+        ; 液体エリアの黄金色ピクセル割合を取得
+        liquidPercentage := GetLiquidPercentage(4)  ; Flask4 = Wine of the Prophet
+        
+        ; チャージ量を推定（最大140チャージ）
+        maxCharge := ConfigManager.Get("VisualDetection", "WineMaxCharge", 140)
+        chargePerUse := ConfigManager.Get("VisualDetection", "WineChargePerUse", 72)
+        estimatedCharge := liquidPercentage * maxCharge
+        
+        ; 使用可能判定（チャージ72以上）
+        canUse := (estimatedCharge >= chargePerUse)
+        usesRemaining := Floor(estimatedCharge / chargePerUse)
+        
+        ; 結果をまとめて返す
+        result := {
+            charge: Round(estimatedCharge, 1),
+            percentage: Round(liquidPercentage * 100, 1),
+            canUse: canUse,
+            usesRemaining: usesRemaining,
+            maxCharge: maxCharge,
+            chargePerUse: chargePerUse,
+            detectionTime: A_TickCount
+        }
+        
+        LogInfo("VisualDetection", Format("Wine charge detection: {:.1f}/{} charges ({}%), {} uses remaining, can use: {}", 
+            result.charge, maxCharge, result.percentage, usesRemaining, canUse ? "Yes" : "No"))
+        
+        return result
+        
+    } catch as e {
+        LogError("VisualDetection", Format("DetectWineChargeLevel failed: {}", e.Message))
+        return {
+            charge: 0,
+            percentage: 0,
+            canUse: false,
+            usesRemaining: 0,
+            maxCharge: 140,
+            chargePerUse: 72,
+            detectionTime: A_TickCount,
+            error: e.Message
+        }
+    }
+}
+
+; Wineチャージ検出のテスト関数
+TestWineChargeDetection() {
+    try {
+        LogInfo("VisualDetection", "Testing Wine of the Prophet charge detection")
+        
+        ; 検出実行
+        result := DetectWineChargeLevel()
+        
+        ; 結果をオーバーレイで表示
+        displayLines := [
+            "=== Wine of the Prophet チャージ検出テスト ===",
+            "",
+            Format("推定チャージ: {:.1f}/{}", result.charge, result.maxCharge),
+            Format("液体レベル: {}%", result.percentage),
+            Format("使用可能回数: {}", result.usesRemaining),
+            Format("使用可能: {}", result.canUse ? "はい" : "いいえ"),
+            ""
+        ]
+        
+        if (result.HasOwnProp("error")) {
+            displayLines.Push("⚠ エラー: " . result.error)
+        } else {
+            displayLines.Push("✓ 検出成功")
+        }
+        
+        ShowMultiLineOverlay(displayLines, 5000)
+        
+        return result.HasOwnProp("error") ? false : true
+        
+    } catch as e {
+        LogError("VisualDetection", Format("TestWineChargeDetection failed: {}", e.Message))
+        ShowOverlay("Wine検出テストに失敗", 2000)
+        return false
+    }
 }
 
 ; ===================================================================

@@ -1,0 +1,76 @@
+File_Name,Card_Name,Value,Buff_Effect
+abandoned_wealth.png,Abandoned Wealth,Medium,50% increased Rarity of Items found
+alivias_grace.png,Alivias Grace,High,"+4000 to Evasion Rating
+20% increased Movement Speed"
+arrogance_of_the_vaal.png,Arrogance of The Vaal,High,"75% to Chaos Resistance
+20% of Physical Damage from Hits taken as Chaos Damage"
+astral_protection.png,Astral Protection,Medium,Gain 30% of Maximum Life as Extra Maximum Energy Shield
+a_chilling_wind.png,A Chilling Wind,Medium,"Gain a Frenzy Charge on Hit
+All of your damage Chills"
+bated_expectation.png,Bated Expectation,Lowest,"50% increased Cast Speed
+50% increased Quantity of Fish Caught"
+beauty_through_death.png,Beauty Through Death,Lowest,"Cannot be Stunned
+Immune to all Elemental Ailments"
+boon_of_justice.png,Boon of Justice,Medium,"Cannot be Stunned
+Immune to all Elemental Ailments"
+burning_blood.png,Burning Blood,Highest,"Gain 50% of Physical Damage as Extra Fire Damage
+Gain 50% of Cold Damage as Extra Fire Damage
+Gain 50% of Lightning Damage as Extra Fire Damage
+Damage Penetrates 25% Fire Resistance"
+chaotic_disposition.png,Chaotic Disposition,Highest,"Damage with Hits is Lucky
+Damage of Enemies Hitting you is Unlucky"
+council_of_cats.png,Council of Cats,High,"Grants 20% increased Attack and Cast Speed
+Grants 100% increased Critical Strike Chance
+15% chance to Avoid All Damage from Hits
+100% increased Stealth"
+dark_temptation.png,Dark Temptation,High,"Enemies you Kill have a 50% chance to Explode, dealing a quarter of their maximum Life as Chaos Damage"
+doedres_madness.png,Doedres Madness,High,"Curse Enemies with Enfeeble on Hit
+You can apply an additional Curse"
+earth_drinker.png,Earth Drinker,High,+4000 to Armour
+her_mask.png,Her Mask,Low,Vaal Skills have 75% chance to regain consumed Souls when used
+house_of_mirrors.png,House of Mirrors,Highest,Deal Double Damage
+humility.png,Humility,High,"Regenerate 10% of Life per second
+Regenerate 10% of Mana per second
+Regenerate 10% of Energy Shield per second"
+hunters_reward.png,Hunters Reward,Highest,"50% chance to Freeze, Shock and Ignite
+50% increased Elemental Damage with Hits and Ailments for each type of Elemental Ailment on Enemy"
+lonely_warrior.png,Lonely Warrior,Highest,Gain 50% of Missing Unreserved Life before being Hit by an Enemy
+loyalty.png,Loyalty,Highest,"You and nearby Allies have 30% increased Attack and Cast Speed
+You and nearby Allies deal 50% increased Damage"
+might_is_right.png,Might Is Right,Lowest,All hits are Critical Strikes
+poisoned_faith.png,Poisoned Faith,Low,"All Damage from Hits can Poison
+Poison on Hit"
+rats.png,Rats,High,"15% increased Attack Speed
+75% increased Global Critical Strike Chance
+150% increased Evasion Rating
+25% increased Rarity of Items found
+10% increased Movement Speed
+10% reduced Character Size"
+the_beast.png,The Beast,Lowest,200% increased Flask Life Recovery rate
+the_betrayal.png,The Betrayal,Lowest,"100% increased Global Critical Strike Chance
++100% to Critical Strike Multiplier"
+the_coming_storm.png,The Coming Storm,High,"75% of Physical Damage from Hits taken as Lightning Damage
+75% to Lightning Resistance"
+the_conduit.png,The Conduit,HIgh,Adds 1 to 300 Lightning Damage to Spells and Attacks
+the_darkest_dream.png,The Darkest Dream,Highest,"Inflict Withered for 2 seconds on Hit
+Enemies take 4% increased Elemental Damage from your Hits for each Withered you have inflicted on them"
+the_demoness.png,The Demoness,Lowest,"Gain a Power Charge when you Stun
+Gain Unholy Might for 4 seconds on Critical Strike"
+the_doctor.png,The Doctor,High,"When you Kill a Rare monster, you gain its Modifiers for 20 seconds"
+the_enthusiasts.png,The Enthusiasts,Lowest,"50% increased Area of Effect of Aura Skills
+50% increased effect of Non-Curse Auras from your Skills"
+the_escape.png,The Escape,Medium,50% increased Movement Speed
+the_feast.png,The Feast,Lowest,"Gain a Power Charge on Non-Critical Strike.
++10% to Critical Strike Multiplier per Power Charge"
+the_life_thief.png,The Life Thief,Lowest,Gain Soul Eater on Kill for 20 seconds
+the_lunaris_priestess.png,The Lunaris Priestess,Lowest,Skills fire 4 additional Projectiles
+the_Scavenger.png,The Scavenger,Highest,"50% increased Area of Effect
+100% increased Area Damage"
+the_throne.png,The Throne,Medium,"Action Speed cannot be modified to below Base Value
+Cannot be Knocked Back
+Cannot be Stunned"
+the_web.png,The Web,Highest,"100% increased Global Defences
+100% increased Damage"
+three_faces_in_the_dark.png,Three Faces In The Dark,High,"30% increased Attack, Cast and Movement Speed"
+tranquillity.png,Tranquillity,Highest,"All Damage with Hits can Shock
+100% increased Effect of Lightning Ailments"
