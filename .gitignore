@@ -4,9 +4,15 @@ logs/
 *.txt
 *.tmp
 
+# Backup folders
+backups/
+backup/
+*.backup
+*_backup/
+Config_backup_*.ini
+
 # Config backups
 *.bak
-*.backup
 
 # Temporary files
 temp/
