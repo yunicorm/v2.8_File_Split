@@ -244,10 +244,17 @@ LoadFlaskConfigFromINI() {
         ; 5つのフラスコスロットを読み込み
         for flaskNum in [1, 2, 3, 4, 5] {
             enabled := ConfigManager.Get("Flask", Format("Flask{}_Enabled", flaskNum), false)
+            key := ConfigManager.Get("Flask", Format("Flask{}_Key", flaskNum), flaskNum)
             
-            if (enabled) {
+            ; Wine/Tincture競合チェック
+            conflictCheck := CheckFlaskKeyConflict(key, flaskNum)
+            
+            LogDebug("FlaskConfiguration", Format("Flask{}: enabled={}, key={}, conflict={}", 
+                flaskNum, enabled, key, conflictCheck.hasConflict))
+            
+            if (enabled && !conflictCheck.hasConflict) {
                 flaskConfig := {
-                    key: ConfigManager.Get("Flask", Format("Flask{}_Key", flaskNum), flaskNum),
+                    key: key,
                     type: ConfigManager.Get("Flask", Format("Flask{}_Type", flaskNum), "utility"),
                     minInterval: ConfigManager.Get("Flask", Format("Flask{}_Min", flaskNum), 5000),
                     maxInterval: ConfigManager.Get("Flask", Format("Flask{}_Max", flaskNum), 5500),
@@ -273,6 +280,11 @@ LoadFlaskConfigFromINI() {
                 }
                 
                 g_flask_configs[Format("flask{}", flaskNum)] := flaskConfig
+                LogDebug("FlaskConfiguration", Format("Flask{} loaded: key={}, type={}, min={}ms, max={}ms",
+                    flaskNum, flaskConfig.key, flaskConfig.type, flaskConfig.minInterval, flaskConfig.maxInterval))
+            } else if (enabled && conflictCheck.hasConflict) {
+                LogWarn("FlaskConfiguration", Format("Flask{} disabled due to conflict: {} (key={})",
+                    flaskNum, conflictCheck.reason, key))
             }
         }
         
@@ -479,5 +491,37 @@ ResetFlaskConfigs() {
     } catch as e {
         LogError("FlaskConfiguration", "Failed to reset flask configs: " . e.Message)
         return false
+    }
+}
+
+; --- Wine/Tincture競合チェック ---
+CheckFlaskKeyConflict(key, flaskNum) {
+    global KEY_TINCTURE, KEY_WINE_PROPHET
+    
+    ; TinctureとWine of the Prophetのキーを取得
+    tinctureKey := ConfigManager.Get("Keys", "Tincture", "3")
+    wineKey := ConfigManager.Get("Keys", "WineProphet", "4")
+    
+    ; 競合チェック
+    if (key == tinctureKey) {
+        return {
+            hasConflict: true,
+            reason: "Conflicts with Tincture system",
+            conflictType: "Tincture"
+        }
+    }
+    
+    if (key == wineKey) {
+        return {
+            hasConflict: true,
+            reason: "Conflicts with Wine of the Prophet system", 
+            conflictType: "Wine"
+        }
+    }
+    
+    return {
+        hasConflict: false,
+        reason: "",
+        conflictType: ""
     }
 }

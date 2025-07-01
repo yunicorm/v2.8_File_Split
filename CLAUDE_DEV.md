@@ -570,3 +570,39 @@ gui.SetFont()                                    // デフォルトに戻す
 - +/_: 間隔調整（±2px）
 - =/- ]/[ '/;: サイズ変更
 - Space: 一括保存
+
+## トラブルシューティング
+
+### ConfigManager Mapアクセスエラー
+**問題**: "This value of type "Map" has no property named "type""
+**原因**: AutoHotkey v2ではMapオブジェクトのプロパティアクセス方法が異なる
+**解決**: 
+- `map.property` → `map["property"]`
+- Objectタイプは`.property`のまま、Mapタイプのみ`["key"]`形式を使用
+
+### フラスコ設定が反映されない
+**問題**: 設定ウィンドウの変更が実際の動作に反映されない
+**原因**: `InitializeFlaskConfigs()`がハードコード値を使用
+**解決**:
+1. `StartFlaskAutomation()`で`LoadFlaskConfigFromINI()`を呼び出す
+2. INI読み込み失敗時のみデフォルト値を使用
+3. `UpdateFlaskManagerConfig()`で実行時の設定更新を実装
+
+### フラスコとシステムキーの競合
+**問題**: Flask3/4がTincture/Wineシステムと同じキーを使用
+**解決**:
+1. `CheckFlaskKeyConflict()`関数で競合を検出
+2. 競合するフラスコを自動的に無効化
+3. ログに詳細な競合情報を出力
+
+## 開発のベストプラクティス
+
+### Map vs Object の使い分け
+- **Map使用時**: `map["key"]`または`map.Get("key")`
+- **Object使用時**: `object.property`
+- **型チェック**: `Type(variable) == "Map"`で判定してアクセス方法を切り替え
+
+### 設定の動的読み込み
+- 起動時: INIファイルから設定を読み込む
+- 実行時: ConfigManager経由で設定を更新
+- フォールバック: 読み込み失敗時のデフォルト値を用意

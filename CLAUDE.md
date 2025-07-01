@@ -197,6 +197,20 @@ Real-time validation: Settings are validated before saving
 Hot-reload integration: Changes are immediately available after saving
 Performance monitoring: Built-in performance prediction for skill configurations
 
+## Flask System Architecture
+
+### Flask System Key Conflict Resolution
+フラスコシステムは他のシステムとのキー競合を自動的に検出し解決します：
+
+- **競合検出**: `CheckFlaskKeyConflict()`関数がTincture（3キー）とWine of the Prophet（4キー）との競合を検出
+- **自動無効化**: 競合するフラスコは自動的に無効化され、ログに警告が記録されます
+- **動的設定**: ConfigManagerから動的にキー設定を読み込むため、柔軟な設定変更が可能
+
+### Configuration Loading Priority
+1. **INIファイル優先**: `LoadFlaskConfigFromINI()`が最初に実行
+2. **フォールバック**: INI読み込み失敗時のみ`InitializeFlaskConfigs()`のデフォルト値を使用
+3. **実行時更新**: `UpdateFlaskManagerConfig()`により再起動不要で設定変更可能
+
 Development Patterns
 Error Handling
 
