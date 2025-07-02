@@ -2,6 +2,28 @@
 ; Visual detection system for Flask charge monitoring using FindText
 ; Provides wrapper functions for FindText integration with error handling
 
+; ATan2カスタム実装（AutoHotkey v2では未提供）
+ATan2Custom(y, x) {
+    if (x > 0) {
+        return ATan(y / x)
+    }
+    else if (x < 0 && y >= 0) {
+        return ATan(y / x) + 3.141592653589793
+    }
+    else if (x < 0 && y < 0) {
+        return ATan(y / x) - 3.141592653589793
+    }
+    else if (x == 0 && y > 0) {
+        return 3.141592653589793 / 2
+    }
+    else if (x == 0 && y < 0) {
+        return -3.141592653589793 / 2
+    }
+    else {
+        return 0  ; x == 0 && y == 0
+    }
+}
+
 ; Global Map for visual detection state (snake_case naming convention)
 global g_visual_detection_state := Map(
     "enabled", false,
@@ -478,7 +500,7 @@ StartFlaskPositionCapture() {
     global g_current_flask_index, g_setup_notification_gui
     
     ; モニター情報取得
-    monitors := GetMonitorInfo()
+    monitors := GetFlaskMonitorInfo()
     centralMonitor := monitors["central"]
     
     ; フラスコスロット推定位置計算
@@ -620,7 +642,7 @@ ShowPresetMenu() {
         g_preset_menu_gui.OnEvent("Escape", (*) => ClosePresetMenu())
         
         ; 画面中央に表示
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         menuX := centralMonitor["centerX"] - 100
         menuY := centralMonitor["centerY"] - 150
@@ -654,7 +676,7 @@ ApplyPreset(presetType) {
         LogInfo("VisualDetection", Format("Applying preset: {}", presetType))
         
         ; モニター情報取得
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         
         ; プリセット別座標計算
@@ -737,10 +759,10 @@ ApplyPreset(presetType) {
         ClosePresetMenu()
         
         ShowOverlay(Format("プリセット「{}」を適用しました", presetType), 2000)
-        LogInfo("VisualDetection", Format("Preset \"{}\" applied successfully", presetType))
+        LogInfo("VisualDetection", Format("Preset '{}' applied successfully", presetType))
         
     } catch as e {
-        LogError("VisualDetection", Format("Failed to apply preset \"{}\": {}", presetType, e.Message))
+        LogError("VisualDetection", Format("Failed to apply preset '{}': {}", presetType, e.Message))
         ShowOverlay("プリセットの適用に失敗しました", 2000)
     }
 }
@@ -824,7 +846,7 @@ BatchAdjustSpacing(spacingChange) {
         LogInfo("VisualDetection", Format("Batch adjusting flask spacing by {}", spacingChange))
         
         ; モニター情報取得
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         
         ; 既存の完了フラスコオーバーレイをクリア
@@ -971,7 +993,7 @@ ExportFlaskSettings() {
         }
         
         ; モニター情報も追加
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         exportText .= Format("CentralMonitorWidth={}`n", centralMonitor["width"])
         exportText .= Format("CentralMonitorHeight={}`n", centralMonitor["height"])
@@ -1067,7 +1089,7 @@ ShowHelpOverlay() {
         g_help_overlay_gui.OnEvent("Escape", (*) => CloseHelpOverlay())
         
         ; 画面中央に表示
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         helpX := centralMonitor["centerX"] - 250
         helpY := centralMonitor["centerY"] - 250
@@ -1096,7 +1118,7 @@ CloseHelpOverlay() {
 }
 
 ; モニター情報取得関数（Utils/Coordinates.ahkのGetDetailedMonitorInfo()を使用）
-GetMonitorInfo() {
+GetFlaskMonitorInfo() {
     try {
         ; Utils/Coordinates.ahkの詳細モニター情報を取得
         detailedMonitors := GetDetailedMonitorInfo()
@@ -1349,7 +1371,7 @@ CreateGuidelineOverlays(currentX, currentY, flaskNumber) {
         ClearGuidelineOverlays()
         
         ; モニター情報とフラスコ位置計算
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         flaskPositions := CalculateFlaskSlotPositions(centralMonitor)
         
@@ -1381,7 +1403,7 @@ CreateDottedLine(x1, y1, x2, y2) {
     try {
         ; 線の長さと角度計算
         distance := Sqrt((x2 - x1)**2 + (y2 - y1)**2)
-        angle := ATan2(y2 - y1, x2 - x1)
+        angle := ATan2Custom(y2 - y1, x2 - x1)
         
         ; 点線のドット数（10px間隔）
         dotCount := Floor(distance / 10)
@@ -1451,7 +1473,7 @@ CheckBoundaryWarning(x, y) {
         }
         
         ; モニター境界チェック
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         
         margin := 50  ; 境界からの警告マージン
@@ -1771,7 +1793,7 @@ ConfirmCurrentFlaskAndNext() {
         
         if (g_current_flask_index <= 5) {
             ; 次のフラスコ位置計算
-            monitors := GetMonitorInfo()
+            monitors := GetFlaskMonitorInfo()
             centralMonitor := monitors["central"]
             flaskPositions := CalculateFlaskSlotPositions(centralMonitor)
             
@@ -1808,52 +1830,58 @@ StartTransitionAnimation(startX, startY, endX, endY, flaskNumber) {
         LogDebug("VisualDetection", Format("Starting transition animation from {},{} to {},{} for Flask{}", 
             startX, startY, endX, endY, flaskNumber))
         
-        ; アニメーション設定
-        animationDuration := 300  ; ms
-        frameInterval := 16       ; ~60 FPS
-        totalFrames := animationDuration // frameInterval
-        currentFrame := 0
+        ; アニメーション用グローバル変数を設定
+        global animStartX := startX
+        global animStartY := startY
+        global animEndX := endX
+        global animEndY := endY
+        global animCurrentFrame := 0
+        global animTotalFrames := 18  ; 300ms / 16ms = ~18 frames
+        global animTargetFlask := flaskNumber
         
         ; 現在のオーバーレイとガイドを削除
         ClearCurrentOverlays()
         
-        ; アニメーションタイマー開始
-        animationTimer := () => {
-            currentFrame++
-            progress := currentFrame / totalFrames
-            
-            ; イージング関数（ease-out）
-            easedProgress := 1 - (1 - progress)**3
-            
-            ; 現在位置計算
-            currentX := startX + (endX - startX) * easedProgress
-            currentY := startY + (endY - startY) * easedProgress
-            
-            ; オーバーレイを新しい位置に作成
-            CreateSingleFlaskOverlay(currentX, currentY, flaskNumber)
-            
-            if (currentFrame >= totalFrames) {
-                ; アニメーション完了
-                SetTimer(animationTimer, 0)  ; タイマー停止
-                
-                ; 通知更新
-                monitors := GetMonitorInfo()
-                centralMonitor := monitors["central"]
-                notificationX := centralMonitor["centerX"]
-                notificationY := centralMonitor["top"] + 100
-                CreateSetupNotificationOverlay(notificationX, notificationY, flaskNumber)
-                
-                LogInfo("VisualDetection", Format("Transition animation completed for Flask{}", flaskNumber))
-            }
-        }
-        
         ; タイマー開始
-        SetTimer(animationTimer, frameInterval)
+        SetTimer(PerformFlaskAnimation, 16)
         
     } catch as e {
         LogError("VisualDetection", "Failed to start transition animation: " . e.Message)
         ; フォールバック：直接次のフラスコを作成
         CreateSingleFlaskOverlay(endX, endY, flaskNumber)
+    }
+}
+
+; アニメーション実行関数（グローバルスコープ）
+PerformFlaskAnimation() {
+    global animStartX, animStartY, animEndX, animEndY
+    global animCurrentFrame, animTotalFrames, animTargetFlask
+    
+    animCurrentFrame++
+    progress := animCurrentFrame / animTotalFrames
+    
+    ; イージング関数（ease-out）
+    easedProgress := 1 - (1 - progress)**3
+    
+    ; 現在位置計算
+    currentX := animStartX + (animEndX - animStartX) * easedProgress
+    currentY := animStartY + (animEndY - animStartY) * easedProgress
+    
+    ; オーバーレイを新しい位置に作成
+    CreateSingleFlaskOverlay(currentX, currentY, animTargetFlask)
+    
+    if (animCurrentFrame >= animTotalFrames) {
+        ; アニメーション完了
+        SetTimer(PerformFlaskAnimation, 0)  ; タイマー停止
+        
+        ; 通知更新
+        monitors := GetFlaskMonitorInfo()
+        centralMonitor := monitors["central"]
+        notificationX := centralMonitor["centerX"]
+        notificationY := centralMonitor["top"] + 100
+        CreateSetupNotificationOverlay(notificationX, notificationY, animTargetFlask)
+        
+        LogInfo("VisualDetection", Format("Transition animation completed for Flask{}", animTargetFlask))
     }
 }
 
@@ -1904,7 +1932,7 @@ ClearCurrentOverlays() {
 SaveSingleFlaskPosition(flaskNumber, absoluteX, absoluteY, width, height) {
     try {
         ; モニター情報取得
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         
         ; 絶対座標を中央モニター相対座標に変換
@@ -1934,7 +1962,7 @@ SaveSingleFlaskPosition(flaskNumber, absoluteX, absoluteY, width, height) {
 ; 中央モニター相対座標から絶対座標に変換
 ConvertRelativeToAbsolute(relativeX, relativeY) {
     try {
-        monitors := GetMonitorInfo()
+        monitors := GetFlaskMonitorInfo()
         centralMonitor := monitors["central"]
         
         absoluteX := centralMonitor["left"] + relativeX
