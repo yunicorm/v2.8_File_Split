@@ -1182,3 +1182,12 @@ SaveFlaskPosition() {
     ConfigManager.Set("VisualDetection", 
         "Flask" . g_current_flask_index . "X", centerX)
     ConfigManager.Set("VisualDetection", 
+        "Flask" . g_current_flask_index . "Y", centerY)
+    ConfigManager.Set("VisualDetection", 
+        "Flask" . g_current_flask_index . "Width", g_flask_rect_width)
+    ConfigManager.Set("VisualDetection", 
+        "Flask" . g_current_flask_index . "Height", g_flask_rect_height)
+    
+    LogInfo("VisualDetection", Format("Saved Flask {} position: ({}, {}) size: {}x{}", 
+        g_current_flask_index, centerX, centerY, g_flask_rect_width, g_flask_rect_height))
+}

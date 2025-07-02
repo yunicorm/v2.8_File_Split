@@ -237,3 +237,113 @@ ResizeWithLog(dw, dh, key) {
 
 ; 楕円形フラスコ座標取得開始（順次設定方式）
 StartFlaskPositionCapture() {
+    try {
+        LogInfo("VisualDetection", "Starting flask position capture sequence")
+        
+        ; グローバル変数の初期化
+        global g_current_flask_index := 1
+        global g_flask_setup_active := true
+        global g_flask_rect_width := 60
+        global g_flask_rect_height := 80
+        
+        ; Visual Detection システムが有効か確認
+        if (!IsVisualDetectionEnabled()) {
+            LogWarn("VisualDetection", "Visual detection is disabled - starting position capture in coordinates-only mode")
+        }
+        
+        ; 第1フラスコから開始
+        StartSingleFlaskCapture(1)
+        
+        ; 操作説明を表示
+        instructions := [
+            "フラスコ位置設定モード開始",
+            "",
+            "操作方法:",
+            "矢印キー: 位置調整 (10px)",
+            "]/[: 幅調整 (10px)",
+            "'/;: 高さ調整 (10px)", 
+            "=/−: 全体サイズ調整 (5px)",
+            "Shift+キー: 微調整 (2px)",
+            "",
+            "Enter: 位置確定・次へ",
+            "Escape: 設定終了",
+            "G: グリッドスナップ切替",
+            "H: ヘルプ表示"
+        ]
+        
+        ShowMultiLineOverlayWithTitle(instructions, 8000, Format("フラスコ{}/5 設定中", g_current_flask_index))
+        
+        LogInfo("VisualDetection", "Flask position capture started successfully")
+        return true
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to start flask position capture: {}", e.Message))
+        return false
+    }
+}
+
+; 単一フラスコの座標設定開始
+StartSingleFlaskCapture(flaskNumber) {
+    try {
+        global g_current_flask_index := flaskNumber
+        
+        LogInfo("VisualDetection", Format("Starting capture for Flask {}", flaskNumber))
+        
+        ; 既存の設定を読み込むか、推定位置を使用
+        flaskConfig := LoadFlaskPosition(flaskNumber)
+        if (flaskConfig["configured"]) {
+            centerX := flaskConfig["x"]
+            centerY := flaskConfig["y"]
+            LogInfo("VisualDetection", Format("Using existing position for Flask {}: {},{}", flaskNumber, centerX, centerY))
+        } else {
+            ; 推定位置を計算
+            estimatedPos := EstimateFlaskPosition(flaskNumber)
+            centerX := estimatedPos["x"]
+            centerY := estimatedPos["y"]
+            LogInfo("VisualDetection", Format("Using estimated position for Flask {}: {},{}", flaskNumber, centerX, centerY))
+        }
+        
+        ; オーバーレイを作成・表示
+        CreateSingleFlaskOverlay(centerX, centerY, flaskNumber)
+        
+        ; ホットキーを有効化（FlaskOverlay.ahkの機能を呼び出し）
+        ; Note: ホットキー管理はFlaskOverlay.ahkで実装済み
+        
+        return true
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to start single flask capture: {}", e.Message))
+        return false
+    }
+}
+
+; フラスコ位置推定
+EstimateFlaskPosition(flaskNumber) {
+    try {
+        ; モニター情報を取得
+        monitors := GetMonitorInfo()
+        if (!monitors.Has("primary")) {
+            throw Error("Primary monitor not found")
+        }
+        
+        primary := monitors["primary"]
+        
+        ; フラスコ間隔とベース位置を計算
+        flaskSpacing := 80
+        baseX := primary["centerX"] - (2 * flaskSpacing)  ; 5つのフラスコの中央
+        baseY := primary["bottom"] - 100  ; 画面下から100px上
+        
+        ; フラスコ番号に基づく位置
+        estimatedX := baseX + ((flaskNumber - 1) * flaskSpacing)
+        estimatedY := baseY
+        
+        LogDebug("VisualDetection", Format("Estimated Flask {} position: {},{}", flaskNumber, estimatedX, estimatedY))
+        
+        return Map("x", estimatedX, "y", estimatedY)
+        
+    } catch as e {
+        LogError("VisualDetection", Format("Failed to estimate flask position: {}", e.Message))
+        ; フォールバック位置
+        return Map("x", 500, "y", 800)
+    }
+}
