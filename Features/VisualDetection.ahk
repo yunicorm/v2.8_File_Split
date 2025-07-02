@@ -193,7 +193,7 @@ ShowSystemMultiLineOverlay(lines, duration := 5000) {
 }
 
 ShowSystemNotification(title, message, type := "info", duration := 3000) {
-    return ShowNotificationOverlay(title, message, type, duration)
+    return ShowVisualNotification(title, message, type, duration)
 }
 
 ShowSystemProgress(title, current, total, description := "") {

@@ -227,16 +227,18 @@ StopAllTimers() {
     }
     
     ; 優先度でソート（降順）
+    i := 1
     Loop sortedTimers.Length - 1 {
-    i := A_Index
+        j := i + 1
         Loop sortedTimers.Length - i {
-    j := A_Index + i
             if (sortedTimers[i].priority < sortedTimers[j].priority) {
                 temp := sortedTimers[i]
                 sortedTimers[i] := sortedTimers[j]
                 sortedTimers[j] := temp
             }
+            j++
         }
+        i++
     }
     
     ; 順番に停止
@@ -327,16 +329,18 @@ ShowTimerDebugInfoDetailed() {
     activeTimers := GetActiveTimers()
     
     ; 優先度でソート
+    i := 1
     Loop activeTimers.Length - 1 {
-    i := A_Index
+        j := i + 1
         Loop activeTimers.Length - i {
-    j := A_Index + i
             if (activeTimers[i].priority > activeTimers[j].priority) {
                 temp := activeTimers[i]
                 activeTimers[i] := activeTimers[j]
                 activeTimers[j] := temp
             }
+            j++
         }
+        i++
     }
     
     for timer in activeTimers {

@@ -2,14 +2,8 @@
 ; Handles visual detection of flask charge status
 ; v2.9.6 - Extracted from VisualDetection.ahk for better modularity
 
-; Required global variables for flask detection
-global g_visual_detection_state := Map(
-    "enabled", false,
-    "last_detection_time", 0,
-    "detection_interval", 100,
-    "find_text_instance", "",
-    "detection_results", Map()
-)
+; Global variables used by flask detection - initialized in VisualDetection/Core.ahk
+global g_visual_detection_state
 
 ; Detection status constants
 global FLASK_CHARGED := 1

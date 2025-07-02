@@ -392,7 +392,7 @@ EnableDebugMode() {
         ConfigManager.Set("VisualDetection", "DebugMode", "true")
         
         LogInfo("TestingTools", "Debug mode enabled")
-        ShowNotificationOverlay("Debug Mode", "Debug mode enabled", "info", 2000)
+        ShowVisualNotification("Debug Mode", "Debug mode enabled", "info", 2000)
         return true
         
     } catch as e {
@@ -408,7 +408,7 @@ DisableDebugMode() {
         ConfigManager.Set("VisualDetection", "DebugMode", "false")
         
         LogInfo("TestingTools", "Debug mode disabled")
-        ShowNotificationOverlay("Debug Mode", "Debug mode disabled", "info", 2000)
+        ShowVisualNotification("Debug Mode", "Debug mode disabled", "info", 2000)
         return true
         
     } catch as e {

@@ -390,44 +390,8 @@ GetVisualDetectionStatus() {
     }
 }
 
-; Get current detection mode for debug display
-GetDetectionMode() {
-    global g_visual_detection_state
-    
-    try {
-        if (g_visual_detection_state.Has("detection_mode")) {
-            return g_visual_detection_state["detection_mode"]
-        }
-        return "Timer"  ; Default mode
-    } catch {
-        return "Unknown"
-    }
-}
+; GetDetectionMode function removed - duplicate of function at line 267
+; Use the original GetDetectionMode() function defined earlier in this file
 
-; Get flask pattern statistics for debug display
-GetFlaskPatternStats() {
-    try {
-        stats := Map(
-            "total_patterns", 0,
-            "configured_flasks", []
-        )
-        
-        ; Count configured flask patterns
-        Loop 5 {
-            flaskNumber := A_Index
-            patternKey := Format("Flask{}Pattern", flaskNumber)
-            pattern := ConfigManager.Get("VisualDetection", patternKey, "")
-            
-            if (pattern != "") {
-                stats["total_patterns"]++
-                stats["configured_flasks"].Push(flaskNumber)
-            }
-        }
-        
-        return stats
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to get pattern stats: " . e.Message)
-        return Map("total_patterns", 0, "configured_flasks", [])
-    }
-}
+; GetFlaskPatternStats function removed - using Wine/WineDetection.ahk version instead
+; The Wine version provides more comprehensive statistics for Wine of the Prophet builds
