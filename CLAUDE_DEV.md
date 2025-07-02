@@ -1010,3 +1010,368 @@ LogError("VisualDetection", "Error with context")
 4. **オーバーレイ表示異常**: GUI作成エラーのログ確認
 
 このv2.9.6の実装により、フラスコ位置設定は初心者から上級者まで対応する包括的なシステムとなり、Path of Exileマクロの使いやすさが大幅に向上しました。
+
+## 🚨 エラー予防・品質保証ガイド（2025-01-02 知見）
+
+今回のAutoHotkey v2構文エラー修正作業から得られた重要な知見を、将来の開発作業に活かすための包括的ガイドです。
+
+### 📊 修正実績サマリー
+
+#### 修正されたエラー分類
+1. **未定義関数呼び出し**: 3関数（IsVisualDetectionTestModeActive, GetDetectionMode, GetFlaskPatternStats）
+2. **単一行制御文エラー**: 2箇所（TestingTools.ahk, FindText.ahk）
+3. **ネストループ変数スコープ**: 1箇所（ColorDetection.ahk）⭐**Critical Bug**
+4. **ラムダ関数複文エラー**: 2箇所（UIHelpers.ahk）
+5. **グローバル変数未初期化**: 0箇所（既に適切）
+
+#### 修正による改善効果
+- **実行エラー解消**: 100% → デバッグ表示が正常動作
+- **論理エラー修正**: ColorDetectionの重大バグ修正により検出精度向上
+- **保守性向上**: 関数分離により可読性向上
+- **将来のエラー予防**: 包括的チェックリスト策定
+
+### 🔍 重要度別エラーパターン分析
+
+#### ⚠️ **Critical Level** - 動作に重大な影響
+
+**1. ネストループでのA_Index混同**
+```ahk
+❌ 重大バグ: Loop {
+    if (A_Index > height / yStep) break  // 実際は内側ループの値
+    scanY := y + (A_Index - 1) * yStep  // 間違った計算
+    Loop {
+        if (A_Index > width / xStep) break  // A_Indexが上書き
+        scanX := x + (A_Index - 1) * xStep  // 破綻した座標
+    }
+}
+
+✅ 修正: yIndex := 1
+Loop {
+    if (yIndex > height / yStep) break
+    scanY := y + (yIndex - 1) * yStep
+    xIndex := 1
+    Loop {
+        if (xIndex > width / xStep) break
+        scanX := x + (xIndex - 1) * xStep
+        xIndex++
+    }
+    yIndex++
+}
+```
+**影響**: ColorDetectionの精度低下、想定外範囲のスキャン、パフォーマンス劣化
+**対策**: ネストループでは必ず明示的変数を使用
+
+**2. 単一行制御文での予約語誤認識**
+```ahk
+❌ エラー: if (resultCount >= 5) break  // breakが変数として解釈
+
+✅ 修正: if (resultCount >= 5) {
+    break
+}
+```
+**影響**: コンパイルエラー、実行時エラー
+**対策**: 制御文は必ずブロック形式で記述
+
+#### 🔶 **High Level** - 機能不全を引き起こす
+
+**3. 未定義関数呼び出し**
+```ahk
+❌ エラー: IsVisualDetectionTestModeActive() // 関数が存在しない
+
+✅ 修正: // TestingTools.ahkに追加
+IsVisualDetectionTestModeActive() {
+    global g_test_session
+    try {
+        return g_test_session.Has("started") && g_test_session["started"]
+    } catch {
+        return false
+    }
+}
+```
+**影響**: デバッグ機能の停止、情報表示の欠損
+**対策**: 関数呼び出し前の存在確認、適切なモジュール配置
+
+**4. ラムダ関数での複文使用**
+```ahk
+❌ エラー: btnYes.OnEvent("Click", (*) => {
+    confirmGui.Destroy()
+    if (yesCallback) yesCallback.Call()
+})
+
+✅ 修正: btnYes.OnEvent("Click", (*) => HandleConfirmYes(confirmGui, yesCallback))
+
+HandleConfirmYes(gui, callback) {
+    gui.Destroy()
+    if (callback) callback.Call()
+}
+```
+**影響**: GUI操作の停止、イベント処理の失敗
+**対策**: ラムダ関数は単一式限定、複雑処理は分離
+
+### 🛠️ モジュール分割時の高品質開発プロセス
+
+#### Phase 1: **事前分析・設計**
+
+**依存関係マッピング**
+```bash
+# 関数呼び出し関係の可視化
+find . -name "*.ahk" -exec grep -Hn "[a-zA-Z_][a-zA-Z0-9_]*(" {} \; > function_calls.txt
+
+# グローバル変数の使用箇所特定  
+find . -name "*.ahk" -exec grep -Hn "g_[a-zA-Z_][a-zA-Z0-9_]*" {} \; > global_usage.txt
+
+# include関係の確認
+find . -name "*.ahk" -exec grep -Hn "#Include" {} \; > include_deps.txt
+```
+
+**設計チェックリスト**
+- [ ] 循環依存の回避設計
+- [ ] モジュール境界の明確定義
+- [ ] API互換性の保証計画
+- [ ] エラーハンドリング戦略
+- [ ] テスト戦略の策定
+
+#### Phase 2: **実装・品質保証**
+
+**リアルタイム品質チェック**
+```bash
+# 開発中の継続的チェック
+watch -n 5 'find . -name "*.ahk" -exec grep -l "if.*break\|if.*continue" {} \;'
+
+# 未定義関数の即座検出
+find . -name "*.ahk" -exec grep -Hn "Is[A-Z][a-zA-Z]*(" {} \; | \
+  cut -d: -f3 | sort | uniq > called_functions.txt
+find . -name "*.ahk" -exec grep -Hn "^[a-zA-Z_][a-zA-Z0-9_]*(" {} \; | \
+  cut -d: -f3 | sort | uniq > defined_functions.txt
+comm -23 called_functions.txt defined_functions.txt  # 未定義を表示
+```
+
+**コード品質指標**
+- **関数定義率**: 呼び出される関数の定義完了割合（目標: 100%）
+- **エラーハンドリング率**: try-catch文の適用割合（目標: 95%以上）
+- **グローバル変数初期化率**: 使用前初期化の完了割合（目標: 100%）
+
+#### Phase 3: **検証・統合**
+
+**統合テストチェックリスト**
+```ahk
+// 各モジュールの基本動作確認
+TestBasicFunctionality() {
+    results := []
+    
+    // 1. グローバル変数の初期化確認
+    if (!IsSet(g_test_session)) {
+        results.Push("FAIL: g_test_session not initialized")
+    }
+    
+    // 2. 主要関数の存在確認
+    try {
+        IsVisualDetectionTestModeActive()
+        results.Push("PASS: IsVisualDetectionTestModeActive defined")
+    } catch {
+        results.Push("FAIL: IsVisualDetectionTestModeActive undefined")
+    }
+    
+    // 3. 依存関係の確認
+    if (!IsSet(ConfigManager)) {
+        results.Push("FAIL: ConfigManager not available")
+    }
+    
+    return results
+}
+```
+
+### 📈 継続的品質改善システム
+
+#### 自動化チェックスクリプト
+
+**daily_quality_check.sh**
+```bash
+#!/bin/bash
+echo "=== AutoHotkey v2 Quality Check $(date) ==="
+
+# 1. 構文エラーの検出
+echo "1. Checking single-line control statements..."
+find . -name "*.ahk" -exec grep -Hn "if.*break\|if.*continue\|if.*return" {} \; | grep -v "{"
+
+# 2. ラムダ関数の複雑度チェック
+echo "2. Checking lambda function complexity..."
+find . -name "*.ahk" -exec grep -A5 -B1 "=> {" {} \;
+
+# 3. 未定義関数の検出
+echo "3. Checking undefined functions..."
+# [previous script content]
+
+# 4. グローバル変数の重複確認
+echo "4. Checking global variable duplicates..."
+find . -name "*.ahk" -exec grep -h "^global" {} \; | sort | uniq -d
+
+# 5. ネストループでのA_Index使用
+echo "5. Checking nested A_Index usage..."
+find . -name "*.ahk" -exec grep -A10 -B2 "Loop {" {} \; | grep -A8 -B2 "A_Index.*Loop"
+
+echo "=== Quality Check Complete ==="
+```
+
+#### 品質メトリクス
+
+**週次品質レポート**
+- 新規エラー数: 0件（目標）
+- 修正済みエラー数: 累積
+- コード品質スコア: 各指標の総合評価
+- 技術的負債指数: 未解決問題の重要度加重値
+
+**月次改善計画**
+- 品質向上施策の効果測定
+- 開発プロセスの改善点特定
+- チェックツールの精度向上
+- ドキュメントの更新
+
+### 🎯 具体的適用例：新機能追加時のワークフロー
+
+#### 例：新しいDetectionシステム追加
+
+**Step 1: 設計段階**
+```ahk
+// Features/NewDetection/Core.ahk 設計
+global g_new_detection_state := Map(
+    "enabled", false,
+    "detection_mode", "Auto",
+    "last_detection_time", 0
+)
+
+// 必要な関数の事前定義
+IsNewDetectionEnabled() {
+    global g_new_detection_state
+    return g_new_detection_state.Has("enabled") && g_new_detection_state["enabled"]
+}
+
+GetNewDetectionMode() {
+    global g_new_detection_state
+    return g_new_detection_state.Get("detection_mode", "Auto")
+}
+```
+
+**Step 2: 実装段階**
+```ahk
+// エラー予防を考慮した実装
+StartNewDetection() {
+    try {
+        // 1. 前提条件チェック
+        if (!IsNewDetectionEnabled()) {
+            LogDebug("NewDetection", "Detection is disabled")
+            return false
+        }
+        
+        // 2. 依存関係確認
+        if (!IsSet(ConfigManager)) {
+            LogError("NewDetection", "ConfigManager not available")
+            return false
+        }
+        
+        // 3. 安全な処理実行
+        mode := GetNewDetectionMode()
+        
+        // 4. 制御文はブロック形式
+        if (mode == "Auto") {
+            LogInfo("NewDetection", "Starting auto detection")
+        } else {
+            LogInfo("NewDetection", "Starting manual detection")
+        }
+        
+        return true
+        
+    } catch as e {
+        LogError("NewDetection", "Failed to start detection: " . e.Message)
+        return false
+    }
+}
+```
+
+**Step 3: 検証段階**
+```bash
+# 新機能の品質チェック
+grep -r "IsNewDetectionEnabled" . --include="*.ahk"  # 呼び出し箇所確認
+grep -r "g_new_detection_state" . --include="*.ahk"  # 変数使用確認
+grep -n "if.*break\|if.*continue" Features/NewDetection/*.ahk  # 構文チェック
+```
+
+### 📚 エラーパターン事例集
+
+#### パターン1: モジュール間API不整合
+```ahk
+❌ 問題: // Module A
+function GetStatus() { return "active" }
+
+// Module B  
+status := GetCurrentStatus()  // 異なる関数名で呼び出し
+
+✅ 解決: // 統一されたAPI命名規則
+GetModuleStatus(), SetModuleStatus(), IsModuleActive()
+```
+
+#### パターン2: 初期化順序依存
+```ahk
+❌ 問題: // Main.ahk
+#Include "ModuleB.ahk"  // ModuleAに依存
+#Include "ModuleA.ahk"  // 後から読み込み
+
+✅ 解決: // 依存関係順の include
+#Include "ModuleA.ahk"  // 基盤
+#Include "ModuleB.ahk"  // 依存
+```
+
+#### パターン3: グローバル変数の衝突
+```ahk
+❌ 問題: // 複数モジュールで同名変数
+global g_state := "module_a"  // ModuleA.ahk
+global g_state := "module_b"  // ModuleB.ahk
+
+✅ 解決: // モジュール名プレフィックス
+global g_module_a_state := "module_a"
+global g_module_b_state := "module_b"
+```
+
+### 🔄 改善サイクル
+
+#### 1. **検出 (Detection)**
+- 自動化スクリプトによる定期チェック
+- 開発者による手動レビュー
+- ユーザーフィードバックの収集
+
+#### 2. **分析 (Analysis)**  
+- エラーパターンの分類
+- 根本原因の特定
+- 影響範囲の評価
+
+#### 3. **修正 (Fix)**
+- 優先度に基づく修正順序
+- テスト駆動での修正実施
+- ドキュメントの同期更新
+
+#### 4. **予防 (Prevention)**
+- チェックリストの更新
+- 開発プロセスの改善
+- ツールの精度向上
+
+### 📋 品質保証チェックシート
+
+#### 新機能開発完了時
+- [ ] 全関数の定義・呼び出し整合性確認済み
+- [ ] グローバル変数の初期化確認済み
+- [ ] 制御文のブロック形式統一確認済み
+- [ ] ラムダ関数の単一式制限遵守確認済み
+- [ ] エラーハンドリングの適切な配置確認済み
+- [ ] ログ出力の適切な配置確認済み
+- [ ] API互換性の保証確認済み
+- [ ] 依存関係の循環なし確認済み
+
+#### モジュール分割完了時
+- [ ] 分割前後の機能同等性確認済み
+- [ ] include順序の適切性確認済み
+- [ ] 各モジュールの独立性確認済み
+- [ ] API境界の明確性確認済み
+- [ ] エラー伝播の適切性確認済み
+- [ ] パフォーマンス影響の評価済み
+
+このガイドに従うことで、高品質で保守性の高いAutoHotkey v2コードを継続的に開発できます。

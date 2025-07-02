@@ -61,6 +61,139 @@ AutoHotkey v2構文準拠チェック
 インクルードパスの妥当性検証
 関数定義の重複確認
 
+## エラー予防ガイドライン（2025-01-02 知見）
+
+### 🚨 AutoHotkey v2 構文エラー予防チェックリスト
+
+#### 1. **単一行制御文の禁止** ⚠️ **Critical**
+```ahk
+❌ 危険: if (condition) break  ; breakが変数として解釈される
+✅ 安全: if (condition) {
+    break
+}
+```
+**適用箇所**: if, for, loop, while文内のbreak, continue, return
+
+#### 2. **ラムダ関数の制限厳守** ⚠️ **Critical**
+```ahk
+❌ 危険: btnYes.OnEvent("Click", (*) => {
+    confirmGui.Destroy()
+    if (yesCallback) yesCallback.Call()
+})
+
+✅ 安全: btnYes.OnEvent("Click", (*) => HandleConfirmYes(confirmGui, yesCallback))
+
+HandleConfirmYes(gui, callback) {
+    gui.Destroy()
+    if (callback) callback.Call()
+}
+```
+**原則**: ラムダ関数は単一式のみ。複数文は別関数に分離。
+
+#### 3. **ネストループの変数スコープ** ⚠️ **Critical**
+```ahk
+❌ 危険: Loop {
+    if (A_Index > height / yStep) break  ; 内側ループのA_Indexを使用
+    Loop {
+        if (A_Index > width / xStep) break  ; 外側の条件が破綻
+    }
+}
+
+✅ 安全: yIndex := 1
+Loop {
+    if (yIndex > height / yStep) break
+    xIndex := 1
+    Loop {
+        if (xIndex > width / xStep) break
+        xIndex++
+    }
+    yIndex++
+}
+```
+**原則**: ネストループでは明示的な変数を使用し、A_Indexに依存しない。
+
+#### 4. **関数定義の依存関係** ⚠️ **High**
+```ahk
+❌ 問題: 呼び出し元で関数が未定義
+debugInfo.Push("Test Mode: " . (IsVisualDetectionTestModeActive() ? "Active" : "Inactive"))
+
+✅ 解決: 適切なモジュールに関数を定義
+// Features/VisualDetection/TestingTools.ahk
+IsVisualDetectionTestModeActive() {
+    global g_test_session
+    try {
+        return g_test_session.Has("started") && g_test_session["started"]
+    } catch {
+        return false
+    }
+}
+```
+**チェック方法**: `find . -name "*.ahk" -exec grep -Hn "Is[A-Z][a-zA-Z]*(" {} \;`
+
+#### 5. **グローバル変数の初期化確認** ⚠️ **High**
+```ahk
+✅ 必須パターン:
+global g_test_session := Map()          // 適切な初期化
+global g_visual_detection_state := Map(  // 構造化初期化
+    "enabled", false,
+    "detection_mode", "Timer",
+    "detection_results", Map()
+)
+```
+**チェック方法**: 各モジュールの先頭でglobal変数の初期化を確認
+
+### 🔧 分割作業時の追加注意点
+
+#### モジュール分割チェックリスト
+- [ ] **関数の完全移動**: 呼び出し元と定義先の整合性確認
+- [ ] **include順序**: 依存関係に基づく適切な順序
+- [ ] **グローバル変数**: 各モジュールで必要な変数の宣言
+- [ ] **API互換性**: 既存の関数呼び出しが継続動作するか
+- [ ] **エラーハンドリング**: try-catch文の適切な配置
+
+#### 分割後の検証方法
+```bash
+# 未定義関数の検出
+find . -name "*.ahk" -exec grep -Hn "^[^;]*[a-zA-Z_][a-zA-Z0-9_]*(" {} \; | sort | uniq -d
+
+# グローバル変数の重複確認  
+find . -name "*.ahk" -exec grep -Hn "^global" {} \;
+
+# ラムダ関数の複雑度チェック
+find . -name "*.ahk" -exec grep -A3 -B1 "=>" {} \;
+```
+
+### 🛠️ 開発時の推奨フロー
+
+#### 1. **事前チェック（コード作成前）**
+- 対象モジュールの既存関数・変数を確認
+- 依存関係マップの更新
+- API設計の整合性確認
+
+#### 2. **実装中チェック（コード作成中）**
+- 制御文は必ずブロック形式で記述
+- ラムダ関数は単一式のみ
+- エラーハンドリングを必須とする
+
+#### 3. **事後チェック（コード完成後）**
+- 静的構文解析の実行
+- 未定義関数・変数の検出
+- ログ出力による動作確認
+
+### 📋 定期メンテナンス項目
+
+#### 週次チェック
+- [ ] ログファイルのエラー確認
+- [ ] 新規追加関数の定義確認
+- [ ] グローバル変数の初期化状態確認
+
+#### 月次チェック  
+- [ ] 未使用関数・変数の削除
+- [ ] API仕様書の更新
+- [ ] モジュール間依存関係の見直し
+
+このガイドラインに従うことで、将来の分割作業や機能追加時のエラーを大幅に削減できます。
+
 Technical Specifications
 詳細な技術仕様は /docs/technical-specs/ ディレクトリを参照：
 

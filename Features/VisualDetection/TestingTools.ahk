@@ -463,3 +463,14 @@ ClearTestData() {
         return false
     }
 }
+
+; Check if visual detection test mode is currently active
+IsVisualDetectionTestModeActive() {
+    global g_test_session
+    
+    try {
+        return g_test_session.Has("started") && g_test_session["started"]
+    } catch {
+        return false
+    }
+}
