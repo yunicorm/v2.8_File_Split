@@ -1191,3 +1191,29 @@ SaveFlaskPosition() {
     LogInfo("VisualDetection", Format("Saved Flask {} position: ({}, {}) size: {}x{}", 
         g_current_flask_index, centerX, centerY, g_flask_rect_width, g_flask_rect_height))
 }
+
+; オーバーレイキャプチャー終了処理
+EndOverlayCapture() {
+    try {
+        ; フラスコ設定用ホットキーを無効化
+        hotkeyList := ["Enter", "Escape", "Up", "Down", "Left", "Right", 
+                       "]", "[", "'", ";", "=", "-", "G", "H", "P", "I", "E",
+                       "+Up", "+Down", "+Left", "+Right", "+]", "+[", "+'", "+;",
+                       "Ctrl+]", "Ctrl+[", "Ctrl+=", "Ctrl+-"]
+        
+        for key in hotkeyList {
+            try {
+                Hotkey(key, "Off")
+            } catch {
+                ; 個別のホットキーエラーは無視（元々設定されていない場合）
+            }
+        }
+        
+        LogDebug("FlaskOverlay", "Flask overlay capture hotkeys disabled")
+        return true
+        
+    } catch as e {
+        LogError("FlaskOverlay", "Failed to end overlay capture: " . e.Message)
+        return false
+    }
+}

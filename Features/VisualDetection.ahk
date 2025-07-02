@@ -8,8 +8,8 @@
 #Include "VisualDetection/UIHelpers.ahk"
 #Include "VisualDetection/CoordinateManager.ahk"
 #Include "VisualDetection/TestingTools.ahk"
-#Include "Flask/FlaskDetection.ahk"
 #Include "Flask/FlaskOverlay.ahk"
+#Include "Flask/FlaskDetection.ahk"
 #Include "Wine/WineDetection.ahk"
 #Include "Tincture/TinctureDetection.ahk"
 
