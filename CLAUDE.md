@@ -101,6 +101,30 @@ VisualDetection.ahk (v2.9.4 NEW): Flask charge visual detection
 - Timer/Visual/Hybrid detection modes
 - 100ms interval limiting, automatic fallback
 
+### 楕円形検出エリア実装 (v2.9.5)
+フラスコの自然な形状に合わせて、検出エリアを矩形から楕円形に変更しました。
+
+#### 主な改善点
+- **精度向上**: フラスコの実際の形状（楕円形）に合致
+- **誤検出削減**: 矩形の角部分の背景色を除外
+- **柔軟な調整**: 各フラスコごとに楕円の縦横比を調整可能
+
+#### 操作方法
+```
+F9: 座標設定モード開始
+矢印キー: 位置調整
+]/[: 楕円の幅調整
+'/;: 楕円の高さ調整
+=/—: 全体サイズ調整
+Shift+キー: 微調整（2px単位）
+Space: 保存
+```
+
+#### 技術詳細
+- `IsPointInEllipse()`: 楕円内判定関数
+- `CreateEllipticRgn`: Windows APIによる楕円形GUI作成
+- Wine of the Prophet対応: オレンジ〜茶色の複数色範囲検出
+
 Utils/ - Foundational services
 
 ConfigManager.ahk: INI management with validation and hot-reloading
@@ -364,6 +388,12 @@ LogRetentionDays=3 で古いログを自動削除
 DebugMode=false でデバッグログを無効化
 .gitignoreに logs/ を追加済み
 
+
+### v2.9.5 (2025-01-02)
+- フラスコ検出エリアを楕円形に変更
+- 楕円の縦横比を個別調整可能に
+- Wine of the Prophet の色検出を複数範囲対応に改善
+- F9キー操作を拡張（楕円形状の調整機能追加）
 
 主な変更点：
 1. バージョンを v2.9.3 に更新
