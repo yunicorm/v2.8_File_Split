@@ -264,6 +264,21 @@ CloseVisualNotification() {
     }
 }
 
+; Helper functions for confirmation dialog
+HandleConfirmYes(confirmGui, yesCallback) {
+    confirmGui.Destroy()
+    if (yesCallback) {
+        yesCallback.Call()
+    }
+}
+
+HandleConfirmNo(confirmGui, noCallback) {
+    confirmGui.Destroy()
+    if (noCallback) {
+        noCallback.Call()
+    }
+}
+
 ; Visual Detection confirmation dialog
 ShowVisualConfirmation(title, message, yesCallback, noCallback := "") {
     confirmGui := Gui("+AlwaysOnTop", title)
@@ -274,19 +289,9 @@ ShowVisualConfirmation(title, message, yesCallback, noCallback := "") {
     btnYes := confirmGui.Add("Button", "w80 x50 y+20", "はい(&Y)")
     btnNo := confirmGui.Add("Button", "w80 x+20", "いいえ(&N)")
     
-    btnYes.OnEvent("Click", (*) => {
-        confirmGui.Destroy()
-        if (yesCallback) {
-            yesCallback.Call()
-        }
-    })
+    btnYes.OnEvent("Click", (*) => HandleConfirmYes(confirmGui, yesCallback))
     
-    btnNo.OnEvent("Click", (*) => {
-        confirmGui.Destroy()
-        if (noCallback) {
-            noCallback.Call()
-        }
-    })
+    btnNo.OnEvent("Click", (*) => HandleConfirmNo(confirmGui, noCallback))
     
     confirmGui.Show("Center")
 }
