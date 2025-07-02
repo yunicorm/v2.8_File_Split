@@ -350,7 +350,9 @@ ShowDebugOverlay() {
         ; Add recent results
         resultCount := 0
         for flaskNumber, result in detectionResults {
-            if (resultCount >= 5) break  ; Limit to 5 most recent
+            if (resultCount >= 5) {
+                break  ; Limit to 5 most recent
+            }
             
             timestamp := result["timestamp"]
             status := ""

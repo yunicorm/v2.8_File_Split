@@ -647,7 +647,9 @@ int __attribute__((__stdcall__)) PicFind(
           v=(c2<0x1000000) ? (3*r*r+4*g*g+2*b*b<=c2)
           : (r*r<=((c2>>16)&0xFF)*((c2>>16)&0xFF)
           && g*g<=((c2>>8)&0xFF)*((c2>>8)&0xFF) && b*b<=(c2&0xFF)*(c2&0xFF));
-          if (v) break;
+          if (v) {
+            break
+          }
         }
         ts[i]=(v) ? 1:0;
       }

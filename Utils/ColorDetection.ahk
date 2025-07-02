@@ -393,19 +393,22 @@ GetDominantColor(x, y, width, height, sampleRate := 5) {
         yStep := Max(actualSampleRate, Ceil(height / Sqrt(maxSamples)))
         xStep := Max(actualSampleRate, Ceil(width / Sqrt(maxSamples)))
         
+        yIndex := 1
         Loop {
-            if (A_Index > height / yStep) {
+            if (yIndex > height / yStep) {
                 break
             }
             
-            scanY := y + (A_Index - 1) * yStep
+            scanY := y + (yIndex - 1) * yStep
             
+            xIndex := 1
             Loop {
-                if (A_Index > width / xStep) {
+                if (xIndex > width / xStep) {
                     break
                 }
                 
-                scanX := x + (A_Index - 1) * xStep
+                scanX := x + (xIndex - 1) * xStep
+                xIndex++
                 totalSamples++
                 
                 if (totalSamples > maxSamples) {
@@ -428,6 +431,7 @@ GetDominantColor(x, y, width, height, sampleRate := 5) {
                     continue
                 }
             }
+            yIndex++
         }
         
         ; 最も頻度の高い色を返す
