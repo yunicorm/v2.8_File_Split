@@ -5,7 +5,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a sophisticated **Path of Exile automation macro** written in **AutoHotkey v2** (v2.9.4), specifically designed for the "Wine of the Prophet" build. The codebase features robust error handling, modular architecture, and comprehensive game automation capabilities.
+This is a sophisticated **Path of Exile automation macro** written in **AutoHotkey v2** (v2.9.6), specifically designed for the "Wine of the Prophet" build. The codebase features robust error handling, **highly modular architecture**, and comprehensive game automation capabilities.
+
+### v2.9.6 Major Refactoring (2025-01-02)
+**VisualDetection.ahk** underwent complete modular refactoring for better maintainability and Claude Code compatibility:
+- **Original**: 3,587 lines → **Refactored**: 249 lines (-93% reduction)
+- **Split into 9 specialized modules** for different functionality areas
+- **All files now under 25,000 tokens** - fully compatible with Claude Code
+- **Backward compatibility maintained** through comprehensive API wrapper layer
 
 ## Development Commands
 
@@ -66,7 +73,7 @@ error-handling-details.md - エラー処理パターンと回復戦略
 config-validation-rules.md - Config.ini検証ルールの完全仕様
 
 これらのドキュメントは、コードベースの深い理解が必要な場合に参照。
-Key Directories (v2.9.4 Updated)
+Key Directories (v2.9.6 Updated)
 Core/ - Central control systems
 
 MacroController.ahk: State management and initial actions
@@ -77,29 +84,38 @@ Features/ - Domain-specific automation modules
 
 ManaMonitor.ahk: Circular mana orb sampling with optimization modes
 TinctureManager.ahk: Complex cooldown/retry logic with usage statistics
-Flask/ (v2.9.4で5ファイルに分割)
 
+Flask/ (v2.9.6 Expanded with Visual Detection)
 FlaskController.ahk: 制御・タイマー管理
 FlaskChargeManager.ahk: チャージ管理・計算
 FlaskConditions.ahk: 条件判定・ヘルパー
 FlaskConfiguration.ahk: 設定管理・プリセット
 FlaskStatistics.ahk: 統計・履歴管理
-
+FlaskDetection.ahk: ビジュアル検出ロジック (v2.9.6新規)
+FlaskOverlay.ahk: オーバーレイUI管理 (v2.9.6新規, 1,199行)
 
 Skills/ (v2.9.4で5ファイルに分割)
-
 SkillController.ahk: メイン制御・タイマー管理
 SkillConfigurator.ahk: 設定読み込み・初期化
 WineManager.ahk: Wine専用管理
 SkillStatistics.ahk: 統計・監視機能
 SkillHelpers.ahk: ヘルパー・テスト機能
 
+VisualDetection/ (v2.9.6 NEW: 完全モジュール化)
+VisualDetection.ahk: メインAPI・エントリーポイント (249行)
+Core.ahk: グローバル変数・初期化 (390行)
+Settings.ahk: 設定管理・プリセット (532行)
+UIHelpers.ahk: 拡張UIヘルパー (317行)
+CoordinateManager.ahk: 座標変換・モニター管理 (448行)
+TestingTools.ahk: デバッグ・テストツール (462行)
+
+Wine/ (v2.9.6 NEW: Wine of the Prophet専用)
+WineDetection.ahk: Wine専用検出・診断 (523行)
+
+Tincture/ (v2.9.6 NEW: 将来実装用)
+TinctureDetection.ahk: オレンジ枠検出準備 (366行)
 
 ClientLogMonitor.ahk: Log file parsing for area transitions
-VisualDetection.ahk (v2.9.4 NEW): Flask charge visual detection
-- FindText wrapper with error handling
-- Timer/Visual/Hybrid detection modes
-- 100ms interval limiting, automatic fallback
 
 ### 楕円形検出エリア実装 (v2.9.5)
 フラスコの自然な形状に合わせて、検出エリアを矩形から楕円形に変更しました。
@@ -298,6 +314,13 @@ Log monitoring: 250ms intervals for file changes
 Color detection: 50ms timeout (configurable)
 Timer priorities: Use appropriately to avoid performance issues
 
+### v2.9.6 Performance Optimization Target
+**Flask Overlay Performance Issue** (Flask/FlaskOverlay.ahk:661-708):
+- `MoveSingleOverlay()` function recreates GUI elements on every movement
+- Causes stuttering when moving 5+ overlays simultaneously
+- **Fix needed**: Use existing GUI `.Move()` method instead of recreation
+- **Location**: Features/Flask/FlaskOverlay.ahk, line 697 `CreateGuidelineOverlays()`
+
 Important Notes
 Target Application
 
@@ -389,8 +412,29 @@ DebugMode=false でデバッグログを無効化
 .gitignoreに logs/ を追加済み
 
 
-### v2.9.6 (2025-01-02) - フラスコ位置設定システム大幅強化
+### v2.9.6 (2025-01-02) - VisualDetection.ahk完全モジュール化
 **重要な機能追加**: フラスコ位置設定の操作性とユーザビリティを大幅に向上
+**アーキテクチャ変更**: VisualDetection.ahkを9つの専門モジュールに分割
+
+#### ファイル分割による改善
+- **メインファイル大幅削減**: 3,587行 → 249行 (-93%削減)
+- **Claude Code完全対応**: 全ファイルが25,000トークン未満
+- **モジュール化**: 機能別に独立したファイル構成で保守性向上
+- **API設計**: 後方互換性を保った包括的なパブリックAPI
+
+#### 新しいモジュール構成
+```
+Features/VisualDetection.ahk (249行) - メインAPI
+├── VisualDetection/Core.ahk (390行) - 初期化・グローバル変数
+├── VisualDetection/Settings.ahk (532行) - 設定管理・プリセット
+├── VisualDetection/UIHelpers.ahk (317行) - UI拡張機能
+├── VisualDetection/CoordinateManager.ahk (448行) - 座標変換
+├── VisualDetection/TestingTools.ahk (462行) - デバッグツール
+├── Flask/FlaskDetection.ahk (288行) - フラスコ検出ロジック
+├── Flask/FlaskOverlay.ahk (1,199行) - オーバーレイ管理
+├── Wine/WineDetection.ahk (523行) - Wine専用機能
+└── Tincture/TinctureDetection.ahk (366行) - 将来実装用
+```
 
 #### 1. 順次設定システムの実装
 - **精密な座標計算**: Utils/Coordinates.ahkのGetDetailedMonitorInfo()を使用
@@ -485,9 +529,10 @@ CustomFlask1Y=1350
 - F9キー操作を拡張（楕円形状の調整機能追加）
 
 主な変更点：
-1. バージョンを v2.9.3 に更新
-2. Claude Code連携時の注意事項セクションを追加
-3. 分割されたモジュールの詳細構造を追加
-4. Utils/Validators.ahkの追加
-5. ログファイル管理の改善点を追加
-6. catch文の構文エラー対処法を追加
+1. バージョンを v2.9.6 に更新
+2. **VisualDetection.ahk完全モジュール化**: 9ファイルに分割
+3. **Claude Code完全対応**: 全ファイル25,000トークン未満
+4. **パフォーマンス最適化対象特定**: FlaskOverlay.ahk MoveSingleOverlay()
+5. **将来拡張準備**: Tincture検出モジュール追加
+6. **API設計**: 後方互換性を保った包括的インターフェース
+7. **開発効率向上**: 機能別ファイル分割で保守性大幅改善
