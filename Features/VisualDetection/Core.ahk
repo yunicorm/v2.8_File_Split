@@ -48,6 +48,15 @@ global g_flask_spacing := 20
 global g_current_single_overlay := ""
 global g_setup_notification_gui := ""
 global g_flask_number_overlay := ""
+
+; パターンキャプチャ状態管理
+global g_pattern_capture_state := Map(
+    "active", false,
+    "current_flask", 0,
+    "capture_mode", "manual",  ; manual or auto
+    "patterns", Map(),
+    "overlay_gui", ""
+)
 global g_completed_flask_overlays := []
 global g_guideline_overlays := []
 global g_boundary_warning_overlay := ""

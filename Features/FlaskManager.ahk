@@ -8,3 +8,4 @@
 #Include "Flask/FlaskConditions.ahk"
 #Include "Flask/FlaskConfiguration.ahk"
 #Include "Flask/FlaskStatistics.ahk"
+#Include "Flask/FlaskPatternCapture.ahk"

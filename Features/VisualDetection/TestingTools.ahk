@@ -464,6 +464,35 @@ ClearTestData() {
     }
 }
 
+; Toggle visual detection test mode
+ToggleVisualDetectionTestMode() {
+    global g_test_session
+    try {
+        if (!g_test_session.Has("started")) {
+            g_test_session["started"] := false
+        }
+        
+        if (g_test_session["started"]) {
+            ; テストモードを終了
+            EndTestSession()
+            ShowOverlay("視覚検出テストモード: OFF", 2000)
+            LogInfo("TestingTools", "Visual detection test mode disabled")
+        } else {
+            ; テストモードを開始
+            StartTestSession()
+            ShowOverlay("視覚検出テストモード: ON", 2000)
+            LogInfo("TestingTools", "Visual detection test mode enabled")
+        }
+        
+        return true
+        
+    } catch as e {
+        LogError("TestingTools", "Failed to toggle test mode: " . e.Message)
+        ShowOverlay("テストモード切り替えエラー: " . e.Message, 3000)
+        return false
+    }
+}
+
 ; Check if visual detection test mode is currently active
 IsVisualDetectionTestModeActive() {
     global g_test_session

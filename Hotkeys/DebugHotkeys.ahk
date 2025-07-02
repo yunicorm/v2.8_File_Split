@@ -31,8 +31,8 @@ F11:: {
         DiagnoseWineDetection()
         LogInfo("DebugHotkeys", "F11 pressed - Wine diagnosis mode completed")
     } else if (visualDetectionEnabled) {
-        LogInfo("DebugHotkeys", "F11 - Executing Visual detection test (TestAllFlaskDetection)")
-        TestAllFlaskDetection()
+        LogInfo("DebugHotkeys", "F11 - Executing Visual detection test (TestAllFlaskDetections)")
+        TestAllFlaskDetections()
         LogInfo("DebugHotkeys", "F11 pressed - Visual detection test completed")
     } else {
         LogInfo("DebugHotkeys", "F11 - Executing Mana debug (ShowManaDebug)")
