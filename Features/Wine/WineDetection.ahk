@@ -338,83 +338,7 @@ ShowDetectionAreaOverlay(centerX, centerY, width, height) {
     }
 }
 
-; 色分布を分析
-AnalyzeColorDistribution(centerX, centerY, width, height) {
-    try {
-        liquidArea := CalculateLiquidDetectionArea(centerX, centerY, width, height)
-        colorMap := Map()
-        totalPixels := 0
-        
-        ; サンプリングレートを使用してピクセルをスキャン
-        samplingRate := ConfigManager.Get("VisualDetection", "WineSamplingRate", 3)
-        
-        Loop liquidArea["height"] // samplingRate {
-            y := liquidArea["top"] + (A_Index - 1) * samplingRate
-            
-            Loop liquidArea["width"] // samplingRate {
-                x := liquidArea["left"] + (A_Index - 1) * samplingRate
-                totalPixels++
-                
-                ; ピクセル色を取得
-                pixelColor := PixelGetColor(x, y, "RGB")
-                
-                ; RGBに分解
-                r := (pixelColor >> 16) & 0xFF
-                g := (pixelColor >> 8) & 0xFF  
-                b := pixelColor & 0xFF
-                
-                ; 色を文字列キーとして記録
-                colorKey := Format("{},{},{}", r, g, b)
-                if (!colorMap.Has(colorKey)) {
-                    colorMap[colorKey] := {count: 0, r: r, g: g, b: b}
-                }
-                colorMap[colorKey].count++
-            }
-        }
-        
-        ; 色を出現頻度でソート
-        sortedColors := []
-        for colorKey, colorData in colorMap {
-            percentage := (colorData.count / totalPixels) * 100
-            sortedColors.Push({
-                r: colorData.r,
-                g: colorData.g,
-                b: colorData.b,
-                count: colorData.count,
-                percentage: percentage
-            })
-        }
-        
-        ; 出現頻度で降順ソート
-        sortedColors := SortColorsByFrequency(sortedColors)
-        
-        return {
-            totalPixels: totalPixels,
-            uniqueColors: colorMap.Count,
-            topColors: sortedColors,
-            colorMap: colorMap
-        }
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to analyze color distribution: " . e.Message)
-        return Map()
-    }
-}
-
-; 色を頻度でソート（簡易バブルソート）
-SortColorsByFrequency(colors) {
-    n := colors.Length
-    Loop n - 1 {
-        Loop n - A_Index {
-            if (colors[A_Index].count < colors[A_Index + 1].count) {
-                temp := colors[A_Index]
-                colors[A_Index] := colors[A_Index + 1]
-                colors[A_Index + 1] := temp
-            }
-        }
-    }
-    return colors
-}
+; Original AnalyzeColorDistribution function removed - using updated version at end of file
 
 ; 最適設定を提案
 SuggestOptimalSettings(colorDistribution, currentR, currentG, currentB) {
@@ -542,5 +466,238 @@ DisplayDiagnosisResults(colorDist, optimal, x, y, w, h, curR, curG, curB, curTol
     } catch as e {
         LogError("WineDetection", Format("Failed to display diagnosis results: {}", e.Message))
         return false
+    }
+}
+
+; Wine of the Prophetのチャージレベルを検出
+DetectWineChargeLevel() {
+    try {
+        LogDebug("WineDetection", "Detecting Wine of the Prophet charge level")
+        
+        ; Flask4（Wine）の設定を取得
+        centerX := ConfigManager.Get("VisualDetection", "Flask4X", 626)
+        centerY := ConfigManager.Get("VisualDetection", "Flask4Y", 1402)
+        width := ConfigManager.Get("VisualDetection", "Flask4Width", 80)
+        height := ConfigManager.Get("VisualDetection", "Flask4Height", 120)
+        
+        ; サンプリングレートを取得
+        samplingRate := g_wine_detection_state["sampling_rate"]
+        
+        ; 色検出エリアの計算（フラスコの液体部分）
+        liquidArea := Map(
+            "left", centerX - width // 2 + 5,
+            "top", centerY - height // 2 + 10,
+            "right", centerX + width // 2 - 5,
+            "bottom", centerY + 10  ; 液体部分のみ
+        )
+        
+        ; 黄金色のピクセル数をカウント
+        totalPixels := 0
+        goldPixels := 0
+        
+        yStep := Max(samplingRate, 2)
+        xStep := Max(samplingRate, 2)
+        
+        y := liquidArea["top"]
+        while (y <= liquidArea["bottom"]) {
+            x := liquidArea["left"]
+            while (x <= liquidArea["right"]) {
+                ; 楕円内判定
+                if (IsPointInEllipse(x, y, centerX, centerY, width, height)) {
+                    totalPixels++
+                    
+                    ; ピクセル色を取得
+                    pixelColor := PixelGetColor(x, y, "RGB")
+                    r := (pixelColor >> 16) & 0xFF
+                    g := (pixelColor >> 8) & 0xFF
+                    b := pixelColor & 0xFF
+                    
+                    ; 黄金色判定
+                    tolerance := g_wine_detection_state["color_tolerance"]
+                    if (IsGoldColor(r, g, b, tolerance)) {
+                        goldPixels++
+                    }
+                }
+                x += xStep
+            }
+            y += yStep
+        }
+        
+        ; チャージ率を計算
+        percentage := totalPixels > 0 ? Round((goldPixels / totalPixels) * 100, 1) : 0
+        
+        ; チャージ量を推定
+        currentCharge := Round((percentage / 100) * WINE_MAX_CHARGE, 1)
+        usesRemaining := Floor(currentCharge / WINE_CHARGE_PER_USE)
+        canUse := currentCharge >= WINE_CHARGE_PER_USE
+        
+        result := Map(
+            "charge", currentCharge,
+            "maxCharge", WINE_MAX_CHARGE,
+            "percentage", percentage,
+            "usesRemaining", usesRemaining,
+            "canUse", canUse,
+            "chargePerUse", WINE_CHARGE_PER_USE,
+            "goldPixels", goldPixels,
+            "totalPixels", totalPixels,
+            "detectionTime", A_TickCount
+        )
+        
+        LogInfo("WineDetection", Format("Wine charge detected: {:.1f}/{} ({}%), {} uses remaining", 
+            currentCharge, WINE_MAX_CHARGE, percentage, usesRemaining))
+        
+        return result
+        
+    } catch as e {
+        LogError("WineDetection", "Wine charge detection failed: " . e.Message)
+        
+        ; エラー時のフォールバック
+        return Map(
+            "charge", 0,
+            "maxCharge", WINE_MAX_CHARGE,
+            "percentage", 0,
+            "usesRemaining", 0,
+            "canUse", false,
+            "chargePerUse", WINE_CHARGE_PER_USE,
+            "error", e.Message,
+            "detectionTime", A_TickCount
+        )
+    }
+}
+
+; 黄金色判定ヘルパー関数
+IsGoldColor(r, g, b, tolerance) {
+    goldR := WINE_GOLD_COLOR["r"]
+    goldG := WINE_GOLD_COLOR["g"]
+    goldB := WINE_GOLD_COLOR["b"]
+    
+    return (Abs(r - goldR) <= tolerance && 
+            Abs(g - goldG) <= tolerance && 
+            Abs(b - goldB) <= tolerance)
+}
+
+; 点が楕円内にあるか判定
+IsPointInEllipse(x, y, centerX, centerY, width, height) {
+    ; 楕円の方程式: ((x-cx)/a)^2 + ((y-cy)/b)^2 <= 1
+    a := width / 2
+    b := height / 2
+    dx := x - centerX
+    dy := y - centerY
+    
+    return ((dx/a)**2 + (dy/b)**2) <= 1
+}
+
+; 色分布を分析
+AnalyzeColorDistribution(centerX, centerY, width, height) {
+    try {
+        colorMap := Map()
+        totalSamples := 0
+        
+        ; サンプリング
+        samplingRate := 3
+        yStart := centerY - height//2
+        yEnd := centerY + height//2
+        xStart := centerX - width//2
+        xEnd := centerX + width//2
+        
+        y := yStart
+        while (y <= yEnd) {
+            x := xStart
+            while (x <= xEnd) {
+                if (IsPointInEllipse(x, y, centerX, centerY, width, height)) {
+                    color := PixelGetColor(x, y, "RGB")
+                    colorKey := Format("{:06X}", color)
+                    
+                    if (colorMap.Has(colorKey)) {
+                        colorMap[colorKey]++
+                    } else {
+                        colorMap[colorKey] := 1
+                    }
+                    totalSamples++
+                }
+                x += samplingRate
+            }
+            y += samplingRate
+        }
+        
+        ; 上位の色を抽出
+        topColors := []
+        for color, count in colorMap {
+            percentage := (count / totalSamples) * 100
+            if (percentage > 1) {  ; 1%以上の色のみ
+                topColors.Push({
+                    color: color,
+                    count: count,
+                    percentage: percentage,
+                    r: (Integer("0x" . color) >> 16) & 0xFF,
+                    g: (Integer("0x" . color) >> 8) & 0xFF,
+                    b: Integer("0x" . color) & 0xFF
+                })
+            }
+        }
+        
+        ; パーセンテージでソート（手動ソート）
+        n := topColors.Length
+        i := 1
+        while (i < n) {
+            j := i + 1
+            while (j <= n) {
+                if (topColors[i].percentage < topColors[j].percentage) {
+                    temp := topColors[i]
+                    topColors[i] := topColors[j]
+                    topColors[j] := temp
+                }
+                j++
+            }
+            i++
+        }
+        
+        return Map(
+            "totalSamples", totalSamples,
+            "uniqueColors", colorMap.Count,
+            "topColors", topColors
+        )
+        
+    } catch as e {
+        LogError("WineDetection", "Color distribution analysis failed: " . e.Message)
+        return Map()
+    }
+}
+
+; 液体検出エリアを計算
+CalculateLiquidDetectionArea(centerX, centerY, width, height) {
+    try {
+        ; フラスコの液体部分のみを対象とする
+        ; 上部10px、左右5pxマージンを取り、下部は中央より下10pxまで
+        margin := 5
+        topMargin := 10
+        
+        liquidArea := Map(
+            "left", centerX - width // 2 + margin,
+            "top", centerY - height // 2 + topMargin,
+            "right", centerX + width // 2 - margin,
+            "bottom", centerY + 10,  ; 液体部分のみ
+            "width", width - (margin * 2),
+            "height", (height // 2) + 10 - topMargin
+        )
+        
+        LogDebug("WineDetection", Format("Liquid area calculated: ({},{}) to ({},{}) size: {}x{}", 
+            liquidArea["left"], liquidArea["top"], liquidArea["right"], liquidArea["bottom"],
+            liquidArea["width"], liquidArea["height"]))
+        
+        return liquidArea
+        
+    } catch as e {
+        LogError("WineDetection", "Failed to calculate liquid detection area: " . e.Message)
+        
+        ; フォールバック
+        return Map(
+            "left", centerX - 30,
+            "top", centerY - 50,
+            "right", centerX + 30,
+            "bottom", centerY + 10,
+            "width", 60,
+            "height", 60
+        )
     }
 }

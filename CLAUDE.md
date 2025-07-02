@@ -669,3 +669,122 @@ CustomFlask1Y=1350
 5. **将来拡張準備**: Tincture検出モジュール追加
 6. **API設計**: 後方互換性を保った包括的インターフェース
 7. **開発効率向上**: 機能別ファイル分割で保守性大幅改善
+
+## 🚨 Claude Code エラー修正ガイドライン (2025-01-02更新)
+
+### モジュール分割後の体系的エラー解決法
+
+#### **Phase 1: 関数重複エラーの解決**
+
+**症状**: `This function declaration conflicts with an existing Func`
+**原因**: モジュール分割により同じ関数が複数ファイルで定義
+**解決手順**:
+
+1. **重複関数の全件検索**
+```bash
+find . -name "*.ahk" -exec grep -Hn "^[[:space:]]*FunctionName.*{" {} \;
+```
+
+2. **責任範囲に基づく統合**
+```ahk
+// 正しいパターン: 1関数1箇所定義
+Core.ahk: GetDetectionMode() { ... }              // 定義
+FlaskDetection.ahk: ; GetDetectionMode removed    // コメント化
+```
+
+3. **API設計による解決**
+```ahk
+// 機能別の明確な分離
+Core.ahk        → 基本API (Get/Set/Init/Cleanup)
+FlaskDetection  → Flask固有機能のみ
+TestingTools    → テスト・デバッグ機能のみ
+```
+
+#### **Phase 2: 未定義関数エラーの解決**
+
+**症状**: 関数呼び出し時に未定義エラー
+**原因**: インクルード順序問題 or 関数実装欠落
+**解決手順**:
+
+1. **インクルード順序の修正**
+```ahk
+// 正しい依存順序
+#Include "Flask/FlaskOverlay.ahk"      // ResizeOverlay()定義
+#Include "Flask/FlaskDetection.ahk"    // ResizeOverlay()呼び出し
+```
+
+2. **欠落関数の体系的実装**
+```ahk
+// 完全な関数実装パターン
+EndOverlayCapture() {
+    try {
+        // ホットキー無効化ロジック
+        hotkeyList := ["Enter", "Escape", ...]
+        for key in hotkeyList {
+            try { Hotkey(key, "Off") } catch { }
+        }
+        LogDebug("Module", "Hotkeys disabled")
+        return true
+    } catch as e {
+        LogError("Module", "Failed: " . e.Message)
+        return false
+    }
+}
+```
+
+#### **Phase 3: 高度な実装パターン**
+
+**Wine検出システムの完全実装例**:
+```ahk
+// 1. メイン検出関数
+DetectWineChargeLevel() {
+    // 楕円形エリアサンプリング
+    // 黄金色ピクセル分析  
+    // チャージ量推定・使用回数計算
+}
+
+// 2. ヘルパー関数群
+IsGoldColor(r, g, b, tolerance) { }
+IsPointInEllipse(x, y, centerX, centerY, width, height) { }
+AnalyzeColorDistribution(centerX, centerY, width, height) { }
+```
+
+### 🔧 実践的デバッグ手法
+
+#### **1. 静的解析による事前チェック**
+```bash
+# 関数重複チェック
+find . -name "*.ahk" -exec grep -Hn "^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*(" {} \; | \
+awk -F':' '{print $3}' | cut -d'(' -f1 | sort | uniq -c | sort -nr | grep -E "^\s*[2-9]"
+
+# 未定義関数チェック  
+grep -rn "FunctionName(" . --include="*.ahk" | grep -v "^[^:]*:[^:]*:[[:space:]]*;"
+```
+
+#### **2. 段階的修正アプローチ**
+1. **関数重複** → **未定義関数** → **構文エラー** → **ロジックエラー**
+2. 各段階で全件チェック → 修正 → 検証のサイクル実行
+3. 修正後は必ず依存関係チェックを実施
+
+#### **3. エラー予防チェックリスト**
+- [ ] インクルード順序が依存関係に準拠
+- [ ] 各関数が1箇所のみで定義  
+- [ ] 削除した関数にコメントで参照先記載
+- [ ] グローバル変数が適切に初期化
+- [ ] ネストループでA_Index競合回避
+
+### 🚀 今後の開発効率化
+
+#### **モジュール設計原則**
+1. **単一責任**: 1モジュール1機能ドメイン
+2. **明確なAPI**: パブリック関数の明確な定義
+3. **依存関係管理**: 循環依存の完全回避
+4. **エラーハンドリング**: 全関数でtry-catch必須
+
+#### **保守性向上パターン**
+- 関数命名規則の統一 (GetXxx, SetXxx, InitXxx, CleanupXxx)
+- ログ出力の標準化 (LogInfo, LogError, LogDebug)
+- 設定値の外部化 (ConfigManagerによる一元管理)
+- テスト関数の並行実装 (TestXxxDetection)
+
+このガイドラインにより、将来のモジュール分割・機能追加時のエラーを大幅に削減し、開発効率を向上させることができます。
