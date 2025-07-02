@@ -131,8 +131,8 @@ ClearSettingsCache() {
     LogDebug("VisualDetection", "Settings cache cleared")
 }
 
-; Validate flask configuration
-ValidateFlaskConfig(flaskNumber) {
+; Validate flask position configuration
+ValidateFlaskPosition(flaskNumber) {
     try {
         if (flaskNumber < 1 || flaskNumber > 5) {
             return false
@@ -166,7 +166,7 @@ GetConfiguredFlaskCount() {
     try {
         count := 0
         Loop 5 {
-            if (ValidateFlaskConfig(A_Index)) {
+            if (ValidateFlaskPosition(A_Index)) {
                 count++
             }
         }

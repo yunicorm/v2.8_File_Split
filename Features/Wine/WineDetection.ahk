@@ -521,3 +521,26 @@ DisplayDiagnosisResults(colorDist, optimal, x, y, w, h, curR, curG, curB, curTol
             logContent := ""
             for line in lines {
                 logContent .= line . "`n"
+            }
+            
+            ; ログディレクトリを作成
+            logDir := A_ScriptDir . "\logs"
+            if (!DirExist(logDir)) {
+                DirCreate(logDir)
+            }
+            
+            ; ファイルに書き込み
+            FileAppend(logContent, logPath, "UTF-8")
+            LogInfo("WineDetection", Format("Diagnosis results saved to: {}", logPath))
+            
+        } catch as e {
+            LogError("WineDetection", Format("Failed to save diagnosis log: {}", e.Message))
+        }
+        
+        return true
+        
+    } catch as e {
+        LogError("WineDetection", Format("Failed to display diagnosis results: {}", e.Message))
+        return false
+    }
+}

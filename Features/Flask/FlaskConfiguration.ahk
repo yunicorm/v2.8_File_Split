@@ -297,8 +297,8 @@ LoadFlaskConfigFromINI() {
     }
 }
 
-; --- フラスコ設定の検証 ---
-ValidateFlaskConfig(config) {
+; --- フラスコ設定データの検証 ---
+ValidateFlaskConfigData(config) {
     requiredFields := ["key", "type", "minInterval", "maxInterval", "enabled"]
     
     for field in requiredFields {
