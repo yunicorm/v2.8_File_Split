@@ -229,60 +229,6 @@ IsVisualDetectionEnabled() {
 
 ; Detect flask charge status visually
 ; Returns: 1 if flask has charges, 0 if empty, -1 if detection failed
-DetectFlaskCharge(flaskNumber) {
-    if (!IsVisualDetectionEnabled()) {
-        LogDebug("VisualDetection", "Visual detection not enabled, skipping detection")
-        return -1
-    }
-    
-    ; Check detection interval
-    if (!CanPerformDetection()) {
-        return -1  ; Too soon since last detection
-    }
-    
-    try {
-        ; Update last detection time
-        g_visual_detection_state["last_detection_time"] := A_TickCount
-        
-        ; Get flask position and dimensions from config
-        centerX := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "X", 0)
-        centerY := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "Y", 0)
-        width := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "Width", 80)
-        height := ConfigManager.Get("VisualDetection", "Flask" . flaskNumber . "Height", 120)
-        
-        if (centerX == 0 || centerY == 0) {
-            LogError("VisualDetection", "Flask" . flaskNumber . " position not configured")
-            return -1
-        }
-        
-        ; Calculate charge detection area (upper 1/3 of flask)
-        searchArea := CalculateChargeDetectionArea(centerX, centerY, width, height)
-        
-        if (searchArea.Count == 0) {
-            LogError("VisualDetection", "Failed to calculate search area for Flask" . flaskNumber)
-            return -1
-        }
-        
-        ; Check if flask has charges
-        result := DetectFlaskChargeInternal(searchArea, flaskNumber)
-        
-        ; Store result for debugging
-        g_visual_detection_state["detection_results"][flaskNumber] := Map(
-            "result", result,
-            "timestamp", A_TickCount,
-            "position", Map("x", centerX, "y", centerY),
-            "dimensions", Map("width", width, "height", height),
-            "search_area", searchArea
-        )
-        
-        LogDebug("VisualDetection", "Flask" . flaskNumber . " charge detection result: " . result)
-        return result
-        
-    } catch as e {
-        LogError("VisualDetection", "Flask charge detection failed for Flask" . flaskNumber . ": " . e.Message)
-        return -1
-    }
-}
 
 ; Calculate charge detection area (upper 60% of flask - liquid part)
 CalculateChargeDetectionArea(centerX, centerY, width, height) {
@@ -1019,8 +965,12 @@ ExportFlaskSettings() {
     }
 }
 
-; Include overlay management functions
+; Include split modules
+#Include "Flask/FlaskDetection.ahk"
 #Include "Flask/FlaskOverlay.ahk"
+#Include "Wine/WineDetection.ahk"
+#Include "VisualDetection/UIHelpers.ahk"
+#Include "VisualDetection/CoordinateManager.ahk"
 
         "Flask" . g_current_flask_index . "Y", centerY)
     
@@ -1899,40 +1849,6 @@ DetectWineChargeLevel() {
 }
 
 ; Wineチャージ検出のテスト関数
-TestWineChargeDetection() {
-    try {
-        LogInfo("VisualDetection", "Testing Wine of the Prophet charge detection")
-        
-        ; 検出実行
-        result := DetectWineChargeLevel()
-        
-        ; 結果をオーバーレイで表示
-        displayLines := [
-            "=== Wine of the Prophet チャージ検出テスト ===",
-            "",
-            Format("推定チャージ: {:.1f}/{}", result.charge, result.maxCharge),
-            Format("液体レベル: {}%", result.percentage),
-            Format("使用可能回数: {}", result.usesRemaining),
-            Format("使用可能: {}", result.canUse ? "はい" : "いいえ"),
-            ""
-        ]
-        
-        if (result.HasOwnProp("error")) {
-            displayLines.Push("⚠ エラー: " . result.error)
-        } else {
-            displayLines.Push("✓ 検出成功")
-        }
-        
-        ShowMultiLineOverlay(displayLines, 5000)
-        
-        return result.HasOwnProp("error") ? false : true
-        
-    } catch as e {
-        LogError("VisualDetection", Format("TestWineChargeDetection failed: {}", e.Message))
-        ShowOverlay("Wine検出テストに失敗", 2000)
-        return false
-    }
-}
 
 ; ===================================================================
 ; フラスコパターン管理 (v2.9.4)
@@ -2052,120 +1968,8 @@ GetFlaskPatternStats() {
 ; ===================================================================
 
 ; マウス位置の色情報取得（Ctrl+F11）
-GetMousePositionColor() {
-    try {
-        LogDebug("VisualDetection", "GetMousePositionColor() called")
-        MouseGetPos(&x, &y)
-        
-        ; ピクセル色を取得
-        pixelColor := PixelGetColor(x, y, "RGB")
-        
-        ; RGBに分解
-        r := (pixelColor >> 16) & 0xFF
-        g := (pixelColor >> 8) & 0xFF  
-        b := pixelColor & 0xFF
-        
-        LogDebug("VisualDetection", Format("Color detected: X:{}, Y:{}, R:{}, G:{}, B:{}", x, y, r, g, b))
-        
-        ; 情報を配列として準備
-        displayInfo := [
-            "=== マウス位置の色情報 ===",
-            "",
-            Format("座標: {}, {}", x, y),
-            Format("RGB: R={}, G={}, B={}", r, g, b),
-            Format("Hex: #{:06X}", pixelColor),
-            "",
-            "wine_color_log.txt に記録されました"
-        ]
-        
-        ; デバッグログを追加
-        LogDebug("VisualDetection", "Preparing to show multi-line overlay")
-        LogDebug("VisualDetection", Format("Display info lines: {}", displayInfo.Length))
-        
-        ; マルチラインオーバーレイで表示（フォールバック付き）
-        try {
-            ShowMultiLineOverlay(displayInfo, 4000)
-            LogDebug("VisualDetection", "ShowMultiLineOverlay called successfully")
-        } catch as overlayError {
-            LogWarn("VisualDetection", "ShowMultiLineOverlay failed: " . overlayError.Message)
-            ; フォールバック
-            info := Format("X:{} Y:{} RGB({},{},{}) #{:06X}", x, y, r, g, b, pixelColor)
-            ShowOverlay(info, 3000)
-            LogDebug("VisualDetection", "Fallback ShowOverlay used")
-        }
-        
-        ; ログファイルに記録
-        logText := Format("[{}] Mouse Position Color - X:{}, Y:{}, R:{}, G:{}, B:{}, Hex:#{:06X}",
-            FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss"), x, y, r, g, b, pixelColor)
-        
-        try {
-            FileAppend(logText . "`n", A_ScriptDir . "\logs\wine_color_log.txt")
-            LogInfo("VisualDetection", "Mouse color info saved to wine_color_log.txt")
-        } catch {
-            LogWarn("VisualDetection", "Failed to save color info to log file")
-        }
-        
-        return {x: x, y: y, r: r, g: g, b: b, hex: pixelColor}
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to get mouse position color: " . e.Message)
-        try {
-            ShowMultiLineOverlay(["色情報取得に失敗", "", e.Message], 3000)
-        } catch {
-            ShowOverlay("色情報取得に失敗: " . e.Message, 3000)
-        }
-        return Map()
-    }
-}
 
 ; Wine診断モード（F11拡張）
-DiagnoseWineDetection() {
-    try {
-        LogInfo("VisualDetection", "DiagnoseWineDetection() called - Starting Wine of the Prophet detection diagnosis")
-        
-        ; Flask4（Wine）の設定を取得
-        centerX := ConfigManager.Get("VisualDetection", "Flask4X", 626)
-        centerY := ConfigManager.Get("VisualDetection", "Flask4Y", 1402)
-        width := ConfigManager.Get("VisualDetection", "Flask4Width", 80)
-        height := ConfigManager.Get("VisualDetection", "Flask4Height", 120)
-        
-        LogDebug("VisualDetection", Format("Wine Flask settings: X:{}, Y:{}, W:{}, H:{}", centerX, centerY, width, height))
-        
-        ; 現在の色設定
-        goldR := ConfigManager.Get("VisualDetection", "WineGoldR", 255)
-        goldG := ConfigManager.Get("VisualDetection", "WineGoldG", 215)
-        goldB := ConfigManager.Get("VisualDetection", "WineGoldB", 0)
-        tolerance := ConfigManager.Get("VisualDetection", "WineColorTolerance", 30)
-        
-        LogDebug("VisualDetection", Format("Wine color settings: RGB({},{},{}), Tolerance:{}", goldR, goldG, goldB, tolerance))
-        
-        ; 検出エリアを表示
-        LogDebug("VisualDetection", "Showing detection area overlay")
-        ShowDetectionAreaOverlay(centerX, centerY, width, height)
-        
-        ; 色分布を分析
-        LogDebug("VisualDetection", "Analyzing color distribution")
-        colorDistribution := AnalyzeColorDistribution(centerX, centerY, width, height)
-        
-        ; 最適設定を提案
-        LogDebug("VisualDetection", "Suggesting optimal settings")
-        optimalSettings := SuggestOptimalSettings(colorDistribution, goldR, goldG, goldB)
-        
-        ; 診断結果を表示
-        LogDebug("VisualDetection", "Displaying diagnosis results")
-        DisplayDiagnosisResults(colorDistribution, optimalSettings, centerX, centerY, width, height, goldR, goldG, goldB, tolerance)
-        
-        LogInfo("VisualDetection", "Wine detection diagnosis completed successfully")
-        
-    } catch as e {
-        LogError("VisualDetection", "Wine diagnosis failed: " . e.Message)
-        try {
-            ShowMultiLineOverlay(["Wine診断に失敗", "", e.Message], 3000)
-        } catch {
-            ShowOverlay("Wine診断に失敗: " . e.Message, 2000)
-        }
-    }
-}
 
 ; Wine診断オーバーレイ削除タイマー関数
 DestroyWineDiagnosisOverlay() {
