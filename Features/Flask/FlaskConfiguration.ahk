@@ -430,7 +430,7 @@ GetFlaskPresets() {
 }
 
 ; --- プリセット設定の適用 ---
-ApplyFlaskPreset(presetName) {
+ApplyFlaskConfigPreset(presetName) {
     presets := GetFlaskPresets()
     
     if (!presets.HasOwnProp(presetName)) {

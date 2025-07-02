@@ -958,22 +958,7 @@ SaveSingleFlaskPosition(flaskNumber, absoluteX, absoluteY, width, height) {
     }
 }
 
-; 中央モニター相対座標から絶対座標に変換
-ConvertRelativeToAbsolute(relativeX, relativeY) {
-    try {
-        monitors := GetFlaskMonitorInfo()
-        centralMonitor := monitors["central"]
-        
-        absoluteX := centralMonitor["left"] + relativeX
-        absoluteY := centralMonitor["top"] + relativeY
-        
-        return Map("x", absoluteX, "y", absoluteY)
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to convert relative coordinates: " . e.Message)
-        return Map("x", 0, "y", 0)
-    }
-}
+; ConvertRelativeToAbsolute function removed - using VisualDetection/CoordinateManager.ahk version instead
 
 ; フラスコ位置読み込み（相対座標から絶対座標に変換）
 LoadFlaskPosition(flaskNumber) {

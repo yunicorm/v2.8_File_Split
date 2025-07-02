@@ -178,186 +178,31 @@ GetConfiguredFlaskCount() {
     }
 }
 
-; Apply preset configuration
-ApplyPreset(presetName) {
+; Apply preset configuration (delegates to CoordinateManager)
+ApplySettingsPreset(presetName) {
     try {
-        LogInfo("VisualDetection", Format("Applying preset: {}", presetName))
+        LogInfo("VisualDetection", Format("Applying preset via CoordinateManager: {}", presetName))
         
-        switch presetName {
-            case "standard":
-                return ApplyStandardPreset()
-            case "center":
-                return ApplyCenterPreset()
-            case "right":
-                return ApplyRightPreset()
-            case "current":
-                return LoadCurrentConfig()
-            default:
-                LogError("VisualDetection", "Unknown preset: " . presetName)
-                return false
+        ; Delegate to CoordinateManager's ApplyPreset function
+        result := ApplyPreset(presetName)
+        
+        if (result > 0) {
+            ; Reload settings after coordinate changes
+            LoadVisualDetectionConfig()
+            LogInfo("VisualDetection", Format("Preset {} applied successfully", presetName))
         }
+        
+        return result
         
     } catch as e {
         LogError("VisualDetection", Format("Failed to apply preset {}: {}", presetName, e.Message))
-        return false
-    }
-}
-
-; Apply standard bottom-left preset
-ApplyStandardPreset() {
-    try {
-        monitors := GetCachedMonitorInfo()
-        if (!monitors.Has("central")) {
-            throw Error("Monitor info not available")
-        }
-        
-        central := monitors["central"]
-        
-        ; Base settings for 3440x1440 resolution
-        baseX := 100
-        baseY := 1350
-        spacing := 80
-        width := 60
-        height := 80
-        
-        ; Apply resolution scaling
-        scaleX := central["width"] / 3440.0
-        scaleY := central["height"] / 1440.0
-        
-        scaledBaseX := Round(baseX * scaleX)
-        scaledBaseY := Round(baseY * scaleY)
-        scaledSpacing := Round(spacing * scaleX)
-        scaledWidth := Round(width * scaleX)
-        scaledHeight := Round(height * scaleY)
-        
-        ; Configure each flask
-        appliedCount := 0
-        Loop 5 {
-            flaskNum := A_Index
-            x := scaledBaseX + (flaskNum - 1) * scaledSpacing
-            y := scaledBaseY
-            
-            SetSetting(Format("Flask{}X", flaskNum), x)
-            SetSetting(Format("Flask{}Y", flaskNum), y)
-            SetSetting(Format("Flask{}Width", flaskNum), scaledWidth)
-            SetSetting(Format("Flask{}Height", flaskNum), scaledHeight)
-            
-            appliedCount++
-        }
-        
-        SaveVisualDetectionConfig()
-        LogInfo("VisualDetection", Format("Applied standard preset: {} flasks", appliedCount))
-        return appliedCount
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to apply standard preset: " . e.Message)
         return 0
     }
 }
 
-; Apply center bottom preset
-ApplyCenterPreset() {
-    try {
-        monitors := GetCachedMonitorInfo()
-        if (!monitors.Has("central")) {
-            throw Error("Monitor info not available")
-        }
-        
-        central := monitors["central"]
-        
-        ; Center position for 3440x1440
-        baseX := 1620  ; Center of 3440
-        baseY := 1350
-        spacing := 80
-        width := 60
-        height := 80
-        
-        ; Apply resolution scaling
-        scaleX := central["width"] / 3440.0
-        scaleY := central["height"] / 1440.0
-        
-        scaledBaseX := Round(baseX * scaleX)
-        scaledBaseY := Round(baseY * scaleY)
-        scaledSpacing := Round(spacing * scaleX)
-        scaledWidth := Round(width * scaleX)
-        scaledHeight := Round(height * scaleY)
-        
-        ; Configure each flask
-        appliedCount := 0
-        Loop 5 {
-            flaskNum := A_Index
-            x := scaledBaseX + (flaskNum - 3) * scaledSpacing  ; Center around middle flask
-            y := scaledBaseY
-            
-            SetSetting(Format("Flask{}X", flaskNum), x)
-            SetSetting(Format("Flask{}Y", flaskNum), y)
-            SetSetting(Format("Flask{}Width", flaskNum), scaledWidth)
-            SetSetting(Format("Flask{}Height", flaskNum), scaledHeight)
-            
-            appliedCount++
-        }
-        
-        SaveVisualDetectionConfig()
-        LogInfo("VisualDetection", Format("Applied center preset: {} flasks", appliedCount))
-        return appliedCount
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to apply center preset: " . e.Message)
-        return 0
-    }
-}
-
-; Apply right bottom preset
-ApplyRightPreset() {
-    try {
-        monitors := GetCachedMonitorInfo()
-        if (!monitors.Has("central")) {
-            throw Error("Monitor info not available")
-        }
-        
-        central := monitors["central"]
-        
-        ; Right position for 3440x1440
-        baseX := 2940  ; Right side of 3440
-        baseY := 1350
-        spacing := -80  ; Negative spacing for right-to-left
-        width := 60
-        height := 80
-        
-        ; Apply resolution scaling
-        scaleX := central["width"] / 3440.0
-        scaleY := central["height"] / 1440.0
-        
-        scaledBaseX := Round(baseX * scaleX)
-        scaledBaseY := Round(baseY * scaleY)
-        scaledSpacing := Round(spacing * scaleX)
-        scaledWidth := Round(width * scaleX)
-        scaledHeight := Round(height * scaleY)
-        
-        ; Configure each flask
-        appliedCount := 0
-        Loop 5 {
-            flaskNum := A_Index
-            x := scaledBaseX + (flaskNum - 1) * scaledSpacing
-            y := scaledBaseY
-            
-            SetSetting(Format("Flask{}X", flaskNum), x)
-            SetSetting(Format("Flask{}Y", flaskNum), y)
-            SetSetting(Format("Flask{}Width", flaskNum), scaledWidth)
-            SetSetting(Format("Flask{}Height", flaskNum), scaledHeight)
-            
-            appliedCount++
-        }
-        
-        SaveVisualDetectionConfig()
-        LogInfo("VisualDetection", Format("Applied right preset: {} flasks", appliedCount))
-        return appliedCount
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to apply right preset: " . e.Message)
-        return 0
-    }
-}
+; Note: Preset application functions moved to CoordinateManager.ahk
+; to avoid duplication and maintain proper separation of concerns.
+; Use ApplyPreset() from CoordinateManager for coordinate-related operations.
 
 ; Load current configuration from Config.ini
 LoadCurrentConfig() {
@@ -379,122 +224,11 @@ LoadCurrentConfig() {
     }
 }
 
-; Save custom preset
-SaveCustomPreset() {
-    try {
-        LogInfo("VisualDetection", "Saving custom preset")
-        
-        ; Get current flask positions
-        positions := []
-        Loop 5 {
-            flaskNum := A_Index
-            if (ValidateFlaskConfig(flaskNum)) {
-                pos := Map(
-                    "x", GetSetting(Format("Flask{}X", flaskNum), 0),
-                    "y", GetSetting(Format("Flask{}Y", flaskNum), 0),
-                    "width", GetSetting(Format("Flask{}Width", flaskNum), 60),
-                    "height", GetSetting(Format("Flask{}Height", flaskNum), 80)
-                )
-                positions.Push(pos)
-            }
-        }
-        
-        if (positions.Length == 0) {
-            throw Error("No valid flask positions to save")
-        }
-        
-        ; Calculate base position and spacing from first two flasks
-        baseX := positions[1]["x"]
-        baseY := positions[1]["y"]
-        spacing := positions.Length > 1 ? (positions[2]["x"] - positions[1]["x"]) : 80
-        
-        ; Save custom preset settings
-        SetSetting("CustomPresetBaseX", baseX)
-        SetSetting("CustomPresetBaseY", baseY)
-        SetSetting("CustomPresetSpacing", spacing)
-        SetSetting("CustomPresetWidth", positions[1]["width"])
-        SetSetting("CustomPresetHeight", positions[1]["height"])
-        SetSetting("CustomPresetSaved", FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss"))
-        
-        SaveVisualDetectionConfig()
-        
-        LogInfo("VisualDetection", Format("Custom preset saved: {} flasks", positions.Length))
-        return positions.Length
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to save custom preset: " . e.Message)
-        return 0
-    }
-}
+; Note: SaveCustomPreset() function moved to CoordinateManager.ahk
+; to avoid duplication and maintain proper separation of concerns.
 
-; Export flask settings to clipboard
-ExportFlaskSettings() {
-    try {
-        LogInfo("VisualDetection", "Exporting flask settings to clipboard")
-        
-        exportLines := []
-        exportLines.Push("[VisualDetection Flask Settings Export]")
-        exportLines.Push("Generated: " . FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss"))
-        exportLines.Push("")
-        
-        ; Export flask configurations
-        Loop 5 {
-            flaskNum := A_Index
-            if (ValidateFlaskConfig(flaskNum)) {
-                exportLines.Push(Format("Flask{} Configuration:", flaskNum))
-                exportLines.Push(Format("  X={}", GetSetting(Format("Flask{}X", flaskNum), 0)))
-                exportLines.Push(Format("  Y={}", GetSetting(Format("Flask{}Y", flaskNum), 0)))
-                exportLines.Push(Format("  Width={}", GetSetting(Format("Flask{}Width", flaskNum), 60)))
-                exportLines.Push(Format("  Height={}", GetSetting(Format("Flask{}Height", flaskNum), 80)))
-                exportLines.Push("")
-            }
-        }
-        
-        ; Export Wine settings
-        exportLines.Push("Wine of the Prophet Settings:")
-        exportLines.Push(Format("  WineGoldR={}", GetSetting("WineGoldR", 230)))
-        exportLines.Push(Format("  WineGoldG={}", GetSetting("WineGoldG", 170)))
-        exportLines.Push(Format("  WineGoldB={}", GetSetting("WineGoldB", 70)))
-        exportLines.Push(Format("  WineColorTolerance={}", GetSetting("WineColorTolerance", 50)))
-        
-        ; Create export text
-        exportText := ""
-        for line in exportLines {
-            exportText .= line . "`n"
-        }
-        
-        ; Copy to clipboard
-        A_Clipboard := exportText
-        
-        LogInfo("VisualDetection", "Settings exported to clipboard")
-        return true
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to export settings: " . e.Message)
-        return false
-    }
-}
-
-; Import flask settings (reload from Config.ini)
-ImportFlaskSettings() {
-    try {
-        LogInfo("VisualDetection", "Importing flask settings from Config.ini")
-        
-        ; Reload configuration
-        importedCount := LoadCurrentConfig()
-        
-        if (importedCount > 0) {
-            LogInfo("VisualDetection", Format("Successfully imported {} settings", importedCount))
-            return importedCount
-        } else {
-            throw Error("No settings imported")
-        }
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to import settings: " . e.Message)
-        return 0
-    }
-}
+; Note: Export/Import functions moved to CoordinateManager.ahk
+; Use ExportSettings() and ImportSettings() from CoordinateManager for these operations.
 
 ; Reset all flask settings to defaults
 ResetFlaskSettings() {

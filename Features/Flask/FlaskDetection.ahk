@@ -189,31 +189,8 @@ DetectFlaskChargeInternal(searchArea, flaskNumber) {
     }
 }
 
-; Get detection mode for flask system
-GetDetectionMode() {
-    if (!IsVisualDetectionEnabled()) {
-        return "Timer"
-    }
-    return g_visual_detection_state["detection_mode"]
-}
-
-; Set detection mode (Timer/Visual/Hybrid)
-SetDetectionMode(mode) {
-    if (mode != "Timer" && mode != "Visual" && mode != "Hybrid") {
-        LogError("VisualDetection", "Invalid detection mode: " . mode)
-        return false
-    }
-    
-    try {
-        g_visual_detection_state["detection_mode"] := mode
-        ConfigManager.Set("VisualDetection", "DetectionMode", mode)
-        LogInfo("VisualDetection", "Detection mode changed to: " . mode)
-        return true
-    } catch as e {
-        LogError("VisualDetection", "Failed to set detection mode: " . e.Message)
-        return false
-    }
-}
+; Note: GetDetectionMode() and SetDetectionMode() are now handled by VisualDetection/Core.ahk
+; to avoid duplication and maintain centralized state management
 
 ; Test visual detection for a specific flask
 TestFlaskDetection(flaskNumber) {
@@ -246,37 +223,11 @@ TestFlaskDetection(flaskNumber) {
     }
 }
 
-; Get last detection results for debugging
-GetDetectionResults() {
-    return g_visual_detection_state["detection_results"]
-}
+; GetDetectionResults function removed - using VisualDetection/Core.ahk version instead
 
-; Clear detection results
-ClearDetectionResults() {
-    g_visual_detection_state["detection_results"].Clear()
-    LogDebug("VisualDetection", "Detection results cleared")
-}
+; ClearDetectionResults function removed - using VisualDetection/Core.ahk version instead
 
-; Cleanup visual detection resources
-CleanupVisualDetection() {
-    try {
-        LogInfo("VisualDetection", "Cleaning up visual detection resources")
-        
-        ; Clear results
-        ClearDetectionResults()
-        
-        ; Reset state
-        g_visual_detection_state["enabled"] := false
-        g_visual_detection_state["findtext_instance"] := ""
-        
-        LogInfo("VisualDetection", "Visual detection cleanup completed")
-        return true
-        
-    } catch as e {
-        LogError("VisualDetection", "Cleanup failed: " . e.Message)
-        return false
-    }
-}
+; CleanupVisualDetection function removed - using VisualDetection/Core.ahk version instead
 
 ; サイズ変更用ヘルパー関数（グローバル）
 ResizeWithLog(dw, dh, key) {

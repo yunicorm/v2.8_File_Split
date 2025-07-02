@@ -122,15 +122,15 @@ ApplyFlaskPreset(presetName) {
 }
 
 SaveCurrentAsCustomPreset() {
-    return SaveCustomPreset()
+    return SaveCustomPreset("CustomPreset", "User-defined custom preset")
 }
 
 ExportCurrentSettings() {
-    return ExportFlaskSettings()
+    return ExportSettings()
 }
 
 ImportSettingsFromConfig() {
-    return ImportFlaskSettings()
+    return ImportSettings()
 }
 
 ; Status and information API

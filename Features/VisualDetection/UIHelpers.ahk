@@ -12,12 +12,15 @@ global OVERLAY_DEFAULT_DURATION := 2000
 global OVERLAY_LONG_DURATION := 5000
 global OVERLAY_SHORT_DURATION := 1000
 
-; Enhanced multi-line overlay display
-ShowMultiLineOverlay(lines, duration := 5000) {
+; ShowMultiLineOverlay function removed - using UI/Overlay.ahk version instead
+; If you need VisualDetection-specific overlay with title, use ShowMultiLineOverlayWithTitle
+
+; Enhanced multi-line overlay display with title bar
+ShowMultiLineOverlayWithTitle(lines, duration := 5000, title := "情報表示") {
     global g_multi_line_overlay_gui
     
     try {
-        LogDebug("VisualDetection", Format("ShowMultiLineOverlay called with {} lines, duration {}", lines.Length, duration))
+        LogDebug("VisualDetection", Format("ShowMultiLineOverlayWithTitle called with {} lines, duration {}", lines.Length, duration))
         
         ; 既存のオーバーレイを削除
         if (g_multi_line_overlay_gui && g_multi_line_overlay_gui != "") {
@@ -28,8 +31,8 @@ ShowMultiLineOverlay(lines, duration := 5000) {
             }
         }
         
-        ; マルチラインGUI作成
-        g_multi_line_overlay_gui := Gui("+AlwaysOnTop -MaximizeBox", "情報表示")
+        ; マルチラインGUI作成（タイトルバー付き）
+        g_multi_line_overlay_gui := Gui("+AlwaysOnTop -MaximizeBox", title)
         g_multi_line_overlay_gui.BackColor := "0x2D2D30"  ; ダークグレー
         
         ; フォント設定
@@ -70,17 +73,13 @@ ShowMultiLineOverlay(lines, duration := 5000) {
             SetTimer(() => CloseMultiLineOverlay(), -duration)
         }
         
-        LogDebug("VisualDetection", "Multi-line overlay displayed successfully")
+        LogDebug("VisualDetection", "Multi-line overlay with title displayed successfully")
         return true
         
     } catch as e {
-        LogError("VisualDetection", "Failed to show multi-line overlay: " . e.Message)
-        ; フォールバック: 単純なオーバーレイ
-        fallbackText := ""
-        for line in lines {
-            fallbackText .= line . " | "
-        }
-        ShowOverlay(fallbackText, duration)
+        LogError("VisualDetection", "Failed to show multi-line overlay with title: " . e.Message)
+        ; フォールバック: 標準のShowMultiLineOverlay
+        ShowMultiLineOverlay(lines, duration)
         return false
     }
 }
@@ -89,22 +88,22 @@ ShowMultiLineOverlay(lines, duration := 5000) {
 CloseMultiLineOverlay() {
     global g_multi_line_overlay_gui
     
-    try {
-        if (g_multi_line_overlay_gui && g_multi_line_overlay_gui != "") {
+    if (g_multi_line_overlay_gui && g_multi_line_overlay_gui != "") {
+        try {
             g_multi_line_overlay_gui.Destroy()
-            g_multi_line_overlay_gui := ""
+        } catch {
+            ; 既に削除されている場合は無視
         }
-    } catch as e {
-        LogError("VisualDetection", "Failed to close multi-line overlay: " . e.Message)
+        g_multi_line_overlay_gui := ""
     }
 }
 
-; 進捗表示オーバーレイ
-ShowProgressOverlay(title, currentStep, totalSteps, stepDescription := "") {
+; Visual Detection specific progress overlay
+ShowVisualDetectionProgress(title, currentStep, totalSteps, stepDescription := "") {
     global g_progress_overlay_gui
     
     try {
-        ; 既存の進捗オーバーレイを削除
+        ; 既存のオーバーレイを削除
         if (g_progress_overlay_gui && g_progress_overlay_gui != "") {
             try {
                 g_progress_overlay_gui.Destroy()
@@ -114,41 +113,46 @@ ShowProgressOverlay(title, currentStep, totalSteps, stepDescription := "") {
         }
         
         ; 進捗GUI作成
-        g_progress_overlay_gui := Gui("+AlwaysOnTop -MaximizeBox", title)
+        g_progress_overlay_gui := Gui("+AlwaysOnTop +ToolWindow -Caption", "進捗表示")
         g_progress_overlay_gui.BackColor := "0x2D2D30"
+        g_progress_overlay_gui.MarginX := 20
+        g_progress_overlay_gui.MarginY := 15
         
         ; タイトル
-        g_progress_overlay_gui.SetFont("s12 Bold cWhite", "Segoe UI")
-        g_progress_overlay_gui.Add("Text", "Center w300 h30", title)
-        
-        ; 進捗バー
-        progressPercent := Round((currentStep / totalSteps) * 100)
-        g_progress_overlay_gui.SetFont("s10 cLime", "Segoe UI")
-        g_progress_overlay_gui.Add("Progress", "w280 h20 Range0-100", progressPercent)
+        g_progress_overlay_gui.SetFont("s12 Bold", "Yu Gothic UI")
+        g_progress_overlay_gui.Add("Text", "cWhite w300 Center", title)
         
         ; 進捗テキスト
-        progressText := Format("{} / {} ({:.0f}%)", currentStep, totalSteps, progressPercent)
-        g_progress_overlay_gui.Add("Text", "Center w300 h25 cWhite", progressText)
+        g_progress_overlay_gui.SetFont("s10 Norm")
+        progressText := Format("{} / {} 完了", currentStep, totalSteps)
+        g_progress_overlay_gui.Add("Text", "cWhite w300 Center y+10", progressText)
+        
+        ; 進捗バー
+        percentage := Round(currentStep / totalSteps * 100)
+        progressBar := g_progress_overlay_gui.Add("Progress", "w300 h25 y+10 BackgroundGray", percentage)
+        
+        ; パーセンテージ表示
+        g_progress_overlay_gui.SetFont("s14 Bold")
+        g_progress_overlay_gui.Add("Text", "cLime w300 Center y+10", percentage . "%")
         
         ; ステップ説明
         if (stepDescription != "") {
-            g_progress_overlay_gui.SetFont("s9 cSilver", "Segoe UI")
-            g_progress_overlay_gui.Add("Text", "Center w300 h30", stepDescription)
+            g_progress_overlay_gui.SetFont("s9 Norm")
+            g_progress_overlay_gui.Add("Text", "c0xAAAAAA w300 Center y+10", stepDescription)
         }
         
         ; 画面中央に表示
         monitors := GetMonitorInfo()
         if (monitors.Has("primary")) {
-            centerX := monitors["primary"]["centerX"] - 160
-            centerY := monitors["primary"]["centerY"] - 75
+            centerX := monitors["primary"]["centerX"] - 170
+            centerY := monitors["primary"]["centerY"] - 100
         } else {
-            centerX := A_ScreenWidth // 2 - 160
-            centerY := A_ScreenHeight // 2 - 75
+            centerX := A_ScreenWidth // 2 - 170
+            centerY := A_ScreenHeight // 2 - 100
         }
         
-        g_progress_overlay_gui.Show(Format("x{} y{} w320 h150", centerX, centerY))
+        g_progress_overlay_gui.Show(Format("x{} y{} NoActivate", centerX, centerY))
         
-        LogDebug("VisualDetection", Format("Progress overlay shown: {}/{} - {}", currentStep, totalSteps, stepDescription))
         return true
         
     } catch as e {
@@ -157,26 +161,26 @@ ShowProgressOverlay(title, currentStep, totalSteps, stepDescription := "") {
     }
 }
 
-; 進捗オーバーレイを閉じる
-CloseProgressOverlay() {
+; Close visual detection progress overlay
+CloseVisualDetectionProgress() {
     global g_progress_overlay_gui
     
-    try {
-        if (g_progress_overlay_gui && g_progress_overlay_gui != "") {
+    if (g_progress_overlay_gui && g_progress_overlay_gui != "") {
+        try {
             g_progress_overlay_gui.Destroy()
-            g_progress_overlay_gui := ""
+        } catch {
+            ; 既に削除されている場合は無視
         }
-    } catch as e {
-        LogError("VisualDetection", "Failed to close progress overlay: " . e.Message)
+        g_progress_overlay_gui := ""
     }
 }
 
-; 通知スタイルのオーバーレイ
-ShowNotificationOverlay(title, message, type := "info", duration := 3000) {
+; Visual Detection notification overlay with icon
+ShowVisualNotification(title, message, type := "info", duration := 3000) {
     global g_notification_overlay_gui
     
     try {
-        ; 既存の通知を削除
+        ; 既存のオーバーレイを削除
         if (g_notification_overlay_gui && g_notification_overlay_gui != "") {
             try {
                 g_notification_overlay_gui.Destroy()
@@ -186,59 +190,58 @@ ShowNotificationOverlay(title, message, type := "info", duration := 3000) {
         }
         
         ; 通知GUI作成
-        g_notification_overlay_gui := Gui("+AlwaysOnTop -Caption +ToolWindow", "通知")
+        g_notification_overlay_gui := Gui("+AlwaysOnTop +ToolWindow -Caption", "通知")
+        g_notification_overlay_gui.BackColor := "0x2D2D30"
+        g_notification_overlay_gui.MarginX := 20
+        g_notification_overlay_gui.MarginY := 15
         
-        ; タイプに応じた色設定
-        switch type {
-            case "success":
-                g_notification_overlay_gui.BackColor := "0x2D5016"  ; 暗い緑
-                iconColor := "Lime"
-                icon := "✓"
-            case "warning":
-                g_notification_overlay_gui.BackColor := "0x4A3C00"  ; 暗い黄
-                iconColor := "Yellow"
-                icon := "⚠"
-            case "error":
-                g_notification_overlay_gui.BackColor := "0x4A1515"  ; 暗い赤
-                iconColor := "Red"
-                icon := "✗"
-            default:  ; info
-                g_notification_overlay_gui.BackColor := "0x1E2951"  ; 暗い青
-                iconColor := "Aqua"
-                icon := "ℹ"
+        ; アイコンと色を設定
+        if (type == "success") {
+            iconText := "✓"
+            iconColor := "c0x00FF00"
+            borderColor := "0x00FF00"
+        } else if (type == "error") {
+            iconText := "✗"
+            iconColor := "cRed"
+            borderColor := "0xFF0000"
+        } else if (type == "warning") {
+            iconText := "！"
+            iconColor := "cYellow"
+            borderColor := "0xFFFF00"
+        } else {
+            iconText := "ℹ"
+            iconColor := "c0x00BFFF"
+            borderColor := "0x00BFFF"
         }
         
-        ; アイコン
-        g_notification_overlay_gui.SetFont("s16 Bold c" . iconColor, "Segoe UI")
-        g_notification_overlay_gui.Add("Text", "x10 y10 w30 h30 Center", icon)
+        ; 左側のアイコン
+        g_notification_overlay_gui.SetFont("s24 Bold", "Segoe UI Symbol")
+        g_notification_overlay_gui.Add("Text", iconColor . " x0 y+5 w50 Center", iconText)
         
-        ; タイトル
-        g_notification_overlay_gui.SetFont("s11 Bold cWhite", "Segoe UI")
-        g_notification_overlay_gui.Add("Text", "x50 y10 w250 h25", title)
+        ; タイトルとメッセージ
+        g_notification_overlay_gui.SetFont("s11 Bold", "Yu Gothic UI")
+        g_notification_overlay_gui.Add("Text", "cWhite x60 y15 w280", title)
         
-        ; メッセージ
-        g_notification_overlay_gui.SetFont("s9 cSilver", "Segoe UI")
-        g_notification_overlay_gui.Add("Text", "x50 y35 w250 h40", message)
+        g_notification_overlay_gui.SetFont("s9 Norm")
+        g_notification_overlay_gui.Add("Text", "c0xDDDDDD x60 y+5 w280", message)
         
-        ; 右下に表示
+        ; 右上に表示
         monitors := GetMonitorInfo()
         if (monitors.Has("primary")) {
-            x := monitors["primary"]["right"] - 320
-            y := monitors["primary"]["bottom"] - 100
+            posX := monitors["primary"]["right"] - 380
+            posY := monitors["primary"]["top"] + 50
         } else {
-            x := A_ScreenWidth - 320
-            y := A_ScreenHeight - 100
+            posX := A_ScreenWidth - 380
+            posY := 50
         }
         
-        g_notification_overlay_gui.Show(Format("x{} y{} w310 h80", x, y))
-        WinSetTransparent(240, g_notification_overlay_gui)
+        g_notification_overlay_gui.Show(Format("x{} y{} w360 NoActivate", posX, posY))
         
-        ; 自動閉じるタイマー
+        ; 自動的に閉じる
         if (duration > 0) {
-            SetTimer(() => CloseNotificationOverlay(), -duration)
+            SetTimer(() => CloseVisualNotification(), -duration)
         }
         
-        LogDebug("VisualDetection", Format("Notification overlay shown: {} - {}", title, message))
         return true
         
     } catch as e {
@@ -247,72 +250,68 @@ ShowNotificationOverlay(title, message, type := "info", duration := 3000) {
     }
 }
 
-; 通知オーバーレイを閉じる
-CloseNotificationOverlay() {
+; Close visual detection notification overlay
+CloseVisualNotification() {
     global g_notification_overlay_gui
     
-    try {
-        if (g_notification_overlay_gui && g_notification_overlay_gui != "") {
+    if (g_notification_overlay_gui && g_notification_overlay_gui != "") {
+        try {
             g_notification_overlay_gui.Destroy()
-            g_notification_overlay_gui := ""
+        } catch {
+            ; 既に削除されている場合は無視
         }
-    } catch as e {
-        LogError("VisualDetection", "Failed to close notification overlay: " . e.Message)
+        g_notification_overlay_gui := ""
     }
 }
 
-; 設定確認ダイアログ
-ShowConfirmationDialog(title, message, yesCallback, noCallback := "") {
-    try {
-        result := MsgBox(message, title, "YesNo Icon?")
-        
-        if (result == "Yes" && yesCallback != "") {
+; Visual Detection confirmation dialog
+ShowVisualConfirmation(title, message, yesCallback, noCallback := "") {
+    confirmGui := Gui("+AlwaysOnTop", title)
+    confirmGui.SetFont("s10", "Yu Gothic UI")
+    
+    confirmGui.Add("Text", "w300", message)
+    
+    btnYes := confirmGui.Add("Button", "w80 x50 y+20", "はい(&Y)")
+    btnNo := confirmGui.Add("Button", "w80 x+20", "いいえ(&N)")
+    
+    btnYes.OnEvent("Click", (*) => {
+        confirmGui.Destroy()
+        if (yesCallback) {
             yesCallback.Call()
-        } else if (result == "No" && noCallback != "") {
+        }
+    })
+    
+    btnNo.OnEvent("Click", (*) => {
+        confirmGui.Destroy()
+        if (noCallback) {
             noCallback.Call()
         }
-        
-        return result == "Yes"
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to show confirmation dialog: " . e.Message)
-        return false
-    }
+    })
+    
+    confirmGui.Show("Center")
 }
 
-; カウントダウンオーバーレイ
-ShowCountdownOverlay(seconds, message := "開始まで") {
-    try {
-        Loop seconds {
-            remaining := seconds - A_Index + 1
-            ShowOverlay(Format("{} {} 秒", message, remaining), 950)
+; Visual Detection countdown overlay
+ShowVisualCountdown(seconds, message := "開始まで") {
+    countdownGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20", "カウントダウン")
+    countdownGui.BackColor := "0x1E1E1E"
+    countdownGui.SetFont("s24 cWhite Bold", "Arial")
+    
+    textControl := countdownGui.Add("Text", "Center w200 h80", Format("{}`n{}", message, seconds))
+    
+    countdownGui.Show("Center NoActivate")
+    
+    ; カウントダウン処理
+    Loop seconds {
+        remaining := seconds - A_Index + 1
+        textControl.Text := Format("{}`n{}", message, remaining)
+        
+        if (remaining > 1) {
             Sleep(1000)
         }
-        ShowOverlay("開始！", 1000)
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to show countdown overlay: " . e.Message)
     }
+    
+    countdownGui.Destroy()
 }
 
-; 基本的なモニター情報取得
-GetMonitorInfo() {
-    try {
-        monitors := Map()
-        monitors["primary"] := Map(
-            "left", 0,
-            "top", 0,
-            "right", A_ScreenWidth,
-            "bottom", A_ScreenHeight,
-            "width", A_ScreenWidth,
-            "height", A_ScreenHeight,
-            "centerX", A_ScreenWidth // 2,
-            "centerY", A_ScreenHeight // 2
-        )
-        return monitors
-        
-    } catch as e {
-        LogError("VisualDetection", "Failed to get monitor info: " . e.Message)
-        return Map()
-    }
-}
+; GetMonitorInfo function removed - using Core/WindowManager.ahk version instead
