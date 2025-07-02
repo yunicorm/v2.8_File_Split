@@ -1,8 +1,39 @@
-# Path of Exile マクロ v2.9.5 - 開発者向けドキュメント
+# Path of Exile マクロ v2.9.6 - 開発者向けドキュメント
 
 ## プロジェクト概要
 
-Path of Exileマクロは、「Wine of the Prophet」ビルド向けに特化した自動化ツールです。v2.9.5では楕円形フラスコ検出システムを実装し、従来の矩形検出から精度を大幅に向上させました。
+Path of Exileマクロは、「Wine of the Prophet」ビルド向けに特化した自動化ツールです。v2.9.6では、フラスコ位置設定システムの大幅な強化を実装し、操作性とユーザビリティを飛躍的に向上させました。
+
+### v2.9.6 (2025-01-02) - フラスコ位置設定システム革新
+**重要**: 本バージョンで実装されたシステムは、フラスコ設定の操作性を根本的に改善します。
+
+#### アーキテクチャ刷新
+- **Utils/Coordinates.ahk統合**: GetDetailedMonitorInfo()によるマルチモニター対応
+- **順次設定システム**: 5つ同時表示から各フラスコ個別設定への変更
+- **視覚的ガイドシステム**: 複数のオーバーレイによる直感的操作
+
+#### 新機能アーキテクチャ詳細
+```
+フラスコ設定システム v2.9.6
+├── 座標計算層
+│   ├── GetMonitorInfo() - 3440x1440モニター自動検出
+│   ├── CalculateFlaskSlotPositions() - PoE配置推定
+│   └── 解像度スケーリング対応
+├── 視覚ガイド層  
+│   ├── フラスコ番号表示 (24pt白文字)
+│   ├── 設定完了視覚化 (緑色楕円)
+│   ├── ガイドライン表示 (黄色点線)
+│   └── 境界警告 (赤色警告枠)
+├── 操作システム層
+│   ├── プリセット機能 (5種類)
+│   ├── 一括調整機能 (Shift/Ctrl+キー)
+│   ├── グリッドスナップ (10px単位)
+│   └── ヘルプシステム
+└── 設定管理層
+    ├── 相対座標保存システム
+    ├── インポート/エクスポート
+    └── カスタムプリセット
+```
 
 ### v2.9.5 (2025-01-02)
 - フラスコ検出エリアを楕円形に変更
@@ -652,3 +683,241 @@ gui.SetFont()                                    // デフォルトに戻す
 - 起動時: INIファイルから設定を読み込む
 - 実行時: ConfigManager経由で設定を更新
 - フォールバック: 読み込み失敗時のデフォルト値を用意
+
+## v2.9.6 詳細実装ガイド
+
+### 1. フラスコ位置設定システムアーキテクチャ
+
+#### 主要関数詳細
+
+**Features/VisualDetection.ahk:569-782**
+```ahk
+ShowPresetMenu()              // プリセット選択GUI
+ApplyPreset(presetType)       // プリセット適用
+SaveCustomPreset()            // カスタムプリセット保存
+```
+
+**座標計算システム**
+```ahk
+GetMonitorInfo()                    // Utils/Coordinates.ahk統合
+CalculateFlaskSlotPositions()       // PoE配置推定
+ConvertRelativeToAbsolute()         // 座標変換
+LoadFlaskPosition()                 // 相対座標読み込み
+```
+
+**視覚ガイドシステム**
+```ahk
+CreateFlaskNumberOverlay()          // 番号表示（24pt白文字）
+CreateCompletedFlaskOverlay()       // 設定完了視覚化
+CreateGuidelineOverlays()           // ガイドライン（黄色点線）
+CheckBoundaryWarning()              // 境界警告（赤枠）
+```
+
+#### 新しいグローバル変数
+```ahk
+global g_current_single_overlay := ""       // 現在のフラスコオーバーレイ
+global g_flask_number_overlay := ""         // 番号表示オーバーレイ
+global g_completed_flask_overlays := []     // 完了フラスコ配列
+global g_guideline_overlays := []           // ガイドライン配列
+global g_boundary_warning_overlay := ""     // 境界警告オーバーレイ
+global g_grid_snap_enabled := false         // グリッドスナップ状態
+global g_preset_menu_gui := ""              // プリセットメニューGUI
+global g_help_overlay_gui := ""             // ヘルプオーバーレイGUI
+```
+
+### 2. 一括調整機能の実装詳細
+
+#### BatchMoveAllFlasks(dx, dy)
+```ahk
+// 全フラスコを同時移動
+// 既存設定を読み込み → 新座標計算 → 保存 → 視覚的フィードバック
+```
+
+#### BatchAdjustSpacing(spacingChange)
+```ahk
+// フラスコ間隔の一括調整
+// Flask1を基準点として、間隔を再計算
+// 最小50px制限、Flask2との距離で現在間隔を計算
+```
+
+#### BatchResizeAllFlasks(dw, dh)
+```ahk
+// 全フラスコサイズの一括変更
+// 最小40px制限、個別に新サイズを保存
+```
+
+### 3. プリセットシステムの設計
+
+#### プリセット種類
+```ahk
+"standard"  // 標準左下: X=100, Y=1350, 間隔=80px
+"center"    // 中央下: 画面中央から左右対称配置
+"right"     // 右下: 右端から500px内側
+"current"   // 現在設定: Config.iniから読み込み
+```
+
+#### カスタムプリセット保存
+```ini
+[VisualDetection]
+# 通常設定
+Flask1X=100
+Flask1Y=1350
+
+# カスタムプリセット
+CustomFlask1X=150
+CustomFlask1Y=1300
+```
+
+### 4. アニメーションシステム
+
+#### StartTransitionAnimation()
+```ahk
+// 300ms、60FPS、ease-out関数
+// progress計算: easedProgress := 1 - (1 - progress)**3
+// フレーム間隔: 16ms
+// エラー時フォールバック: 直接移動
+```
+
+### 5. 座標管理システムの改善
+
+#### 相対座標システム
+```ahk
+// 保存時: 絶対座標 → 中央モニター相対座標
+SaveSingleFlaskPosition(flaskNumber, absoluteX, absoluteY, width, height)
+
+// 読み込み時: 相対座標 → 絶対座標
+LoadFlaskPosition(flaskNumber) 
+```
+
+#### 解像度スケーリング
+```ahk
+// 3440x1440以外の環境での自動スケーリング
+scaleX := centralMonitor["width"] / 3440.0
+scaleY := centralMonitor["height"] / 1440.0
+```
+
+### 6. ヘルプシステムの実装
+
+#### ShowHelpOverlay()
+```ahk
+// 包括的操作ガイド
+// - 基本操作（位置・サイズ調整）
+// - 一括操作（Shift/Ctrl修飾キー）
+// - 便利機能（プリセット・I/E・グリッド）
+// - 視覚ガイド説明
+// - プリセット種類
+```
+
+### 7. エラーハンドリングパターン
+
+#### モニター検出失敗時
+```ahk
+// フォールバック処理
+monitors["central"] := Map(
+    "left", 0, "top", 0, "right", A_ScreenWidth, "bottom", A_ScreenHeight,
+    "width", A_ScreenWidth, "height", A_ScreenHeight, 
+    "centerX", A_ScreenWidth // 2, "centerY", A_ScreenHeight // 2
+)
+```
+
+#### アニメーション失敗時
+```ahk
+// 直接配置フォールバック
+CreateSingleFlaskOverlay(endX, endY, flaskNumber)
+```
+
+### 8. パフォーマンス最適化
+
+#### GUI管理の最適化
+- オーバーレイの適切な削除・再利用
+- ガイドラインの効率的な再描画
+- アニメーション中の重複処理防止
+
+#### メモリ効率
+- 不要なオーバーレイの自動削除（3-5秒後）
+- 大きな配列の適切なクリア処理
+- Map使用による高速アクセス
+
+### 9. 移行ガイド（v2.9.5 → v2.9.6）
+
+#### 新機能の利用方法
+```ahk
+// プリセット使用
+ShowPresetMenu()              // Pキー
+ApplyPreset("standard")       // 標準配置適用
+
+// 一括調整
+BatchMoveAllFlasks(0, -10)    // Shift+Up
+BatchAdjustSpacing(5)         // Ctrl+]
+
+// 設定管理
+ImportFlaskSettings()         // Iキー
+ExportFlaskSettings()         // Eキー
+```
+
+#### 互換性
+- **完全後方互換**: 既存のConfig.ini形式を維持
+- **API保持**: 既存の関数・変数名は変更なし
+- **ホットキー追加**: 新機能のみ追加、既存は保持
+
+### 10. 開発継続のための注意点
+
+#### GUI開発の重要ポイント
+```ahk
+// AutoHotkey v2 GUI制約
+gui.Add("Type", "Options", "Text")  // 必ず3パラメータ
+gui.SetFont("Bold")                 // フォントは事前設定
+gui.Add("Text", "x10 y10", "テキスト")  // 正しい順序
+```
+
+#### 楕円形オーバーレイの管理
+```ahk
+// Windows API使用
+hRgn := DllCall("CreateEllipticRgn", "int", 0, "int", 0, 
+                "int", width, "int", height)
+DllCall("SetWindowRgn", "ptr", gui.Hwnd, "ptr", hRgn, "int", true)
+```
+
+#### 座標計算の精度
+```ahk
+// 中心座標での計算を基本とする
+centerX := guiX + (guiW // 2)
+centerY := guiY + (guiH // 2)
+
+// グリッドスナップ
+if (g_grid_snap_enabled) {
+    centerX := Round(centerX / 10) * 10
+    centerY := Round(centerY / 10) * 10
+}
+```
+
+### 11. 今後の拡張ポイント
+
+#### 追加予定機能
+1. **フラスコタイプ別プリセット**: Life/Mana/Unique用の形状プリセット
+2. **自動位置検出**: OCRによるフラスコ位置の自動検出
+3. **設定同期**: クラウド経由でのプリセット共有
+4. **アニメーション拡張**: より豊富な移行エフェクト
+
+#### 最適化案
+1. **描画効率化**: オーバーレイの再利用パターン
+2. **メモリ管理**: 大量のGUIオブジェクト管理の最適化
+3. **応答性向上**: アニメーション中の操作応答性改善
+
+### 12. デバッグガイド
+
+#### 新機能のデバッグ方法
+```ahk
+// ログレベル設定
+LogDebug("VisualDetection", "Detailed operation info")
+LogInfo("VisualDetection", "Key operations")
+LogError("VisualDetection", "Error with context")
+```
+
+#### トラブルシューティング
+1. **プリセット適用失敗**: モニター検出の確認
+2. **アニメーション不調**: タイマー競合の確認
+3. **座標保存失敗**: ConfigManager権限の確認
+4. **オーバーレイ表示異常**: GUI作成エラーのログ確認
+
+このv2.9.6の実装により、フラスコ位置設定は初心者から上級者まで対応する包括的なシステムとなり、Path of Exileマクロの使いやすさが大幅に向上しました。
