@@ -10,6 +10,7 @@
 #Include "VisualDetection/TestingTools.ahk"
 #Include "Flask/FlaskOverlay.ahk"
 #Include "Flask/FlaskDetection.ahk"
+#Include "Flask/FlaskPatternCapture.ahk"
 #Include "Wine/WineDetection.ahk"
 #Include "Tincture/TinctureDetection.ahk"
 

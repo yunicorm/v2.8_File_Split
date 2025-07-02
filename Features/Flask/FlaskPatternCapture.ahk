@@ -112,15 +112,43 @@ CaptureFlaskPattern(flaskNumber) {
             return false
         }
         
-        ; Capture the pattern using FindText
-        result := CaptureFlaskPatternImage(flaskX, flaskY, flaskWidth, flaskHeight, flaskNumber)
+        ; Show capture area visualization
+        ShowCaptureAreaOverlay(flaskX, flaskY, flaskWidth, flaskHeight, flaskNumber)
         
-        if (result) {
-            ; Store the pattern
-            g_pattern_capture_state["patterns"][Format("Flask{}", flaskNumber)] := result
+        ; Get FindText instance
+        ft := g_visual_detection_state["findtext_instance"]
+        if (!ft) {
+            ; Initialize FindText if not available
+            ft := FindText()
+            g_visual_detection_state["findtext_instance"] := ft
+        }
+        
+        ; Calculate capture area
+        left := flaskX - flaskWidth // 2
+        top := flaskY - flaskHeight // 2
+        right := flaskX + flaskWidth // 2
+        bottom := flaskY + flaskHeight // 2
+        
+        ; Show countdown
+        ShowOverlay("3秒後にパターンをキャプチャします...", 3000)
+        Sleep(3000)
+        
+        ; Capture pattern using FindText
+        pattern := ft.GetTextFromScreen(left, top, right, bottom, "*150")
+        
+        if (pattern && pattern != "") {
+            ; Store pattern in state
+            if (!g_pattern_capture_state.Has("patterns")) {
+                g_pattern_capture_state["patterns"] := Map()
+            }
+            g_pattern_capture_state["patterns"][Format("Flask{}", flaskNumber)] := pattern
             
-            ShowOverlay(Format("Flask{} パターンをキャプチャしました", flaskNumber), 2000)
-            LogInfo("PatternCapture", Format("Flask{} pattern captured successfully", flaskNumber))
+            ; Save pattern to config
+            ConfigManager.Set("VisualDetection", Format("Flask{}ChargedPattern", flaskNumber), pattern)
+            ConfigManager.Save()
+            
+            ShowOverlay(Format("Flask{} パターンを保存しました", flaskNumber), 2000)
+            LogInfo("PatternCapture", Format("Flask{} pattern captured and saved", flaskNumber))
             
             ; Update overlay to show progress
             UpdatePatternCaptureProgress()
@@ -128,7 +156,7 @@ CaptureFlaskPattern(flaskNumber) {
             return true
         } else {
             ShowOverlay(Format("Flask{} パターンキャプチャに失敗しました", flaskNumber), 3000)
-            LogError("PatternCapture", Format("Failed to capture Flask{} pattern", flaskNumber))
+            LogError("PatternCapture", Format("Failed to capture Flask{} pattern - no data returned", flaskNumber))
             return false
         }
         
@@ -139,34 +167,63 @@ CaptureFlaskPattern(flaskNumber) {
     }
 }
 
-; Capture pattern image using screen capture
-CaptureFlaskPatternImage(x, y, width, height, flaskNumber) {
+; Show capture area visualization overlay
+ShowCaptureAreaOverlay(centerX, centerY, width, height, flaskNumber) {
+    static captureGui := ""
+    static textGui := ""
+    
+    ; Clean up existing overlays
+    if (captureGui) {
+        try captureGui.Destroy()
+        captureGui := ""
+    }
+    if (textGui) {
+        try textGui.Destroy()
+        textGui := ""
+    }
+    
     try {
-        ; Calculate capture area with some padding
-        padding := 5
-        captureX := x - padding
-        captureY := y - padding
-        captureWidth := width + (padding * 2)
-        captureHeight := height + (padding * 2)
+        ; Create border overlay
+        captureGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
+        captureGui.BackColor := "0xFF0000"  ; Red color
         
-        ; Use FindText to capture the pattern
-        ; This creates a pattern string that can be used for detection
-        patternString := FindText().GetTextFromScreen(captureX, captureY, captureX + captureWidth, captureY + captureHeight, 0, 0)
+        ; Calculate position for border
+        left := centerX - width // 2
+        top := centerY - height // 2
         
-        if (patternString != "") {
-            ; Save pattern to config for persistence
-            ConfigManager.Set("FlaskPatterns", Format("Flask{}Pattern", flaskNumber), patternString)
-            
-            LogInfo("PatternCapture", Format("Flask{} pattern saved: {} chars", flaskNumber, StrLen(patternString)))
-            return patternString
-        } else {
-            LogWarn("PatternCapture", Format("No pattern captured for Flask{}", flaskNumber))
-            return ""
-        }
+        ; Show border GUI
+        captureGui.Show(Format("x{} y{} w{} h{} NoActivate", left, top, width, height))
+        WinSetTransparent(120, captureGui)
+        
+        ; Create number overlay
+        textGui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
+        textGui.SetFont("s20 Bold", "Arial")
+        textGui.Add("Text", "cWhite Center", flaskNumber)
+        
+        ; Show number at center
+        textGui.Show(Format("x{} y{} w50 h30 NoActivate", centerX - 25, centerY - 15))
+        WinSetTransparent(200, textGui)
+        
+        ; Auto-remove after 3 seconds
+        SetTimer(() => {
+            try {
+                if (captureGui) {
+                    captureGui.Destroy()
+                    captureGui := ""
+                }
+                if (textGui) {
+                    textGui.Destroy()
+                    textGui := ""
+                }
+            } catch {
+                ; Ignore cleanup errors
+            }
+        }, -3000)
+        
+        LogInfo("PatternCapture", Format("Showing capture area for Flask{}", flaskNumber))
         
     } catch as e {
-        LogError("PatternCapture", Format("Error capturing Flask{} image: {}", flaskNumber, e.Message))
-        return ""
+        LogError("PatternCapture", Format("Failed to show capture area: {}", e.Message))
     }
 }
 
@@ -185,7 +242,8 @@ CaptureAllFlaskPatterns() {
         ; Set to auto mode
         g_pattern_capture_state["capture_mode"] := "auto"
         
-        ShowOverlay("すべてのフラスコのパターンをキャプチャします...", 2000)
+        ShowOverlay("5つのフラスコを順番にキャプチャします", 3000)
+        Sleep(3000)
         
         successCount := 0
         failureCount := 0
@@ -194,11 +252,11 @@ CaptureAllFlaskPatterns() {
         Loop 5 {
             flaskNumber := A_Index
             
-            ShowOverlay(Format("Flask{} をキャプチャ中...", flaskNumber), 1000)
-            Sleep(1000)  ; Give user time to see the message
+            ShowOverlay(Format("Flask{} をキャプチャ中... ({}/5)", flaskNumber, flaskNumber), 1000)
             
             if (CaptureFlaskPattern(flaskNumber)) {
                 successCount++
+                LogInfo("PatternCapture", Format("Flask{} captured successfully in sequential mode", flaskNumber))
             } else {
                 failureCount++
             }
@@ -294,35 +352,5 @@ StopFlaskPatternCapture() {
     }
 }
 
-; Clear all captured patterns
-ClearAllFlaskPatterns() {
-    global g_pattern_capture_state
-    
-    try {
-        LogInfo("PatternCapture", "Clearing all flask patterns")
-        
-        ; Clear from memory
-        if (g_pattern_capture_state.Has("patterns")) {
-            g_pattern_capture_state["patterns"] := Map()
-        }
-        
-        ; Clear from config
-        Loop 5 {
-            flaskNumber := A_Index
-            ConfigManager.Set("FlaskPatterns", Format("Flask{}Pattern", flaskNumber), "")
-        }
-        
-        ; Save changes
-        ConfigManager.Save()
-        
-        ShowOverlay("すべてのフラスコパターンをクリアしました", 2000)
-        LogInfo("PatternCapture", "All flask patterns cleared")
-        
-        return true
-        
-    } catch as e {
-        LogError("PatternCapture", "Error clearing flask patterns: " . e.Message)
-        ShowOverlay("パターンクリアエラー: " . e.Message, 3000)
-        return false
-    }
-}
+; Note: ClearAllFlaskPatterns() is defined in Wine/WineDetection.ahk
+; This module only provides pattern capture functionality

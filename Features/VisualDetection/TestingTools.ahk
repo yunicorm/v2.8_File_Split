@@ -464,32 +464,148 @@ ClearTestData() {
     }
 }
 
-; Toggle visual detection test mode
+; Global variables for real-time testing
+global g_visual_test_timer := ""
+global g_test_overlay_gui := ""
+
+; Toggle visual detection test mode with real-time detection
 ToggleVisualDetectionTestMode() {
-    global g_test_session
+    global g_test_session, g_visual_test_timer, g_test_overlay_gui
+    static testMode := false
+    
     try {
-        if (!g_test_session.Has("started")) {
-            g_test_session["started"] := false
-        }
+        testMode := !testMode
+        ConfigManager.Set("VisualDetection", "TestMode", testMode ? "true" : "false")
         
-        if (g_test_session["started"]) {
-            ; テストモードを終了
-            EndTestSession()
-            ShowOverlay("視覚検出テストモード: OFF", 2000)
-            LogInfo("TestingTools", "Visual detection test mode disabled")
+        if (testMode) {
+            ; Start test mode with real-time detection
+            ShowOverlay("テストモード: ON - リアルタイム検出開始", 2000)
+            LogInfo("TestingTools", "Real-time visual detection test mode enabled")
+            
+            ; Start real-time detection timer
+            g_visual_test_timer := SetTimer(PerformTestDetection, 250)
+            
+            ; Initialize test session if needed
+            if (!g_test_session.Has("started")) {
+                StartTestSession()
+            }
         } else {
-            ; テストモードを開始
-            StartTestSession()
-            ShowOverlay("視覚検出テストモード: ON", 2000)
-            LogInfo("TestingTools", "Visual detection test mode enabled")
+            ; Stop test mode
+            ShowOverlay("テストモード: OFF", 2000)
+            LogInfo("TestingTools", "Real-time visual detection test mode disabled")
+            
+            ; Stop timer
+            if (g_visual_test_timer) {
+                SetTimer(g_visual_test_timer, 0)
+                g_visual_test_timer := ""
+            }
+            
+            ; Cleanup overlay
+            if (g_test_overlay_gui) {
+                try g_test_overlay_gui.Destroy()
+                g_test_overlay_gui := ""
+            }
+            
+            ; End test session
+            if (g_test_session.Has("started") && g_test_session["started"]) {
+                EndTestSession()
+            }
         }
         
-        return true
+        return testMode
         
     } catch as e {
         LogError("TestingTools", "Failed to toggle test mode: " . e.Message)
         ShowOverlay("テストモード切り替えエラー: " . e.Message, 3000)
         return false
+    }
+}
+
+; Perform real-time test detection
+PerformTestDetection() {
+    global g_test_overlay_gui
+    
+    try {
+        results := []
+        
+        ; Test each flask's detection status
+        Loop 5 {
+            flaskNumber := A_Index
+            
+            ; Get flask coordinates
+            x := ConfigManager.Get("VisualDetection", Format("Flask{}X", flaskNumber), 0)
+            y := ConfigManager.Get("VisualDetection", Format("Flask{}Y", flaskNumber), 0)
+            
+            if (x == 0 || y == 0) {
+                results.Push(Format("Flask{}: 未設定", flaskNumber))
+                continue
+            }
+            
+            ; Check if flask has saved pattern
+            pattern := ConfigManager.Get("VisualDetection", Format("Flask{}ChargedPattern", flaskNumber), "")
+            if (pattern == "") {
+                results.Push(Format("Flask{}: パターン無", flaskNumber))
+                continue
+            }
+            
+            ; Perform detection (simplified for testing)
+            try {
+                ; Use existing detection function if available
+                if (IsSet(DetectFlaskCharge)) {
+                    result := DetectFlaskCharge(flaskNumber)
+                    switch result {
+                        case 1: results.Push(Format("Flask{}: 充填", flaskNumber))
+                        case 0: results.Push(Format("Flask{}: 空", flaskNumber))
+                        case -1: results.Push(Format("Flask{}: エラー", flaskNumber))
+                        default: results.Push(Format("Flask{}: 不明", flaskNumber))
+                    }
+                } else {
+                    results.Push(Format("Flask{}: 検出不可", flaskNumber))
+                }
+            } catch {
+                results.Push(Format("Flask{}: 検出エラー", flaskNumber))
+            }
+        }
+        
+        ; Update test overlay with results
+        UpdateTestOverlay(results)
+        
+    } catch as e {
+        LogError("TestingTools", "Real-time detection error: " . e.Message)
+    }
+}
+
+; Update or create test overlay with detection results
+UpdateTestOverlay(results) {
+    global g_test_overlay_gui
+    
+    try {
+        ; Create overlay if it doesn't exist
+        if (!g_test_overlay_gui) {
+            g_test_overlay_gui := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x20")
+            g_test_overlay_gui.BackColor := "0x1E1E1E"
+            g_test_overlay_gui.SetFont("s12", "Consolas")
+            
+            ; Add text control for results
+            g_test_overlay_gui.Add("Text", "cLime vResultText w250 h120", "")
+            
+            ; Position at top-right corner
+            g_test_overlay_gui.Show("x3190 y10 w250 h120 NoActivate")
+            WinSetTransparent(220, g_test_overlay_gui)
+        }
+        
+        ; Build result text
+        text := "=== リアルタイム検出 ===`n"
+        for result in results {
+            text .= result . "`n"
+        }
+        text .= Format("更新: {}", FormatTime(, "HH:mm:ss"))
+        
+        ; Update text
+        g_test_overlay_gui["ResultText"].Text := text
+        
+    } catch as e {
+        LogError("TestingTools", "Failed to update test overlay: " . e.Message)
     }
 }
 
